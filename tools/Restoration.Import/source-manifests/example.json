@@ -1,0 +1,11 @@
+{
+  "gameId": "{{GAME_ID}}",
+  "sourceEdition": "replace-with-supported-edition",
+  "files": [
+    {
+      "path": "REPLACE.ME",
+      "size": 0,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

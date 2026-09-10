@@ -1,0 +1,52 @@
+name: Continuous integration
+on:
+  workflow_dispatch:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-15]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: kibertoad/toad-discovery-center/actions/verify-repository@a72589ed38014aa7eb543bef3882b209ea2becba
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.400
+      - run: dotnet restore Restoration.slnx
+      - run: dotnet build Restoration.slnx --no-restore -v minimal
+      - run: dotnet test --project tests/Restoration.Tests/Restoration.Tests.csproj --no-restore --no-progress -v minimal
+      - run: dotnet publish src/Restoration.Game/Restoration.Game.csproj --no-restore -c Release --output artifacts/assetless-game -v minimal
+      - run: dotnet artifacts/assetless-game/Restoration.Game.dll --smoke-test
+      - name: Prove original content is absent
+        shell: pwsh
+        run: if (Test-Path artifacts/assetless-game/UserContent) { throw 'Assetless package contains UserContent.' }
+  installer:
+    needs: verify
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.400
+      - uses: kibertoad/toad-discovery-center/actions/setup-inno@a72589ed38014aa7eb543bef3882b209ea2becba
+      - shell: pwsh
+        run: ./tools/Build-WindowsInstaller.ps1 -Compiler "$env:INNO_COMPILER"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-installer
+          path: artifacts/*-Setup-*.exe
+          if-no-files-found: error
