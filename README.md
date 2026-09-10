@@ -1,43 +1,56 @@
 # {{DISPLAY_NAME}}
 
-A clean-room MonoGame restoration. This repository contains no copyrighted assets
-from the original game. To use original audiovisual content, you must own a supported
-legal release and run the included importer against that copy.
+A clean-room MonoGame reimplementation of a classic game. This repository
+intentionally contains no copyrighted assets from the original game. You must
+own a supported legal copy; the included importer verifies that copy and builds
+a local content pack without modifying the original installation.
 
-> New repository checklist: run `./tools/Configure-Project.ps1`, replace the sample
-> source manifest, and work through `docs/BOOTSTRAP-CHECKLIST.md`.
+> New repository checklist: run `./tools/Configure-Project.ps1`, replace the
+> sample source manifest, customize this player-facing README, and complete
+> `docs/BOOTSTRAP-CHECKLIST.md`.
 
 ## Quick start
 
-Requirements: .NET 10 SDK and a supported original release from any lawful source.
+1. Install a supported, legally owned release of the original game.
+2. Download the latest {{DISPLAY_NAME}} installer from
+   [GitHub Releases]({{REPOSITORY_URL}}/releases/latest).
+3. During Setup, select the original installation and keep asset import enabled.
 
-```powershell
-dotnet run --project tools/Restoration.Import -- verify-source --source "C:\path\to\original"
-dotnet run --project tools/Restoration.Import -- import --source "C:\path\to\original"
-dotnet run --project tools/Restoration.Import -- verify-output
-dotnet run --project src/Restoration.Game
-```
+The installer contains no original assets. It verifies and imports the required
+content locally from the copy selected by the player.
 
-The importer compares every supported-edition manifest, writes an installed-content
-manifest into a staging directory, verifies the result, and only then replaces
-`UserContent`. Extracted content is ignored by Git and
-must not be redistributed. Source discovery is deliberately storefront-agnostic;
-add edition-specific adapters only after fingerprint verification is established.
+## Current status
 
-## Projects
+| Area | Supported now | Current limitations |
+|---|---|---|
+| Installation and assets | Windows, Linux, and macOS packages include an importer for supported legal releases. | Original assets are never bundled; release packages are unsigned by default. |
+| Gameplay | Describe the currently playable end-to-end slice here. | List material missing or provisional behavior here. |
+| Saves and compatibility | Describe native save, replay, and migration support here. | State compatibility guarantees and unsupported original formats here. |
+| Presentation | Describe restored graphics, audio, controls, and scaling here. | List presentation work still awaiting parity validation here. |
 
-- `Restoration.Core`: deterministic rules and serializable state.
-- `Restoration.Resources`: bounded binary parsing and original-content contracts.
-- `Restoration.Game`: MonoGame DesktopGL presentation with assetless smoke modes.
-- `Restoration.Import`: legal-copy verification and transactional extraction.
-- `Restoration.Inspect`: read-only inventory and research output.
-- `Restoration.Tests`: initial architecture and safety tests.
+## Controls
 
-Build and test with `./tools/Test.ps1`. Build a clean Windows package with
-`./tools/Publish-Windows.ps1`; build the Inno Setup 7 installer with
-`./tools/Build-WindowsInstaller.ps1 -Version 0.1.0`.
-Native-host Linux `.deb` and macOS `.pkg` builders are also included for projects
-that choose to ship those platforms.
+Document the keyboard, mouse, and controller mappings that players need. A
+compact table works well once the playable interaction model is established.
 
-Shared guidance and libraries live in
-[`toad-discovery-center`](https://github.com/kibertoad/toad-discovery-center).
+## Acknowledgements
+
+Credit the original creators and publishers, reverse-engineering research, and
+other sources that materially helped the clean-room restoration. Do not imply
+that those parties endorse this project.
+
+This project copies no source code and redistributes no copyrighted resources
+from the original game. Players must import those resources locally from a
+legally owned copy.
+
+## License
+
+Copyright (C) {{COPYRIGHT_YEAR}} {{COPYRIGHT_HOLDER}}.
+
+The original code in this repository is licensed under the
+[GNU General Public License v3.0](LICENSE). The license does not cover or grant
+rights to original-game assets, which are not distributed by this project.
+
+Developer setup is documented in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md),
+and packaging and releases are documented in
+[docs/RELEASING.md](docs/RELEASING.md).

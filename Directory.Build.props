@@ -5,7 +5,9 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <!-- Keep NuGet auditing enabled, but do not turn an unreachable advisory
+         service into a compiler error after dependencies have been restored. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900</WarningsNotAsErrors>
-    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
   </PropertyGroup>
 </Project>

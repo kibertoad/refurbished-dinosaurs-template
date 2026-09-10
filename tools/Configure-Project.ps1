@@ -9,6 +9,11 @@ param(
     [string] $PackageId,
     [string] $AppDataDirectory,
     [string] $BundleId,
+    [string] $ShortcutName,
+    [string] $Publisher = 'kibertoad',
+    [string] $CopyrightHolder,
+    [int] $CopyrightYear = (Get-Date).Year,
+    [string] $RepositoryUrl,
     [guid] $AppId = [guid]::NewGuid()
 )
 $ErrorActionPreference = 'Stop'
@@ -17,6 +22,9 @@ if (-not $GameId) { $GameId = $ProjectName.ToLowerInvariant() }
 if (-not $PackageId) { $PackageId = $ProjectName }
 if (-not $AppDataDirectory) { $AppDataDirectory = $ProjectName }
 if (-not $BundleId) { $BundleId = "io.github.kibertoad.$($GameId -replace '[^a-zA-Z0-9.]','')" }
+if (-not $ShortcutName) { $ShortcutName = $DisplayName -replace '[:\\/*?"<>|]', '-' }
+if (-not $CopyrightHolder) { $CopyrightHolder = $Publisher }
+if (-not $RepositoryUrl) { $RepositoryUrl = "https://github.com/kibertoad/$GameId" }
 $replacements = [ordered]@{
     '{{DISPLAY_NAME}}' = $DisplayName
     '{{GAME_ID}}' = $GameId
@@ -24,10 +32,16 @@ $replacements = [ordered]@{
     '{{APP_DATA_DIRECTORY}}' = $AppDataDirectory
     '{{APP_ID}}' = $AppId.ToString('B').ToUpperInvariant()
     '{{BUNDLE_ID}}' = $BundleId
+    '{{SHORTCUT_NAME}}' = $ShortcutName
+    '{{PUBLISHER}}' = $Publisher
+    '{{COPYRIGHT_HOLDER}}' = $CopyrightHolder
+    '{{COPYRIGHT_YEAR}}' = $CopyrightYear.ToString()
+    '{{REPOSITORY_URL}}' = $RepositoryUrl.TrimEnd('/')
 }
 $extensions = @('.cs','.csproj','.slnx','.md','.json','.ps1','.bat','.iss','.yml','.yaml','.props','.targets')
 foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object {
-    $_.FullName -notlike '*\.git\*' -and $extensions -contains $_.Extension
+    $_.FullName -notlike '*\.git\*' -and
+        ($extensions -contains $_.Extension -or $_.Name -eq 'NOTICE')
 }) {
     $content = Get-Content -LiteralPath $file.FullName -Raw
     foreach ($entry in $replacements.GetEnumerator()) { $content = $content.Replace($entry.Key, $entry.Value) }

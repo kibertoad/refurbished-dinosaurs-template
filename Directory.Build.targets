@@ -19,7 +19,13 @@
         {
             var lineCount = 0;
             using (var reader = new StreamReader(file.GetMetadata("FullPath")))
-                while (reader.ReadLine() is not null) lineCount++;
+            {
+                while (reader.ReadLine() is not null)
+                {
+                    lineCount++;
+                }
+            }
+
             if (lineCount <= MaximumLines) continue;
             var result = new Microsoft.Build.Utilities.TaskItem(file.ItemSpec);
             result.SetMetadata("LineCount", lineCount.ToString());
@@ -29,7 +35,9 @@
       ]]></Code>
     </Task>
   </UsingTask>
-  <Target Name="EnforceSourceFileLineLimit" BeforeTargets="CoreCompile"
+
+  <Target Name="EnforceSourceFileLineLimit"
+          BeforeTargets="CoreCompile"
           Condition="'$(DisableSourceFileLineLimit)' != 'true'">
     <FindOversizedSourceFiles Files="@(Compile)" MaximumLines="$(MaximumSourceFileLines)">
       <Output TaskParameter="OversizedFiles" ItemName="_OversizedSourceFile" />

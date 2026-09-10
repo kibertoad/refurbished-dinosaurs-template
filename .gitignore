@@ -12,3 +12,11 @@ reference/original/
 *.rep/
 *.user
 *.suo
+*.binlog
+*.nupkg
+*.snupkg
+.env
+CodeCoverage/
+coverage/
+~$*
+*~

@@ -6,6 +6,14 @@ on:
         description: Semantic version to tag, for example 0.1.0
         required: true
         type: string
+      installers:
+        description: Installer platforms to build
+        required: true
+        default: windows
+        type: choice
+        options:
+          - windows
+          - all
 permissions: {}
 concurrency:
   group: release-${{ github.workflow }}-${{ inputs.tag }}
@@ -66,6 +74,25 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: ./tools/Build-WindowsInstaller.ps1 -Version $env:RELEASE_VERSION -Compiler "$env:INNO_COMPILER"
+      - name: Smoke-test installed layout and shortcut
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'restoration-release-install-test'
+          $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
+          $setup = Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
+          if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
+          $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\{{SHORTCUT_NAME}}\{{SHORTCUT_NAME}}.lnk'
+          if (-not (Test-Path -LiteralPath $shortcut)) { throw "Start menu shortcut is missing: $shortcut" }
+          $link = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut)
+          $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target 'Game/Restoration.Game.exe'))
+          if ($link.TargetPath -ne $expectedTarget) { throw "Shortcut target is invalid: '$($link.TargetPath)'." }
+          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -Wait -PassThru -WindowStyle Hidden
+          if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
+          $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
+          if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
+          if (Test-Path -LiteralPath $shortcut) { throw "Uninstaller left the Start menu shortcut behind: $shortcut" }
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-windows-x64
@@ -73,6 +100,7 @@ jobs:
           if-no-files-found: error
   linux:
     needs: [prepare, test]
+    if: ${{ inputs.installers == 'all' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -95,6 +123,7 @@ jobs:
           if-no-files-found: error
   macos:
     needs: [prepare, test]
+    if: ${{ inputs.installers == 'all' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -126,6 +155,14 @@ jobs:
           if-no-files-found: error
   release:
     needs: [prepare, windows, linux, macos]
+    if: >-
+      ${{
+        always() &&
+        needs.prepare.result == 'success' &&
+        needs.windows.result == 'success' &&
+        (inputs.installers == 'windows' ||
+          (needs.linux.result == 'success' && needs.macos.result == 'success'))
+      }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,9 +180,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+          RELEASE_INSTALLERS: ${{ inputs.installers }}
         run: |
           $assets = @(Get-ChildItem release-assets -File)
-          if ($assets.Count -ne 4) { throw "Expected four installers; found $($assets.Count)." }
+          $expected = if ($env:RELEASE_INSTALLERS -eq 'all') { 4 } else { 1 }
+          if ($assets.Count -ne $expected) { throw "Expected $expected installer(s); found $($assets.Count)." }
           $commit = git rev-parse HEAD
           $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" -f "object=$commit" -f type=commit --jq .sha
           if ($LASTEXITCODE -ne 0) { throw 'Could not create annotated tag object.' }

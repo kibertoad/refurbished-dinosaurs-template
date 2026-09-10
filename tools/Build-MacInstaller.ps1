@@ -21,6 +21,8 @@ New-Item -ItemType Directory -Path $mac,$tools -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $portable 'Game') | Copy-Item -Destination $mac -Recurse
 Get-ChildItem -LiteralPath (Join-Path $portable 'Tools') | Copy-Item -Destination $tools -Recurse
 Copy-Item -LiteralPath (Join-Path $portable 'README.md') -Destination $resources
+Copy-Item -LiteralPath (Join-Path $portable 'LICENSE') -Destination $resources
+Copy-Item -LiteralPath (Join-Path $portable 'NOTICE') -Destination $resources
 @"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

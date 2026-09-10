@@ -57,10 +57,22 @@ jobs:
           $target = Join-Path $env:RUNNER_TEMP 'restoration-install-test'
           $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
           if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
-          & (Join-Path $target 'Game/Restoration.Game.exe') --platform-smoke-test
-          if ($LASTEXITCODE -ne 0) { throw 'Installed platform smoke test failed.' }
+          $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\{{SHORTCUT_NAME}}\{{SHORTCUT_NAME}}.lnk'
+          if (-not (Test-Path -LiteralPath $shortcut)) { throw "Start menu shortcut is missing: $shortcut" }
+          $link = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut)
+          $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target 'Game/Restoration.Game.exe'))
+          if ($link.TargetPath -ne $expectedTarget -or [IO.Path]::GetExtension($link.TargetPath) -ne '.exe') {
+            throw "Shortcut target is invalid: '$($link.TargetPath)' (expected '$expectedTarget')."
+          }
+          foreach ($nativeLibrary in @('SDL2.dll', 'openal.dll')) {
+            $nativePath = Join-Path (Split-Path -Parent $link.TargetPath) $nativeLibrary
+            if (-not (Test-Path -LiteralPath $nativePath)) { throw "Installed native library is missing: $nativePath" }
+          }
+          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -Wait -PassThru -WindowStyle Hidden
+          if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
           $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
+          if (Test-Path -LiteralPath $shortcut) { throw "Uninstaller left the Start menu shortcut behind: $shortcut" }
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-installer
