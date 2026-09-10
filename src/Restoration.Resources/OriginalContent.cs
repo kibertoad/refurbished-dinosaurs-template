@@ -147,8 +147,10 @@ public static class OriginalContent
             }
             if (movedOld)
             {
-                Directory.Delete(backup, recursive: true);
-                movedOld = false;
+                try { Directory.Delete(backup, recursive: true); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+                finally { movedOld = false; }
             }
             return manifest;
         }
@@ -171,11 +173,18 @@ public static class OriginalContent
         if (manifest is null) return ["Manifest is empty."];
         var errors = new List<string>();
         if (manifest.FormatVersion != ImportFormatVersion) errors.Add("Unsupported import format version.");
+        if (string.IsNullOrWhiteSpace(manifest.GameId)) errors.Add("Manifest game identifier is missing.");
+        if (string.IsNullOrWhiteSpace(manifest.SourceEdition)) errors.Add("Manifest source edition is missing.");
+        if (!IsSha256(manifest.SourceFingerprintSha256)) errors.Add("Manifest source fingerprint is invalid.");
+        if (string.IsNullOrWhiteSpace(manifest.ImporterVersion)) errors.Add("Manifest importer version is missing.");
         if (manifest.Files is null || manifest.Files.Count == 0) errors.Add("Manifest has no files.");
         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in manifest.Files ?? [])
         {
-            if (file is null || !paths.Add(file.Path)) { errors.Add("Null or duplicate file record."); continue; }
+            if (file is null || string.IsNullOrWhiteSpace(file.Path) || !paths.Add(file.Path))
+            { errors.Add("Null, empty, or duplicate file record."); continue; }
+            if (file.Size < 0 || !IsSha256(file.Sha256))
+            { errors.Add($"Invalid size or hash: {file.Path}"); continue; }
             string target;
             try { target = SafeTarget(root, file.Path); }
             catch (InvalidDataException) { errors.Add($"Unsafe path: {file.Path}"); continue; }
@@ -187,6 +196,9 @@ public static class OriginalContent
         }
         return errors;
     }
+
+    private static bool IsSha256(string? value) =>
+        value is { Length: 64 } && value.All(Uri.IsHexDigit);
 
     private static string SafeTarget(string root, string relative)
     {
