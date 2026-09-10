@@ -1,7 +1,7 @@
 # Bootstrap checklist
 
 - [ ] Run `tools/Configure-Project.ps1 -ProjectName ... -DisplayName ...` once.
-- [ ] Replace the source manifest placeholder with fingerprints for every supported edition.
+- [ ] Replace the sample manifest and add one fingerprint manifest per supported edition.
 - [ ] Decide what may be clean-room/open data and what must remain user-imported.
 - [ ] Add explicit/manual source selection first; add storefront, registry, media, or archive discovery as optional adapters.
 - [ ] Implement read-only inventory in `Restoration.Inspect` before extraction.
@@ -13,5 +13,6 @@
 - [ ] Replace this checklist's `Restoration` names if configuration was intentionally skipped.
 - [ ] Fill in architecture, format, analysis, fidelity, validation, and implementation-plan docs.
 - [ ] Customize Inno Setup AppId, source experience, shortcuts, smoke tests, and uninstall behavior.
+- [ ] Customize Debian package name/dependencies and macOS bundle identifier/minimum version if shipping them.
 - [ ] Run assetless package inspection and installed executable tests on CI.
 - [ ] Remove this checklist when all project-specific decisions are captured elsewhere.

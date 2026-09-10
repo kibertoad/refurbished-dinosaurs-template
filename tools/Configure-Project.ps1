@@ -8,6 +8,7 @@ param(
     [string] $GameId,
     [string] $PackageId,
     [string] $AppDataDirectory,
+    [string] $BundleId,
     [guid] $AppId = [guid]::NewGuid()
 )
 $ErrorActionPreference = 'Stop'
@@ -15,12 +16,14 @@ $root = Split-Path -Parent $PSScriptRoot
 if (-not $GameId) { $GameId = $ProjectName.ToLowerInvariant() }
 if (-not $PackageId) { $PackageId = $ProjectName }
 if (-not $AppDataDirectory) { $AppDataDirectory = $ProjectName }
+if (-not $BundleId) { $BundleId = "io.github.kibertoad.$($GameId -replace '[^a-zA-Z0-9.]','')" }
 $replacements = [ordered]@{
     '{{DISPLAY_NAME}}' = $DisplayName
     '{{GAME_ID}}' = $GameId
     '{{PACKAGE_ID}}' = $PackageId
     '{{APP_DATA_DIRECTORY}}' = $AppDataDirectory
     '{{APP_ID}}' = $AppId.ToString('B').ToUpperInvariant()
+    '{{BUNDLE_ID}}' = $BundleId
 }
 $extensions = @('.cs','.csproj','.slnx','.md','.json','.ps1','.bat','.iss','.yml','.yaml','.props','.targets')
 foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object {

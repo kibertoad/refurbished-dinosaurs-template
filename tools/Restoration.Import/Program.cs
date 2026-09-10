@@ -9,23 +9,38 @@ static async Task<int> RunAsync(string[] args)
     {
         if (args.Length == 0 || args[0] is "--help" or "-h") return Usage();
         var command = args[0].ToLowerInvariant();
-        var source = Option(args, "--source");
         var output = Option(args, "--output") ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "{{APP_DATA_DIRECTORY}}", "UserContent");
-        if (command == "verify-output") { source = output; command = "verify-source"; }
-        if (string.IsNullOrWhiteSpace(source)) throw new ArgumentException("--source is required.");
-        var manifest = LoadManifest();
-        var errors = await OriginalContent.VerifyAsync(source, manifest);
-        if (errors.Count != 0)
+        var editions = LoadManifests();
+        if (command == "list-editions")
         {
-            foreach (var error in errors) Console.Error.WriteLine(error);
+            foreach (var edition in editions) Console.WriteLine(edition.SourceEdition);
+            return 0;
+        }
+        if (command == "verify-output")
+        {
+            var errors = await OriginalContent.VerifyInstalledAsync(output);
+            return Report(errors, $"Verified installed content at {output}");
+        }
+        var source = Option(args, "--source");
+        if (string.IsNullOrWhiteSpace(source)) throw new ArgumentException("--source is required.");
+        var identification = await OriginalContent.IdentifyAsync(source, editions);
+        if (!identification.IsSupported)
+        {
+            Console.Error.WriteLine("The source does not match a supported edition.");
+            foreach (var error in identification.Errors) Console.Error.WriteLine(error);
             return 2;
         }
-        if (command == "verify-source") { Console.WriteLine($"Verified {manifest.SourceEdition}."); return 0; }
+        if (command == "verify-source")
+        {
+            Console.WriteLine($"Verified {identification.Edition!.SourceEdition}.");
+            return 0;
+        }
         if (command != "import") return Usage();
-        await OriginalContent.CopyVerifiedAsync(source, output, manifest);
-        Console.WriteLine($"Installed verified original content at {output}");
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
+        var manifest = await OriginalContent.ImportAsync(source, output, identification.Edition!, version);
+        Console.WriteLine($"Installed {manifest.Files.Count} verified original files from {manifest.SourceEdition} at {output}");
         return 0;
     }
     catch (Exception exception)
@@ -35,12 +50,21 @@ static async Task<int> RunAsync(string[] args)
     }
 }
 
-static SourceManifest LoadManifest()
+static SourceManifest[] LoadManifests()
 {
     var assembly = Assembly.GetExecutingAssembly();
-    var name = assembly.GetManifestResourceNames().Single(x => x.EndsWith("example.json", StringComparison.Ordinal));
-    using var stream = assembly.GetManifestResourceStream(name)!;
-    return SourceManifest.Load(stream);
+    return assembly.GetManifestResourceNames()
+        .Where(name => name.EndsWith(".json", StringComparison.Ordinal))
+        .Order(StringComparer.Ordinal)
+        .Select(name => { using var stream = assembly.GetManifestResourceStream(name)!; return SourceManifest.Load(stream); })
+        .ToArray();
+}
+
+static int Report(IReadOnlyList<string> errors, string success)
+{
+    if (errors.Count == 0) { Console.WriteLine(success); return 0; }
+    foreach (var error in errors) Console.Error.WriteLine(error);
+    return 3;
 }
 
 static string? Option(string[] args, string name)
@@ -52,7 +76,8 @@ static string? Option(string[] args, string name)
 static int Usage()
 {
     Console.WriteLine("{{DISPLAY_NAME}} original-content importer");
-    Console.WriteLine("  verify-source --source <owned-original> [--output <path>]");
+    Console.WriteLine("  list-editions");
+    Console.WriteLine("  verify-source --source <owned-original>");
     Console.WriteLine("  import --source <owned-original> [--output <path>]");
     Console.WriteLine("  verify-output [--output <path>]");
     return 64;

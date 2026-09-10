@@ -24,10 +24,11 @@ UninstallDisplayIcon={app}\Game\{#MyAppExe}
 Source: "..\..\artifacts\{{PACKAGE_ID}}-win-x64\Game\*"; DestDir: "{app}\Game"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\artifacts\{{PACKAGE_ID}}-win-x64\Tools\*"; DestDir: "{app}\Tools"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Import Original Resources.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\Game\{#MyAppExe}"
-Name: "{group}\Import or Manage Original Resources"; Filename: "{app}\Tools\Restoration.Import.exe"; Parameters: "import --source ""{code:SelectedSource}"" --output ""{localappdata}\{{APP_DATA_DIRECTORY}}\UserContent"""
+Name: "{group}\Import or Manage Original Resources"; Filename: "{app}\Import Original Resources.bat"; WorkingDir: "{app}"
 
 [Run]
 Filename: "{app}\Game\{#MyAppExe}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent

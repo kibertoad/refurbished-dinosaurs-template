@@ -14,12 +14,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-15]
+        include:
+          - os: windows-latest
+          - os: ubuntu-latest
+          - os: macos-15
+          - os: macos-15-intel
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: kibertoad/toad-discovery-center/actions/verify-repository@a72589ed38014aa7eb543bef3882b209ea2becba
+      - uses: kibertoad/toad-discovery-center/actions/verify-repository@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
@@ -42,11 +46,78 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
-      - uses: kibertoad/toad-discovery-center/actions/setup-inno@a72589ed38014aa7eb543bef3882b209ea2becba
+      - uses: kibertoad/toad-discovery-center/actions/setup-inno@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
       - shell: pwsh
         run: ./tools/Build-WindowsInstaller.ps1 -Compiler "$env:INNO_COMPILER"
+      - name: Smoke-test installed layout
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem artifacts -Filter '*-Setup-0.1.0.exe' | Select-Object -First 1
+          if (-not $installer) { throw 'Installer was not produced.' }
+          $target = Join-Path $env:RUNNER_TEMP 'restoration-install-test'
+          $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
+          if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
+          & (Join-Path $target 'Game/Restoration.Game.exe') --platform-smoke-test
+          if ($LASTEXITCODE -ne 0) { throw 'Installed platform smoke test failed.' }
+          $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
+          if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-installer
           path: artifacts/*-Setup-*.exe
+          if-no-files-found: error
+  installer-linux:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.400
+      - shell: pwsh
+        run: ./tools/Build-LinuxInstaller.ps1
+      - name: Verify Debian layout
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem artifacts -Filter '*.deb' | Select-Object -First 1
+          $target = Join-Path $env:RUNNER_TEMP 'restoration-deb-test'
+          dpkg-deb --info $package.FullName
+          dpkg-deb --extract $package.FullName $target
+          $game = Get-ChildItem $target -Recurse -Filter 'Restoration.Game' | Select-Object -First 1
+          & $game.FullName --smoke-test
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-installer
+          path: artifacts/*.deb
+          if-no-files-found: error
+  installer-macos:
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            runtime: osx-arm64
+          - os: macos-15-intel
+            runtime: osx-x64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.400
+      - shell: pwsh
+        env:
+          TARGET_RUNTIME: ${{ matrix.runtime }}
+        run: ./tools/Build-MacInstaller.ps1 -Runtime $env:TARGET_RUNTIME
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: macos-installer-${{ matrix.runtime }}
+          path: artifacts/*.pkg
           if-no-files-found: error

@@ -12,3 +12,6 @@ $reported = (& $Compiler --version | Out-String).Trim()
 if ($reported -ne $required) { throw "Inno Setup $required is required; found $reported." }
 & $Compiler "/DMyAppVersion=$Version" (Join-Path $root 'packaging/windows/Restoration.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
+$installer = Join-Path $root "artifacts/{{PACKAGE_ID}}-Setup-$Version.exe"
+if (-not (Test-Path -LiteralPath $installer)) { throw "Expected installer was not created at $installer." }
+Write-Host "Windows installer created at $installer"

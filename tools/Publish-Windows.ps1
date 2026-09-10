@@ -19,6 +19,7 @@ dotnet publish (Join-Path $root 'tools/Restoration.Import/Restoration.Import.csp
 if ($LASTEXITCODE -ne 0) { throw 'Importer publish failed.' }
 Remove-Item -LiteralPath $build -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root 'README.md') -Destination $package
+Copy-Item -LiteralPath (Join-Path $root 'packaging/windows/Import Original Resources.bat') -Destination $package
 if (Test-Path -LiteralPath (Join-Path $package 'UserContent')) { throw 'Package contains original content.' }
 & (Join-Path $game 'Restoration.Game.exe') --smoke-test
 if ($LASTEXITCODE -ne 0) { throw 'Smoke test failed.' }
