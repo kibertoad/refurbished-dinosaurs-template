@@ -1,11 +1,11 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Restoration.Core/Restoration.Core.csproj" />
+    <Project Path="src/Restoration.Extractor/Restoration.Extractor.csproj" />
     <Project Path="src/Restoration.Game/Restoration.Game.csproj" />
     <Project Path="src/Restoration.Resources/Restoration.Resources.csproj" />
   </Folder>
   <Folder Name="/tools/">
-    <Project Path="tools/Restoration.Import/Restoration.Import.csproj" />
     <Project Path="tools/Restoration.Inspect/Restoration.Inspect.csproj" />
   </Folder>
   <Folder Name="/tests/">

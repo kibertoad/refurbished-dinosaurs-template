@@ -24,7 +24,8 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Extend `tools/repository-policy.json` with the extensions the original
       game actually uses.
 - [ ] Decide what may be clean-room/open data and what must remain user-imported.
-- [ ] Add explicit/manual source selection first; add storefront, registry,
+- [ ] Add a separate Asset Extractor with explicit/manual source selection first;
+      make the Game consume only its verified versioned pack; add storefront, registry,
       media, or archive discovery as optional adapters.
 - [ ] Implement read-only inventory in `Inspect` before extraction.
 - [ ] Implement bounded format readers in `Resources` with synthetic fixtures.

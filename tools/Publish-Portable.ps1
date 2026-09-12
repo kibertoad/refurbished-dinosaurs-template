@@ -56,8 +56,8 @@ $common = @(
 )
 & dotnet publish (Join-Path $repositoryRoot 'src/Restoration.Game/Restoration.Game.csproj') @common --output $gameOutput
 if ($LASTEXITCODE -ne 0) { throw 'Game publish failed.' }
-& dotnet publish (Join-Path $repositoryRoot 'tools/Restoration.Import/Restoration.Import.csproj') @common --output $toolOutput
-if ($LASTEXITCODE -ne 0) { throw 'Importer publish failed.' }
+& dotnet publish (Join-Path $repositoryRoot 'src/Restoration.Extractor/Restoration.Extractor.csproj') @common --output $toolOutput
+if ($LASTEXITCODE -ne 0) { throw 'Asset Extractor publish failed.' }
 Remove-Item -LiteralPath $buildRoot -Recurse -Force
 
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'README.md') -Destination $packageRoot
@@ -68,14 +68,14 @@ if (Test-Path -LiteralPath (Join-Path $packageRoot 'UserContent')) {
 }
 
 $gameExecutable = Join-Path $gameOutput 'Restoration.Game'
-$importExecutable = Join-Path $toolOutput 'Restoration.Import'
+$extractorExecutable = Join-Path $toolOutput 'Restoration.Extractor'
 if (-not (Test-Path -LiteralPath $gameExecutable -PathType Leaf)) {
     throw "Packaged game is missing at '$gameExecutable'."
 }
-if (-not (Test-Path -LiteralPath $importExecutable -PathType Leaf)) {
-    throw "Packaged importer is missing at '$importExecutable'."
+if (-not (Test-Path -LiteralPath $extractorExecutable -PathType Leaf)) {
+    throw "Packaged Asset Extractor is missing at '$extractorExecutable'."
 }
-& chmod 755 $gameExecutable $importExecutable
+& chmod 755 $gameExecutable $extractorExecutable
 if ($LASTEXITCODE -ne 0) { throw 'Could not mark packaged executables as executable.' }
 & $gameExecutable --smoke-test
 if ($LASTEXITCODE -ne 0) { throw 'Packaged game smoke check failed.' }

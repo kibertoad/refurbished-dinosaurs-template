@@ -21,13 +21,14 @@ public sealed record SourceManifest(string GameId, string SourceEdition, IReadOn
         ArgumentException.ThrowIfNullOrWhiteSpace(SourceEdition);
         if (Files is null || Files.Count == 0)
             throw new InvalidDataException("A source manifest requires at least one fingerprint.");
+
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in Files)
         {
             if (file is null) throw new InvalidDataException("Source manifest contains a null file record.");
             var path = Normalize(file.Path);
             if (!seen.Add(path)) throw new InvalidDataException($"Duplicate source path '{path}'.");
-            if (file.Size < 0 || !IsSha256(file.Sha256))
+            if (file.Size < 0 || !OriginalContent.IsSha256(file.Sha256))
                 throw new InvalidDataException($"Invalid fingerprint for '{path}'.");
         }
     }
@@ -43,183 +44,255 @@ public sealed record SourceManifest(string GameId, string SourceEdition, IReadOn
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var normalized = path.Replace('\\', '/');
-        if (Path.IsPathRooted(path) || normalized.Split('/').Any(x => x is "" or "." or ".."))
+        if (Path.IsPathRooted(path) || normalized.Split('/').Any(part => part is "" or "." or ".."))
             throw new InvalidDataException($"Source path must be relative: '{path}'.");
         return normalized;
     }
-
-    private static bool IsSha256(string? value) =>
-        value is { Length: 64 } && value.All(Uri.IsHexDigit);
 }
-
 public sealed record SourceFile(string Path, long Size, string Sha256);
-public sealed record ImportedFile(string Path, long Size, string Sha256, string SourcePath);
-public sealed record ImportManifest(
-    int FormatVersion, string GameId, string SourceEdition, string SourceFingerprintSha256,
-    DateTimeOffset ImportedAtUtc, string ImporterVersion, IReadOnlyList<ImportedFile> Files);
-public sealed record SourceIdentification(SourceManifest? Edition, IReadOnlyList<string> Errors)
+
+public sealed record AssetPackFile(
+    string Path,
+    long Size,
+    string Sha256,
+    string SourcePath,
+    string MediaType,
+    string Conversion);
+
+public sealed record AssetPackManifest(
+    int FormatVersion,
+    string GameId,
+    string SourceEdition,
+    string SourceFingerprintSha256,
+    string ExtractorVersion,
+    IReadOnlyList<AssetPackFile> Files);
+
+public sealed record ContentDiagnostic(
+    string Code,
+    string Message,
+    string? Path = null,
+    string? Expected = null,
+    string? Actual = null);
+
+public sealed record SourceIdentification(
+    SourceManifest? Edition,
+    IReadOnlyList<ContentDiagnostic> Diagnostics)
 {
     public bool IsSupported => Edition is not null;
 }
 
 public static class OriginalContent
 {
-    public const int ImportFormatVersion = 1;
+    public const int AssetPackFormatVersion = 1;
+    public const string GameId = "{{GAME_ID}}";
+    public const long MaximumManifestBytes = 4 * 1024 * 1024;
+
+    public static string DefaultAssetPackPath() => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "{{APP_DATA_DIRECTORY}}", "UserContent");
 
     public static async Task<SourceIdentification> IdentifyAsync(
-        string root, IEnumerable<SourceManifest> editions,
+        string root,
+        IEnumerable<SourceManifest> editions,
         CancellationToken cancellationToken = default)
     {
-        var summaries = new List<string>();
-        foreach (var edition in editions)
+        var diagnostics = new List<ContentDiagnostic>();
+        foreach (var edition in editions.OrderBy(candidate => candidate.SourceEdition, StringComparer.Ordinal))
         {
-            var errors = await VerifySourceAsync(root, edition, cancellationToken);
-            if (errors.Count == 0) return new(edition, []);
-            summaries.Add($"{edition.SourceEdition}: {string.Join("; ", errors)}");
+            var editionDiagnostics = await VerifySourceAsync(root, edition, cancellationToken);
+            if (editionDiagnostics.Count == 0) return new(edition, []);
+            diagnostics.AddRange(editionDiagnostics.Select(item => item with
+            {
+                Message = $"{edition.SourceEdition}: {item.Message}"
+            }));
         }
-        return new(null, summaries);
+        if (diagnostics.Count == 0)
+            diagnostics.Add(new("source_editions_missing", "The Extractor contains no supported-edition manifests."));
+        return new(null, diagnostics);
     }
 
-    public static async Task<IReadOnlyList<string>> VerifySourceAsync(
-        string root, SourceManifest manifest, CancellationToken cancellationToken = default)
+    public static async Task<IReadOnlyList<ContentDiagnostic>> VerifySourceAsync(
+        string root,
+        SourceManifest manifest,
+        CancellationToken cancellationToken = default)
     {
-        var errors = new List<string>();
+        manifest.Validate();
+        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+            return [new("source_root_missing", "The selected source directory does not exist.", root)];
+
+        var diagnostics = new List<ContentDiagnostic>();
         foreach (var expected in manifest.Files)
         {
             var relative = SourceManifest.Normalize(expected.Path);
-            var path = Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
-            if (!File.Exists(path)) { errors.Add($"Missing: {relative}"); continue; }
-            var info = new FileInfo(path);
-            if (info.Length != expected.Size) { errors.Add($"Wrong size: {relative}"); continue; }
+            var path = SafeTarget(root, relative);
+            if (!File.Exists(path))
+            {
+                diagnostics.Add(new("source_file_missing", $"Required source file is missing: {relative}", relative));
+                continue;
+            }
+
+            var actualSize = new FileInfo(path).Length;
+            if (actualSize != expected.Size)
+            {
+                diagnostics.Add(new("source_size_mismatch", $"Source file has the wrong size: {relative}",
+                    relative, expected.Size.ToString(), actualSize.ToString()));
+                continue;
+            }
+
             await using var stream = File.OpenRead(path);
-            var hash = Convert.ToHexString(await SHA256.HashDataAsync(stream, cancellationToken));
+            var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken));
             if (!hash.Equals(expected.Sha256, StringComparison.OrdinalIgnoreCase))
-                errors.Add($"Wrong hash: {relative}");
+                diagnostics.Add(new("source_hash_mismatch", $"Source file has the wrong SHA-256: {relative}",
+                    relative, expected.Sha256.ToLowerInvariant(), hash));
         }
-        return errors;
+        return diagnostics;
     }
 
-    public static async Task<ImportManifest> ImportAsync(
-        string sourceRoot, string destination, SourceManifest edition, string importerVersion,
+    public static async Task<IReadOnlyList<ContentDiagnostic>> VerifyInstalledAsync(
+        string root,
         CancellationToken cancellationToken = default)
     {
-        var errors = await VerifySourceAsync(sourceRoot, edition, cancellationToken);
-        if (errors.Count != 0) throw new InvalidDataException(string.Join(Environment.NewLine, errors));
-        var destinationPath = Path.GetFullPath(destination).TrimEnd(
-            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var parent = Directory.GetParent(destinationPath)?.FullName
-            ?? throw new ArgumentException("Destination requires a parent.", nameof(destination));
-        Directory.CreateDirectory(parent);
-        var operation = Guid.NewGuid().ToString("N");
-        var stage = Path.Combine(parent, $".{Path.GetFileName(destinationPath)}.staging-{operation}");
-        var backup = Path.Combine(parent, $".{Path.GetFileName(destinationPath)}.backup-{operation}");
-        var movedOld = false;
+        var manifestPath = Path.Combine(root, "manifest.json");
+        if (!File.Exists(manifestPath))
+            return [new("pack_manifest_missing",
+                $"Asset-pack manifest not found. Run {{PROJECT_NAME}}.Extractor against a supported GOG installation.",
+                manifestPath)];
+
+        AssetPackManifest? manifest;
         try
         {
-            Directory.CreateDirectory(stage);
-            var installed = new List<ImportedFile>();
-            foreach (var file in edition.Files)
-            {
-                var normalized = SourceManifest.Normalize(file.Path);
-                var relative = normalized.Replace('/', Path.DirectorySeparatorChar);
-                var target = SafeTarget(stage, relative);
-                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(Path.Combine(sourceRoot, relative), target);
-                installed.Add(new(normalized, file.Size, file.Sha256.ToLowerInvariant(), normalized));
-            }
-            var manifest = new ImportManifest(ImportFormatVersion, edition.GameId, edition.SourceEdition,
-                edition.Fingerprint(), DateTimeOffset.UtcNow, importerVersion, installed);
-            WriteManifest(Path.Combine(stage, "manifest.json"), manifest);
-            var stagedErrors = await VerifyInstalledAsync(stage, cancellationToken);
-            if (stagedErrors.Count != 0)
-                throw new InvalidDataException("Staged import is invalid: " + string.Join("; ", stagedErrors));
-            if (Directory.Exists(destinationPath))
-            {
-                Directory.Move(destinationPath, backup);
-                movedOld = true;
-            }
-            try { Directory.Move(stage, destinationPath); }
-            catch
-            {
-                if (movedOld && !Directory.Exists(destinationPath))
-                { Directory.Move(backup, destinationPath); movedOld = false; }
-                throw;
-            }
-            if (movedOld)
-            {
-                try { Directory.Delete(backup, recursive: true); }
-                catch (IOException) { }
-                catch (UnauthorizedAccessException) { }
-                finally { movedOld = false; }
-            }
-            return manifest;
+            var info = new FileInfo(manifestPath);
+            if (info.Length > MaximumManifestBytes)
+                return [new("pack_manifest_too_large", "Asset-pack manifest exceeds the safety limit.",
+                    "manifest.json", MaximumManifestBytes.ToString(), info.Length.ToString())];
+            await using var stream = File.OpenRead(manifestPath);
+            manifest = await JsonSerializer.DeserializeAsync<AssetPackManifest>(stream,
+                cancellationToken: cancellationToken);
         }
-        finally
+        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
-            if (Directory.Exists(stage)) Directory.Delete(stage, true);
-            if (movedOld && Directory.Exists(backup) && !Directory.Exists(destinationPath))
-                Directory.Move(backup, destinationPath);
+            return [new("pack_manifest_unreadable", $"Asset-pack manifest cannot be read: {exception.Message}",
+                "manifest.json")];
         }
-    }
 
-    public static async Task<IReadOnlyList<string>> VerifyInstalledAsync(
-        string root, CancellationToken cancellationToken = default)
-    {
-        var path = Path.Combine(root, "manifest.json");
-        if (!File.Exists(path)) return [$"Manifest not found: {path}"];
-        ImportManifest? manifest;
-        try { manifest = JsonSerializer.Deserialize<ImportManifest>(await File.ReadAllTextAsync(path, cancellationToken)); }
-        catch (JsonException exception) { return [$"Manifest is invalid: {exception.Message}"]; }
-        if (manifest is null) return ["Manifest is empty."];
-        var errors = new List<string>();
-        if (manifest.FormatVersion != ImportFormatVersion) errors.Add("Unsupported import format version.");
-        if (string.IsNullOrWhiteSpace(manifest.GameId)) errors.Add("Manifest game identifier is missing.");
-        if (string.IsNullOrWhiteSpace(manifest.SourceEdition)) errors.Add("Manifest source edition is missing.");
-        if (!IsSha256(manifest.SourceFingerprintSha256)) errors.Add("Manifest source fingerprint is invalid.");
-        if (string.IsNullOrWhiteSpace(manifest.ImporterVersion)) errors.Add("Manifest importer version is missing.");
-        if (manifest.Files is null || manifest.Files.Count == 0) errors.Add("Manifest has no files.");
-        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var file in manifest.Files ?? [])
+        if (manifest is null) return [new("pack_manifest_empty", "Asset-pack manifest is empty.", "manifest.json")];
+        var diagnostics = ValidatePackManifest(manifest);
+        if (diagnostics.Count != 0) return diagnostics;
+
+        var expectedPaths = new HashSet<string>(PathComparer);
+        foreach (var asset in manifest.Files)
         {
-            if (file is null || string.IsNullOrWhiteSpace(file.Path) || !paths.Add(file.Path))
-            { errors.Add("Null, empty, or duplicate file record."); continue; }
-            if (file.Size < 0 || !IsSha256(file.Sha256))
-            { errors.Add($"Invalid size or hash: {file.Path}"); continue; }
-            string target;
-            try { target = SafeTarget(root, file.Path); }
-            catch (InvalidDataException) { errors.Add($"Unsafe path: {file.Path}"); continue; }
-            if (!File.Exists(target)) { errors.Add($"Missing: {file.Path}"); continue; }
-            if (new FileInfo(target).Length != file.Size) { errors.Add($"Wrong size: {file.Path}"); continue; }
-            await using var stream = File.OpenRead(target);
+            string path;
+            try { path = SafeTarget(root, asset.Path); }
+            catch (InvalidDataException)
+            {
+                diagnostics.Add(new("pack_path_unsafe", $"Asset path escapes the pack: {asset.Path}", asset.Path));
+                continue;
+            }
+            expectedPaths.Add(path);
+            if (!File.Exists(path))
+            {
+                diagnostics.Add(new("pack_asset_missing", $"Asset is missing: {asset.Path}", asset.Path));
+                continue;
+            }
+            var actualSize = new FileInfo(path).Length;
+            if (actualSize != asset.Size)
+            {
+                diagnostics.Add(new("pack_asset_size_mismatch", $"Asset has the wrong size: {asset.Path}",
+                    asset.Path, asset.Size.ToString(), actualSize.ToString()));
+                continue;
+            }
+            await using var stream = File.OpenRead(path);
             var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken));
-            if (!hash.Equals(file.Sha256, StringComparison.OrdinalIgnoreCase)) errors.Add($"Wrong hash: {file.Path}");
+            if (!hash.Equals(asset.Sha256, StringComparison.OrdinalIgnoreCase))
+                diagnostics.Add(new("pack_asset_hash_mismatch", $"Asset has the wrong SHA-256: {asset.Path}",
+                    asset.Path, asset.Sha256.ToLowerInvariant(), hash));
         }
-        return errors;
+
+        try
+        {
+            foreach (var installedPath in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+            {
+                var fullPath = Path.GetFullPath(installedPath);
+                if (PathComparer.Equals(fullPath, Path.GetFullPath(manifestPath))) continue;
+                if (!expectedPaths.Contains(fullPath))
+                    diagnostics.Add(new("pack_asset_unexpected", "Asset pack contains an unexpected file.",
+                        Path.GetRelativePath(root, fullPath).Replace('\\', '/')));
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            diagnostics.Add(new("pack_inventory_unreadable",
+                $"Asset-pack inventory cannot be read: {exception.Message}"));
+        }
+        return diagnostics;
     }
 
-    private static bool IsSha256(string? value) =>
+    internal static bool IsSha256(string? value) =>
         value is { Length: 64 } && value.All(Uri.IsHexDigit);
+
+    private static List<ContentDiagnostic> ValidatePackManifest(AssetPackManifest manifest)
+    {
+        var diagnostics = new List<ContentDiagnostic>();
+        if (manifest.FormatVersion != AssetPackFormatVersion)
+            diagnostics.Add(new("pack_version_mismatch", "Asset-pack format version is incompatible.",
+                "manifest.json", AssetPackFormatVersion.ToString(), manifest.FormatVersion.ToString()));
+        if (!string.Equals(manifest.GameId, GameId, StringComparison.Ordinal))
+            diagnostics.Add(new("pack_game_mismatch", "Asset pack belongs to a different game.", "manifest.json",
+                GameId, manifest.GameId));
+        if (string.IsNullOrWhiteSpace(manifest.SourceEdition))
+            diagnostics.Add(new("pack_source_missing", "Asset-pack source edition is missing.", "manifest.json"));
+        if (!IsSha256(manifest.SourceFingerprintSha256))
+            diagnostics.Add(new("pack_source_hash_invalid", "Asset-pack source fingerprint is invalid.", "manifest.json"));
+        if (string.IsNullOrWhiteSpace(manifest.ExtractorVersion))
+            diagnostics.Add(new("pack_extractor_version_missing", "Extractor version is missing.", "manifest.json"));
+        if (manifest.Files is null || manifest.Files.Count == 0)
+        {
+            diagnostics.Add(new("pack_inventory_empty", "Asset pack contains no files.", "manifest.json"));
+            return diagnostics;
+        }
+
+        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var asset in manifest.Files)
+        {
+            if (asset is null || string.IsNullOrWhiteSpace(asset.Path))
+            {
+                diagnostics.Add(new("pack_path_missing", "Asset path is missing.", "manifest.json"));
+                continue;
+            }
+            string normalized;
+            try { normalized = SourceManifest.Normalize(asset.Path); }
+            catch (InvalidDataException)
+            {
+                diagnostics.Add(new("pack_path_unsafe", $"Asset path is unsafe: {asset.Path}", asset.Path));
+                continue;
+            }
+            if (!paths.Add(normalized))
+                diagnostics.Add(new("pack_path_duplicate", $"Asset path is duplicated: {normalized}", normalized));
+            if (asset.Size < 0 || !IsSha256(asset.Sha256))
+                diagnostics.Add(new("pack_fingerprint_invalid", $"Asset fingerprint is invalid: {normalized}", normalized));
+            if (string.IsNullOrWhiteSpace(asset.SourcePath))
+                diagnostics.Add(new("pack_provenance_missing", $"Asset source path is missing: {normalized}", normalized));
+            if (string.IsNullOrWhiteSpace(asset.MediaType) || string.IsNullOrWhiteSpace(asset.Conversion))
+                diagnostics.Add(new("pack_conversion_missing", $"Asset media type or conversion is missing: {normalized}", normalized));
+        }
+        return diagnostics;
+    }
 
     private static string SafeTarget(string root, string relative)
     {
         if (Path.IsPathFullyQualified(relative)) throw new InvalidDataException("Path must be relative.");
-        var fullRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        var target = Path.GetFullPath(Path.Combine(root, relative));
+        var normalized = SourceManifest.Normalize(relative).Replace('/', Path.DirectorySeparatorChar);
+        var fullRoot = Path.GetFullPath(root).TrimEnd(
+            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var target = Path.GetFullPath(Path.Combine(root, normalized));
         if (!target.StartsWith(fullRoot, OperatingSystem.IsWindows()
                 ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
             throw new InvalidDataException("Path escapes content root.");
         return target;
     }
 
-    private static void WriteManifest(string path, ImportManifest manifest)
-    {
-        var temporary = path + $".{Guid.NewGuid():N}.tmp";
-        try
-        {
-            File.WriteAllText(temporary, JsonSerializer.Serialize(manifest,
-                new JsonSerializerOptions { WriteIndented = true }));
-            File.Move(temporary, path, overwrite: true);
-        }
-        finally { if (File.Exists(temporary)) File.Delete(temporary); }
-    }
+    private static StringComparer PathComparer => OperatingSystem.IsWindows()
+        ? StringComparer.OrdinalIgnoreCase
+        : StringComparer.Ordinal;
 }
