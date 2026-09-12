@@ -80,7 +80,11 @@ jobs:
             $nativePath = Join-Path (Split-Path -Parent $link.TargetPath) $nativeLibrary
             if (-not (Test-Path -LiteralPath $nativePath)) { throw "Installed native library is missing: $nativePath" }
           }
-          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -Wait -PassThru -WindowStyle Hidden
+          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -PassThru
+          if (-not $game.WaitForExit(120000)) {
+            $game.Kill($true)
+            throw 'Installed platform smoke test did not exit within 120 seconds; it is waiting on something no one can dismiss.'
+          }
           if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
           $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
