@@ -29,8 +29,8 @@ non-goal is cheaper than a half-finished system._
 ## Slices
 
 Organize the work as playable vertical slices, ordered so that each one leaves
-the game runnable. A workable default order is source identification and import,
-assetless startup and diagnostics, native resolution and scaling,
+the game runnable. A workable default order is source identification and extraction,
+separate asset extraction plus assetless startup and diagnostics, native resolution and scaling,
 title-to-first-interaction flow, deterministic state and replay, and only then
 breadth.
 
@@ -46,8 +46,12 @@ breadth.
   on, with identifiers from `docs/RULES-AND-EVIDENCE.md`._
 - **Acceptance — rules.** _Deterministic behavior that must hold._
 - **Acceptance — presentation.** _Resolution, scaling, timing, audio._
-- **Acceptance — original content.** _What is imported, and how a missing or
+- **Acceptance — original content.** _What is extracted, and how a missing or
   unsupported source behaves._
+- **Extractor boundary.** _Which exact licensed source is accepted, which bounded
+  transformations produce the versioned local pack, how complete staged output is
+  verified and promoted transactionally, and how the runtime rejects missing,
+  incomplete, stale, or foreign packs without reading the original installation._
 - **Automated tests.** _The tests that prove it, none of which may require
   original content._
 - **Observed parity.** _What will be compared against the original, and how._
@@ -67,7 +71,7 @@ closed by a document update, not by a plausible assumption in code.
 ## Risks
 
 _Formats that may resist clean-room description, editions that differ in ways
-that break a shared import path, timing or audio behavior that may not be
+that break a shared extraction path, timing or audio behavior that may not be
 reproducible on modern hardware, and what the fallback is for each._
 
 ## Done when

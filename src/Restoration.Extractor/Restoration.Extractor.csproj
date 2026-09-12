@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/Restoration.Resources/Restoration.Resources.csproj" />
+    <ProjectReference Include="../Restoration.Resources/Restoration.Resources.csproj" />
     <EmbeddedResource Include="source-manifests/*.json" />
   </ItemGroup>
 </Project>

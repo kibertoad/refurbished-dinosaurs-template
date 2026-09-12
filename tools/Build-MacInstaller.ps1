@@ -45,9 +45,9 @@ set -eu
 if [ "$#" -ne 1 ]; then echo "Usage: Install Original Resources /path/to/original" >&2; exit 2; fi
 contents="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 output="$HOME/Library/Application Support/{{APP_DATA_DIRECTORY}}/UserContent"
-exec "$contents/Resources/Tools/Restoration.Import" import --source "$1" --output "$output"
+exec "$contents/Resources/Tools/Restoration.Extractor" extract --source "$1" --output "$output"
 '@ | Set-Content -LiteralPath (Join-Path $mac 'Install Original Resources') -Encoding utf8NoBOM
-& chmod 755 (Join-Path $mac 'Restoration.Game') (Join-Path $tools 'Restoration.Import') (Join-Path $mac 'Install Original Resources')
+& chmod 755 (Join-Path $mac 'Restoration.Game') (Join-Path $tools 'Restoration.Extractor') (Join-Path $mac 'Install Original Resources')
 if ($LASTEXITCODE -ne 0) { throw 'Could not mark app executables executable.' }
 & plutil -lint (Join-Path $contents 'Info.plist')
 if ($LASTEXITCODE -ne 0) { throw 'Info.plist is invalid.' }

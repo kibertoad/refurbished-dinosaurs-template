@@ -3,16 +3,16 @@
 ## Run from source
 
 Install the .NET 10 SDK and obtain a supported legal copy of the original game,
-then verify and import its content:
+then verify and extract its content with the separate Asset Extractor:
 
 ```powershell
-dotnet run --project tools/Restoration.Import -- verify-source --source "C:\path\to\original"
-dotnet run --project tools/Restoration.Import -- import --source "C:\path\to\original"
-dotnet run --project tools/Restoration.Import -- verify-output
+dotnet run --project src/Restoration.Extractor -- verify-source --source "C:\path\to\original"
+dotnet run --project src/Restoration.Extractor -- extract --source "C:\path\to\original"
+dotnet run --project src/Restoration.Extractor -- verify-pack
 dotnet run --project src/Restoration.Game
 ```
 
-Import is transactional: a new content pack is staged and fully verified before
+Extraction is transactional: a new content pack is staged and fully verified before
 it replaces the previous verified pack. Imported content is ignored by Git and
 must not be redistributed.
 
@@ -33,7 +33,7 @@ responsibilities instead.
 - `Restoration.Core`: deterministic rules and serializable state.
 - `Restoration.Resources`: bounded binary parsing and original-content contracts.
 - `Restoration.Game`: MonoGame DesktopGL presentation with assetless smoke modes.
-- `Restoration.Import`: legal-copy verification and transactional extraction.
+- `Restoration.Extractor`: separate legal-copy verification and transactional extraction executable.
 - `Restoration.Inspect`: read-only inventory and research output.
 - `Restoration.Tests`: architecture, safety, and behavioral tests.
 

@@ -28,7 +28,7 @@ installation. Release installers are unsigned until a project adds its own
 platform-specific signing configuration.
 
 The Windows installer accepts `/ORIGINAL="C:\path\to\original"` for unattended
-source selection and `/NOIMPORT=1` to explicitly skip import. The interactive
+source selection and `/NOEXTRACT=1` to explicitly skip extraction. The interactive
 installer streams progress into the Setup log and allows another source to be
 selected if verification fails.
 

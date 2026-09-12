@@ -79,7 +79,8 @@ foreach ($relative in $paths | Sort-Object -Unique) {
     if ($checkIdentifiers -and [IO.Path]::GetFileName($relative) -like "*$templateName*") {
         $findings.Add("leftover template name '$templateName' in path: $relative")
     }
-    if ($relative -like 'tools/*/source-manifests/*.json') {
+    if ($relative -like 'tools/*/source-manifests/*.json' -or
+        $relative -like 'src/*.Extractor/source-manifests/*.json') {
         $manifest = [IO.File]::ReadAllText($file)
         if ($manifest -match 'REPLACE\.ME' -or $manifest -match '"sha256"\s*:\s*"0{64}"' -or
             $manifest -match '"sourceEdition"\s*:\s*"replace-with-supported-edition"') {
@@ -113,11 +114,14 @@ elseif ($isConfigured) {
 }
 
 $checklist = Join-Path $root 'docs/BOOTSTRAP-CHECKLIST.md'
-$openChecklistItems = (Test-Path -LiteralPath $checklist -PathType Leaf) ?
-    @(Select-String -LiteralPath $checklist -Pattern '^\s*- \[ \]' -AllMatches).Count : 0
+$openChecklistItems = 0
+if (Test-Path -LiteralPath $checklist -PathType Leaf) {
+    $openChecklistItems = @(Select-String -LiteralPath $checklist -Pattern '^\s*- \[ \]' -AllMatches).Count
+}
 
 if (-not $findings.Count) {
-    Write-Host "Configuration verified for $($paths.Count) files$($isConfigured ? " as '$projectName'" : ' (template is unconfigured)')."
+    $configurationLabel = if ($isConfigured) { " as '$projectName'" } else { ' (template is unconfigured)' }
+    Write-Host "Configuration verified for $($paths.Count) files$configurationLabel."
     if ($openChecklistItems) { Write-Host "docs/BOOTSTRAP-CHECKLIST.md still has $openChecklistItems open item(s)." }
     exit 0
 }
