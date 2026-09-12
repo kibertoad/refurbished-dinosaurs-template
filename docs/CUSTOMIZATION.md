@@ -58,6 +58,17 @@ with a plausible guess, so `./tools/Verify-Configuration.ps1` keeps reporting it
 from rewriting; they hold the placeholder table and the template name that make
 reconfiguration possible.
 
+## Continuous integration
+
+The packaging jobs need an identity: an unconfigured template cannot build a
+Debian package or an installer, because `{{GAME_ID}}` is not a valid package
+name. Those jobs therefore start with
+`./tools/Configure-Project.ps1 -SkipIfConfigured` and a throwaway
+`TemplateSample` identity, which does nothing once a repository is configured
+and keeps both the packaging scripts and the configuration tooling under test on
+every pull request. The build-and-test job runs against the repository as it is,
+and `./tools/Verify-Configuration.ps1` runs everywhere.
+
 ## Decisions that stay manual
 
 Configuration cannot decide these. Each one is also an item in

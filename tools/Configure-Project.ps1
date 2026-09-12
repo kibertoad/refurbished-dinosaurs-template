@@ -19,6 +19,11 @@ Configures the repository from tools/project-config.json alone.
 .EXAMPLE
 ./tools/Configure-Project.ps1 -ProjectName Sanctuary -DisplayName 'Sanctuary Restored' -WhatIf
 Shows every file, rename, and unresolved placeholder without changing anything.
+
+.EXAMPLE
+./tools/Configure-Project.ps1 -SkipIfConfigured -ProjectName Sample -DisplayName Sample
+Configures only an unconfigured template, which is how CI gives the packaging
+jobs an identity to build without touching a real project's own.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
@@ -41,7 +46,8 @@ param(
     [string] $OriginalGenre,
     [guid] $AppId,
     [string] $ConfigPath,
-    [switch] $Force
+    [switch] $Force,
+    [switch] $SkipIfConfigured
 )
 
 $ErrorActionPreference = 'Stop'
@@ -169,6 +175,10 @@ $config = Read-ProjectConfig $ConfigPath
 
 $wasConfigured = [bool] (Get-ConfigValue $config 'configured')
 $fromName = $wasConfigured ? ((Get-ConfigValue $config 'projectName') ?? $templateName) : $templateName
+if ($wasConfigured -and $SkipIfConfigured) {
+    Write-Host "Already configured as '$fromName'; leaving the repository unchanged."
+    exit 0
+}
 if ($wasConfigured -and -not $Force) {
     throw "This repository is already configured as '$fromName'. Pass -Force to reconfigure, and see docs/CUSTOMIZATION.md for what re-running can and cannot change."
 }
