@@ -27,7 +27,7 @@ $ErrorActionPreference = 'Stop'
 
 $templateName = 'Restoration'
 $textExtensions = @('.cs', '.csproj', '.slnx', '.md', '.json', '.ps1', '.bat', '.iss', '.yml', '.yaml', '.props', '.targets')
-$textFileNames = @('NOTICE')
+$textFileNames = @('LICENSE', 'NOTICE')
 # Files that document the template mechanism and legitimately name placeholders.
 $templateDocumentation = @(
     'tools/Configure-Project.ps1',

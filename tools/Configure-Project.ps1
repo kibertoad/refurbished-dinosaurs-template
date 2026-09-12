@@ -58,7 +58,7 @@ $ErrorActionPreference = 'Stop'
 $templateName = 'Restoration'
 $excludedDirectories = @('.git', 'bin', 'obj', 'artifacts', 'TestResults', 'UserContent', 'analysis', 'reference')
 $textExtensions = @('.cs', '.csproj', '.slnx', '.md', '.json', '.ps1', '.bat', '.iss', '.yml', '.yaml', '.props', '.targets')
-$textFileNames = @('NOTICE')
+$textFileNames = @('LICENSE', 'NOTICE')
 
 function Read-ProjectConfig([string] $path) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return [pscustomobject]@{} }

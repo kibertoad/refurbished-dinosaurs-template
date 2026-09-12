@@ -50,9 +50,9 @@ legally owned copy.
 
 Copyright (C) {{COPYRIGHT_YEAR}} {{COPYRIGHT_HOLDER}}.
 
-The original code in this repository is licensed under the
-[GNU General Public License v3.0](LICENSE). The license does not cover or grant
-rights to original-game assets, which are not distributed by this project.
+The original code in this repository is licensed under the [MIT License](LICENSE).
+The license does not cover or grant rights to original-game assets, which are not
+distributed by this project.
 
 Developer setup is documented in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md),
 and packaging and releases are documented in

@@ -23,7 +23,7 @@ Build Linux x64 and macOS arm64/x64 installers on their native hosts:
 ```
 
 All portable packages and installed applications include the project `NOTICE`
-and canonical GPLv3 `LICENSE`. The Windows Setup wizard displays both before
+and canonical MIT `LICENSE`. The Windows Setup wizard displays both before
 installation. Release installers are unsigned until a project adds its own
 platform-specific signing configuration.
 
