@@ -24,6 +24,9 @@ jobs:
         with:
           persist-credentials: false
       - uses: kibertoad/toad-discovery-center/actions/verify-repository@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
+      - name: Verify project configuration
+        shell: pwsh
+        run: ./tools/Verify-Configuration.ps1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
@@ -47,20 +50,29 @@ jobs:
         with:
           dotnet-version: 10.0.400
       - uses: kibertoad/toad-discovery-center/actions/setup-inno@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
+      - name: Configure a sample identity when the template is unconfigured
+        shell: pwsh
+        run: >
+          ./tools/Configure-Project.ps1 -SkipIfConfigured
+          -ProjectName TemplateSample -DisplayName 'Template Sample'
+          -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
+          -OriginalReleaseYear 1990 -OriginalGenre sample
       - shell: pwsh
         run: ./tools/Build-WindowsInstaller.ps1 -Compiler "$env:INNO_COMPILER"
       - name: Smoke-test installed layout
         shell: pwsh
         run: |
+          $project = Get-Content tools/project-config.json -Raw | ConvertFrom-Json
           $installer = Get-ChildItem artifacts -Filter '*-Setup-0.1.0.exe' | Select-Object -First 1
           if (-not $installer) { throw 'Installer was not produced.' }
           $target = Join-Path $env:RUNNER_TEMP 'restoration-install-test'
           $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
           if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
-          $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\{{SHORTCUT_NAME}}\{{SHORTCUT_NAME}}.lnk'
+          $startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+          $shortcut = Join-Path $startMenu "$($project.shortcutName)/$($project.shortcutName).lnk"
           if (-not (Test-Path -LiteralPath $shortcut)) { throw "Start menu shortcut is missing: $shortcut" }
           $link = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut)
-          $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target 'Game/Restoration.Game.exe'))
+          $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target "Game/$($project.projectName).Game.exe"))
           if ($link.TargetPath -ne $expectedTarget -or [IO.Path]::GetExtension($link.TargetPath) -ne '.exe') {
             throw "Shortcut target is invalid: '$($link.TargetPath)' (expected '$expectedTarget')."
           }
@@ -68,7 +80,11 @@ jobs:
             $nativePath = Join-Path (Split-Path -Parent $link.TargetPath) $nativeLibrary
             if (-not (Test-Path -LiteralPath $nativePath)) { throw "Installed native library is missing: $nativePath" }
           }
-          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -Wait -PassThru -WindowStyle Hidden
+          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -PassThru
+          if (-not $game.WaitForExit(120000)) {
+            $game.Kill($true)
+            throw 'Installed platform smoke test did not exit within 120 seconds; it is waiting on something no one can dismiss.'
+          }
           if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
           $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
@@ -89,16 +105,24 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
+      - name: Configure a sample identity when the template is unconfigured
+        shell: pwsh
+        run: >
+          ./tools/Configure-Project.ps1 -SkipIfConfigured
+          -ProjectName TemplateSample -DisplayName 'Template Sample'
+          -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
+          -OriginalReleaseYear 1990 -OriginalGenre sample
       - shell: pwsh
         run: ./tools/Build-LinuxInstaller.ps1
       - name: Verify Debian layout
         shell: pwsh
         run: |
+          $project = Get-Content tools/project-config.json -Raw | ConvertFrom-Json
           $package = Get-ChildItem artifacts -Filter '*.deb' | Select-Object -First 1
           $target = Join-Path $env:RUNNER_TEMP 'restoration-deb-test'
           dpkg-deb --info $package.FullName
           dpkg-deb --extract $package.FullName $target
-          $game = Get-ChildItem $target -Recurse -Filter 'Restoration.Game' | Select-Object -First 1
+          $game = Get-ChildItem $target -Recurse -Filter "$($project.projectName).Game" | Select-Object -First 1
           & $game.FullName --smoke-test
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -124,6 +148,13 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
+      - name: Configure a sample identity when the template is unconfigured
+        shell: pwsh
+        run: >
+          ./tools/Configure-Project.ps1 -SkipIfConfigured
+          -ProjectName TemplateSample -DisplayName 'Template Sample'
+          -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
+          -OriginalReleaseYear 1990 -OriginalGenre sample
       - shell: pwsh
         env:
           TARGET_RUNTIME: ${{ matrix.runtime }}

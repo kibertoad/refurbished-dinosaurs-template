@@ -1,0 +1,23 @@
+{
+  "$schema-note": "Single source of truth for this project's identity. Fill this in, then run ./tools/Configure-Project.ps1 (no arguments needed). Leave a value empty to accept the derived default described in docs/CUSTOMIZATION.md.",
+  "configured": false,
+  "projectName": "",
+  "displayName": "",
+  "gameId": "",
+  "packageId": "",
+  "appDataDirectory": "",
+  "appId": "",
+  "bundleId": "",
+  "shortcutName": "",
+  "publisher": "kibertoad",
+  "copyrightHolder": "",
+  "copyrightYear": 0,
+  "repositoryUrl": "",
+  "summary": "",
+  "original": {
+    "title": "",
+    "developer": "",
+    "releaseYear": "",
+    "genre": ""
+  }
+}

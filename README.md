@@ -1,17 +1,20 @@
 # {{DISPLAY_NAME}}
 
-A clean-room MonoGame reimplementation of a classic game. This repository
-intentionally contains no copyrighted assets from the original game. You must
-own a supported legal copy; the included importer verifies that copy and builds
-a local content pack without modifying the original installation.
+{{PROJECT_SUMMARY}}
 
-> New repository checklist: run `./tools/Configure-Project.ps1`, replace the
-> sample source manifest, customize this player-facing README, and complete
-> `docs/BOOTSTRAP-CHECKLIST.md`.
+This repository intentionally contains no copyrighted assets from the original
+game. You must own a supported legal copy; the included importer verifies that
+copy and builds a local content pack without modifying the original
+installation.
+
+> New repository checklist: fill in `tools/project-config.json`, run
+> `./tools/Configure-Project.ps1`, then work through
+> `docs/BOOTSTRAP-CHECKLIST.md`. `docs/CUSTOMIZATION.md` explains every knob,
+> and `AGENTS.md` is the working agreement for humans and coding agents alike.
 
 ## Quick start
 
-1. Install a supported, legally owned release of the original game.
+1. Install a supported, legally owned release of {{ORIGINAL_TITLE}}.
 2. Download the latest {{DISPLAY_NAME}} installer from
    [GitHub Releases]({{REPOSITORY_URL}}/releases/latest).
 3. During Setup, select the original installation and keep asset import enabled.
@@ -35,9 +38,9 @@ compact table works well once the playable interaction model is established.
 
 ## Acknowledgements
 
-Credit the original creators and publishers, reverse-engineering research, and
-other sources that materially helped the clean-room restoration. Do not imply
-that those parties endorse this project.
+Credit {{ORIGINAL_DEVELOPER}} and the other original creators and publishers,
+reverse-engineering research, and further sources that materially helped the
+clean-room restoration. Do not imply that those parties endorse this project.
 
 This project copies no source code and redistributes no copyrighted resources
 from the original game. Players must import those resources locally from a
