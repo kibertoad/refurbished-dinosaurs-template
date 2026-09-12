@@ -23,7 +23,7 @@ Priority: optional
 Architecture: amd64
 Maintainer: {{DISPLAY_NAME}} contributors
 Depends: libc6, libgl1, libx11-6, libopenal1
-Description: Clean-room restoration of {{DISPLAY_NAME}}
+Description: Clean-room restoration of {{ORIGINAL_TITLE}}
  Requires resources imported from a supported legally owned original for copyrighted media.
 "@ | Set-Content -LiteralPath (Join-Path $debian 'control') -Encoding utf8NoBOM
 @'
@@ -41,7 +41,7 @@ exec /opt/{{GAME_ID}}/Tools/Restoration.Import import --source "$1" --output "$o
 [Desktop Entry]
 Type=Application
 Name={{DISPLAY_NAME}}
-Comment=Clean-room restoration of {{DISPLAY_NAME}}
+Comment=Clean-room restoration of {{ORIGINAL_TITLE}}
 Exec={{GAME_ID}}
 Terminal=false
 Categories=Game;

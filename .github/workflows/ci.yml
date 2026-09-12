@@ -24,6 +24,9 @@ jobs:
         with:
           persist-credentials: false
       - uses: kibertoad/toad-discovery-center/actions/verify-repository@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
+      - name: Verify project configuration
+        shell: pwsh
+        run: ./tools/Verify-Configuration.ps1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
