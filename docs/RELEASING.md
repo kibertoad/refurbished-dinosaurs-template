@@ -45,7 +45,8 @@ GitHub Release. The release workflow has no scheduled or push trigger.
 
 ## Continuous integration
 
-Pull requests and manual runs build, test, and smoke-test the assetless project
-on Windows, Linux, and both macOS architectures. Installer jobs verify the
+Pull requests run only the Windows installer and the zizmor security audit. The
+full multi-platform matrix (build, test, and installer checks on Windows, Linux,
+and both macOS architectures) runs on manual dispatch. Installer jobs verify the
 installed filesystem layout; Windows additionally validates the generated Start
 menu shortcut and uninstall cleanup.

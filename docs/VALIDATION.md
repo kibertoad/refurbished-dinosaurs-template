@@ -68,10 +68,11 @@ the same check before deleting or creating package output.
 
 ## Installer acceptance
 
-The CI workflow builds, tests, and smoke-tests the assetless project on Windows,
-Linux, and both macOS architectures. Installer jobs verify the installed
-filesystem layout; Windows additionally validates the generated Start menu
-shortcut, the presence of the adjacent SDL2 and OpenAL libraries, and silent
+Pull requests run only the Windows installer and the zizmor security audit. The
+full multi-platform matrix (build, test, and smoke-test on Windows, Linux, and
+both macOS architectures) runs on manual dispatch. Installer jobs verify the
+installed filesystem layout; Windows additionally validates the generated Start
+menu shortcut, the presence of the adjacent SDL2 and OpenAL libraries, and silent
 uninstall cleanup. CI never requires proprietary content.
 
 ## Failure triage

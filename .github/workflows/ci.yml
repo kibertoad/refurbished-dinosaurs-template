@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -36,6 +37,7 @@ jobs:
         run: if (Test-Path artifacts/assetless-game/UserContent) { throw 'Assetless package contains UserContent.' }
   installer:
     needs: verify
+    if: ${{ always() && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -116,6 +118,7 @@ jobs:
           retention-days: 1
   installer-linux:
     needs: verify
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -152,6 +155,7 @@ jobs:
           retention-days: 1
   installer-macos:
     needs: verify
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
