@@ -62,9 +62,9 @@ and rules documents; decompiler output is never committed.
 
 `tools/Verify-Repository.ps1` applies `tools/repository-policy.json` to tracked
 files. It rejects local/imported roots, original-media extensions outside
-explicit clean-room or synthetic fixture roots, tracked paths missing from the
-worktree, and unreviewed files larger than 1 MiB. The publisher scripts invoke
-the same check before deleting or creating package output.
+explicit clean-room or synthetic fixture roots, and unreviewed files larger
+than 1 MiB. The publisher scripts invoke the same check before deleting or
+creating package output.
 
 ## Installer acceptance
 

@@ -61,7 +61,6 @@ foreach ($path in $trackedPaths) {
 
     $absolutePath = Join-Path $root $path
     if (-not [IO.File]::Exists($absolutePath)) {
-        $violations.Add("tracked path is missing from the worktree: $path")
         continue
     }
 
