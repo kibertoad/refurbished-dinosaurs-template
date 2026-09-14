@@ -35,10 +35,13 @@ selected if verification fails.
 ## GitHub release workflow
 
 Run the manual-only `Release installers` workflow, enter a semantic version such
-as `0.1.0`, and select `windows` or `all`. The default builds Windows x64 only.
-`all` additionally requires Linux x64, macOS arm64, and macOS x64 artifacts. A
-tag and GitHub Release are created only after tests and every selected build
-succeed.
+as `0.1.0`, and select `windows`, `no-mac-x64`, or `all`. The default builds
+Windows x64 only; `no-mac-x64` adds Linux x64 and macOS arm64, while `all` also
+adds macOS x64. Each preset requires all of its selected artifacts. A tag and
+GitHub Release are created only after tests and every selected build succeed.
+Installer artifacts used to assemble the release are retained in Actions for one
+day; the durable downloadable copies are the assets attached to the resulting
+GitHub Release. The release workflow has no scheduled or push trigger.
 
 ## Continuous integration
 
