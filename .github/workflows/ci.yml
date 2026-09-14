@@ -94,6 +94,7 @@ jobs:
           name: windows-installer
           path: artifacts/*-Setup-*.exe
           if-no-files-found: error
+          retention-days: 1
   installer-linux:
     needs: verify
     runs-on: ubuntu-latest
@@ -129,6 +130,7 @@ jobs:
           name: linux-installer
           path: artifacts/*.deb
           if-no-files-found: error
+          retention-days: 1
   installer-macos:
     needs: verify
     runs-on: ${{ matrix.os }}
@@ -164,3 +166,4 @@ jobs:
           name: macos-installer-${{ matrix.runtime }}
           path: artifacts/*.pkg
           if-no-files-found: error
+          retention-days: 1

@@ -13,6 +13,7 @@ on:
         type: choice
         options:
           - windows
+          - no-mac-x64
           - all
 permissions: {}
 concurrency:
@@ -98,9 +99,10 @@ jobs:
           name: release-windows-x64
           path: artifacts/*.exe
           if-no-files-found: error
+          retention-days: 1
   linux:
     needs: [prepare, test]
-    if: ${{ inputs.installers == 'all' }}
+    if: ${{ inputs.installers != 'windows' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -121,9 +123,10 @@ jobs:
           name: release-linux-x64
           path: artifacts/*.deb
           if-no-files-found: error
+          retention-days: 1
   macos:
     needs: [prepare, test]
-    if: ${{ inputs.installers == 'all' }}
+    if: ${{ inputs.installers != 'windows' }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -131,9 +134,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-15
+          - arch: arm64
+            os: macos-15
             runtime: osx-arm64
-          - os: macos-15-intel
+          - arch: x64
+            os: macos-15-intel
             runtime: osx-x64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -143,16 +148,19 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
-      - shell: pwsh
+      - if: ${{ matrix.arch != 'x64' || inputs.installers == 'all' }}
+        shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           TARGET_RUNTIME: ${{ matrix.runtime }}
         run: ./tools/Build-MacInstaller.ps1 -Version $env:RELEASE_VERSION -Runtime $env:TARGET_RUNTIME
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - if: ${{ matrix.arch != 'x64' || inputs.installers == 'all' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: release-${{ matrix.runtime }}
+          name: release-macos-${{ matrix.arch }}
           path: artifacts/*.pkg
           if-no-files-found: error
+          retention-days: 1
   release:
     needs: [prepare, windows, linux, macos]
     if: >-
@@ -183,7 +191,7 @@ jobs:
           RELEASE_INSTALLERS: ${{ inputs.installers }}
         run: |
           $assets = @(Get-ChildItem release-assets -File)
-          $expected = if ($env:RELEASE_INSTALLERS -eq 'all') { 4 } else { 1 }
+          $expected = if ($env:RELEASE_INSTALLERS -eq 'all') { 4 } elseif ($env:RELEASE_INSTALLERS -eq 'no-mac-x64') { 3 } else { 1 }
           if ($assets.Count -ne $expected) { throw "Expected $expected installer(s); found $($assets.Count)." }
           $commit = git rev-parse HEAD
           $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" -f "object=$commit" -f type=commit --jq .sha
