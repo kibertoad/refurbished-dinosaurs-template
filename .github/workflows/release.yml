@@ -21,6 +21,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   prepare:
+    name: Validate release
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,11 +39,12 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          if ($env:RELEASE_TAG -notmatch '^\d+\.\d+\.\d+$') { throw 'Tag must be x.y.z.' }
+          if ($env:RELEASE_TAG -notmatch '^(\d+\.\d+\.\d+)$') { throw 'Tag must be x.y.z.' }
           if (git ls-remote --tags origin "refs/tags/$env:RELEASE_TAG") { throw 'Tag already exists.' }
-          "version=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
+          "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
           "commit=$(git rev-parse HEAD)" >> $env:GITHUB_OUTPUT
   test:
+    name: Test release commit
     needs: prepare
     runs-on: ubuntu-latest
     permissions:
@@ -55,9 +57,11 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
-      - uses: kibertoad/toad-discovery-center/actions/verify-repository@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
-      - run: dotnet test --project tests/Restoration.Tests/Restoration.Tests.csproj --no-progress -v minimal
+      - name: Verify repository, build, and test
+        shell: pwsh
+        run: ./tools/Invoke-Validation.ps1
   windows:
+    name: Build Windows x64 installer
     needs: [prepare, test]
     runs-on: windows-latest
     permissions:
@@ -70,7 +74,30 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
-      - uses: kibertoad/toad-discovery-center/actions/setup-inno@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
+      - name: Install pinned installer compiler
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.0-x64.exe'
+          $compilerRoot = Join-Path $env:RUNNER_TEMP 'InnoSetup'
+          gh release download is-7_1_0 `
+            --repo jrsoftware/issrc `
+            --pattern 'innosetup-7.1.0-x64.exe' `
+            --dir $env:RUNNER_TEMP
+          gh release verify-asset $installer --repo jrsoftware/issrc
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer
+          if ($signature.Status -ne 'Valid' -or
+              $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
+            throw "Unexpected Inno Setup signature: $($signature.Status) $($signature.SignerCertificate.Subject)"
+          }
+          $install = Start-Process -FilePath $installer `
+            -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/CURRENTUSER', '/SP-', '/NORESTART', "/DIR=`"$compilerRoot`"") `
+            -Wait -PassThru -WindowStyle Hidden
+          if ($install.ExitCode -ne 0) {
+            throw "Inno Setup installation returned $($install.ExitCode)."
+          }
+          "INNO_COMPILER=$compilerRoot\ISCC.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
       - shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
@@ -82,7 +109,7 @@ jobs:
         run: |
           $target = Join-Path $env:RUNNER_TEMP 'restoration-release-install-test'
           $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
-          $setup = Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
+          $setup = Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOEXTRACT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
           if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
           $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\{{SHORTCUT_NAME}}\{{SHORTCUT_NAME}}.lnk'
           if (-not (Test-Path -LiteralPath $shortcut)) { throw "Start menu shortcut is missing: $shortcut" }
@@ -101,6 +128,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   linux:
+    name: Build Linux x64 installer
     needs: [prepare, test]
     if: ${{ inputs.installers != 'windows' }}
     runs-on: ubuntu-latest
@@ -125,6 +153,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   macos:
+    name: Build macOS installer (${{ matrix.runtime }})
     needs: [prepare, test]
     if: ${{ inputs.installers != 'windows' }}
     runs-on: ${{ matrix.os }}
@@ -162,6 +191,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   release:
+    name: Publish release
     needs: [prepare, windows, linux, macos]
     if: >-
       ${{
@@ -173,7 +203,7 @@ jobs:
       }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Required to create the annotated tag and GitHub Release.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -184,18 +214,36 @@ jobs:
           pattern: release-*
           path: release-assets
           merge-multiple: true
-      - shell: pwsh
+      - name: Create annotated tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve release commit.' }
+          $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" `
+            -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" `
+            -f "object=$commit" -f 'type=commit' | ConvertFrom-Json
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/refs" `
+            -f "ref=refs/tags/$env:RELEASE_TAG" -f "sha=$($tagObject.sha)"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not create release tag reference.' }
+      - name: Create GitHub Release
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.prepare.outputs.version }}
           RELEASE_INSTALLERS: ${{ inputs.installers }}
         run: |
-          $assets = @(Get-ChildItem release-assets -File)
-          $expected = if ($env:RELEASE_INSTALLERS -eq 'all') { 4 } elseif ($env:RELEASE_INSTALLERS -eq 'no-mac-x64') { 3 } else { 1 }
-          if ($assets.Count -ne $expected) { throw "Expected $expected installer(s); found $($assets.Count)." }
-          $commit = git rev-parse HEAD
-          $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" -f "object=$commit" -f type=commit --jq .sha
-          if ($LASTEXITCODE -ne 0) { throw 'Could not create annotated tag object.' }
-          gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$env:RELEASE_TAG" -f "sha=$tagObject"
-          if ($LASTEXITCODE -ne 0) { throw 'Could not create tag reference.' }
-          gh release create $env:RELEASE_TAG $assets.FullName --verify-tag --generate-notes --title "{{DISPLAY_NAME}} $env:RELEASE_TAG"
+          mapfile -t assets < <(find release-assets -type f -print | sort)
+          expected=1
+          if [[ "$RELEASE_INSTALLERS" == no-mac-x64 ]]; then expected=3; fi
+          if [[ "$RELEASE_INSTALLERS" == all ]]; then expected=4; fi
+          if (( ${#assets[@]} != expected )); then
+            echo "Expected $expected installer(s), found ${#assets[@]}." >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" "${assets[@]}" \
+            --verify-tag \
+            --generate-notes \
+            --title "{{DISPLAY_NAME}} $RELEASE_TAG"

@@ -9,6 +9,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
+    name: Verify (${{ matrix.os }})
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -23,23 +25,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: kibertoad/toad-discovery-center/actions/verify-repository@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
-      - name: Verify project configuration
-        shell: pwsh
-        run: ./tools/Verify-Configuration.ps1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
-      - run: dotnet restore Restoration.slnx
-      - run: dotnet build Restoration.slnx --no-restore -v minimal
-      - run: dotnet test --project tests/Restoration.Tests/Restoration.Tests.csproj --no-restore --no-progress -v minimal
+      - name: Verify repository, build, and test
+        shell: pwsh
+        run: ./tools/Invoke-Validation.ps1
       - run: dotnet publish src/Restoration.Game/Restoration.Game.csproj --no-restore -c Release --output artifacts/assetless-game -v minimal
       - run: dotnet artifacts/assetless-game/Restoration.Game.dll --smoke-test
       - name: Prove original content is absent
         shell: pwsh
         run: if (Test-Path artifacts/assetless-game/UserContent) { throw 'Assetless package contains UserContent.' }
   installer:
+    name: Windows installer
     needs: verify
+    if: ${{ always() && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -49,7 +49,30 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
-      - uses: kibertoad/toad-discovery-center/actions/setup-inno@caffbcf5efab3aebf4e58d44ea0b3ae0fca5a225
+      - name: Install pinned installer compiler
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-7.1.0-x64.exe'
+          $compilerRoot = Join-Path $env:RUNNER_TEMP 'InnoSetup'
+          gh release download is-7_1_0 `
+            --repo jrsoftware/issrc `
+            --pattern 'innosetup-7.1.0-x64.exe' `
+            --dir $env:RUNNER_TEMP
+          gh release verify-asset $installer --repo jrsoftware/issrc
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer
+          if ($signature.Status -ne 'Valid' -or
+              $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
+            throw "Unexpected Inno Setup signature: $($signature.Status) $($signature.SignerCertificate.Subject)"
+          }
+          $install = Start-Process -FilePath $installer `
+            -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/CURRENTUSER', '/SP-', '/NORESTART', "/DIR=`"$compilerRoot`"") `
+            -Wait -PassThru -WindowStyle Hidden
+          if ($install.ExitCode -ne 0) {
+            throw "Inno Setup installation returned $($install.ExitCode)."
+          }
+          "INNO_COMPILER=$compilerRoot\ISCC.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Configure a sample identity when the template is unconfigured
         shell: pwsh
         run: >
@@ -66,7 +89,7 @@ jobs:
           $installer = Get-ChildItem artifacts -Filter '*-Setup-0.1.0.exe' | Select-Object -First 1
           if (-not $installer) { throw 'Installer was not produced.' }
           $target = Join-Path $env:RUNNER_TEMP 'restoration-install-test'
-          $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
+          $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOEXTRACT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
           if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
           $startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
           $shortcut = Join-Path $startMenu "$($project.shortcutName)/$($project.shortcutName).lnk"
@@ -96,7 +119,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   installer-linux:
+    name: Linux installer
     needs: verify
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -132,7 +157,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   installer-macos:
+    name: macOS installer (${{ matrix.runtime }})
     needs: verify
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:

@@ -76,6 +76,34 @@ Script output is temporary navigation evidence, not proof or production input.
 Ghidra pseudocode can misidentify types, reuse variables, and fold control flow;
 inspect bounded instruction context when a conclusion depends on those details.
 
+## Bounded reporting scripts
+
+Every script under `tools/ghidra` is a navigation aid for a small, reviewable
+question. Each caps its output so a mistake cannot dump the whole executable.
+Their output is navigation metadata, never proof of a rule; trace each finding
+and confirm it against controlled original-game observations before changing
+compatibility logic. Never redirect broad output into the repository.
+
+| Script | Arguments | Reports |
+| --- | --- | --- |
+| `ReportStringReferences.java` | case-insensitive string fragments | at most 100 matching defined strings and 100 references per match |
+| `ReportSymbolReferences.java` | symbol-name fragments | bounded navigation for known imports or symbols |
+| `ReportScalarConstants.java` | decimal or `0x`-prefixed scalars | at most 300 instructions containing them |
+| `ReportReferences.java` | explicit addresses | references to them and their containing functions |
+| `ReportDataBytes.java` | one address and a byte count (1-256) | the raw bytes at that address |
+| `ReportFunctionSummary.java` | one or more function addresses | focused decompiler output for the selected addresses |
+| `ReportDecompileMatches.java` | one function address then literal text | at most 240 lines with two lines of context |
+| `ReportDecompileWindow.java` | one function address, one-based start line, count (1-160) | a selected basic-block-sized decompiler window |
+| `ReportInstructionWindow.java` | one address and an instruction count (1-200) | a forward instruction listing |
+| `ReportInstructionContext.java` | instruction addresses | at most eight instructions on either side within the function |
+| `ReportCallArguments.java` | one callee address | the three nearest pushed arguments at each direct call |
+| `ReportCallSitesWithScalars.java` | one callee address then exact scalars | calls whose preceding argument setup contains one of the values |
+| `ReportRandomnessCandidates.java` | none | candidate timing/random imports and their referencing functions |
+
+Use the narrow scripts to locate line numbers and addresses, then request only
+the explicitly selected decompiler or instruction windows. Do not stitch
+adjacent windows together to reconstruct or retain a complete function.
+
 ## Evidence record
 
 For each useful finding record:

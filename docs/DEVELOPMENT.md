@@ -19,8 +19,12 @@ must not be redistributed.
 Build and test the complete solution with:
 
 ```powershell
-./tools/Test.ps1
+./tools/Invoke-Validation.ps1
 ```
+
+The default gate skips tests tagged `Category=LongRunning`; pass
+`-IncludeLongRunningTests` to run them, `-TestFilter` to narrow a run, and
+`-MinimumExpectedTests` to fail when discovery drops below an expected count.
 
 Every compiled C# source file is limited to 1,000 lines by default. The limit can
 be lowered with the `MaximumSourceFileLines` MSBuild property for validation.

@@ -116,14 +116,20 @@ raising the limit.
 ```powershell
 ./tools/Verify-Configuration.ps1   # placeholders and template leftovers
 ./tools/Verify-Repository.ps1      # original-content and large-file policy
-./tools/Test.ps1                   # repository policy plus the test suite
+./tools/Invoke-Validation.ps1      # policy checks plus build and tests (fast gate)
 dotnet build <Project>.slnx        # full solution
 dotnet run --project src/<Project>.Game -- --smoke-test
 ```
 
+`Invoke-Validation.ps1` is the canonical local validation entry point. Its
+default fast gate skips tests tagged `Category=LongRunning`; run
+`-IncludeLongRunningTests` only when the user asks for it or a change to that
+coverage needs it. Add `-TestFilter` to narrow a run and `-MinimumExpectedTests`
+to fail when discovery drops below an expected count.
+
 ## Definition of done
 
-A change is finished when the solution builds, `./tools/Test.ps1` passes, new
+A change is finished when the solution builds, `./tools/Invoke-Validation.ps1` passes, new
 behavior has tests that do not need original content, the documents that assert
 status (`README.md`, `docs/PARITY-MATRIX.md`, `docs/FIDELITY.md`) match reality,
 and the plan's open questions have been updated with whatever the work settled
