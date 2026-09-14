@@ -8,13 +8,13 @@ if "%SOURCE%"=="" (
   set /p "SOURCE=Original source: "
 )
 if "%SOURCE%"=="" exit /b 2
-"%~dp0Tools\Restoration.Import.exe" import --source "%SOURCE%" --output "%LOCALAPPDATA%\{{APP_DATA_DIRECTORY}}\UserContent"
+"%~dp0Tools\Restoration.Extractor.exe" extract --source "%SOURCE%" --output "%LOCALAPPDATA%\{{APP_DATA_DIRECTORY}}\UserContent"
 if errorlevel 1 (
   echo.
-  echo Import failed. The original source was not modified and the last verified content pack was preserved.
+  echo Extraction failed. The original source was not modified and the last verified asset pack was preserved.
   pause
   exit /b 1
 )
 echo.
-echo Original resources were imported and verified successfully.
+echo Original resources were extracted and verified successfully.
 pause

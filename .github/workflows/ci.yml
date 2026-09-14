@@ -85,7 +85,7 @@ jobs:
           $installer = Get-ChildItem artifacts -Filter '*-Setup-0.1.0.exe' | Select-Object -First 1
           if (-not $installer) { throw 'Installer was not produced.' }
           $target = Join-Path $env:RUNNER_TEMP 'restoration-install-test'
-          $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
+          $setup = Start-Process $installer.FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOEXTRACT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
           if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
           $startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
           $shortcut = Join-Path $startMenu "$($project.shortcutName)/$($project.shortcutName).lnk"

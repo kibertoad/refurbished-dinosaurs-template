@@ -67,7 +67,8 @@ function Read-ProjectConfig([string] $path) {
 }
 
 function Get-ConfigValue($config, [string] $name) {
-    $value = $config.PSObject.Properties[$name]?.Value
+    $property = $config.PSObject.Properties[$name]
+    $value = if ($null -ne $property) { $property.Value } else { $null }
     if ($value -is [string] -and [string]::IsNullOrWhiteSpace($value)) { return $null }
     return $value
 }
@@ -81,7 +82,11 @@ function Resolve-Setting([object] $parameter, $config, [string] $name, [object] 
 }
 
 function Test-IncludedPath([string] $root, [string] $fullName) {
-    $relative = [IO.Path]::GetRelativePath($root, $fullName).Replace('\', '/')
+    $normalizedRoot = [IO.Path]::GetFullPath($root).TrimEnd('\', '/')
+    $normalizedName = [IO.Path]::GetFullPath($fullName)
+    if (-not $normalizedName.StartsWith($normalizedRoot + [IO.Path]::DirectorySeparatorChar,
+            [StringComparison]::OrdinalIgnoreCase)) { return $false }
+    $relative = $normalizedName.Substring($normalizedRoot.Length + 1).Replace('\', '/')
     return -not ($relative.Split('/') | Where-Object { $excludedDirectories -contains $_ })
 }
 
@@ -107,7 +112,7 @@ function Get-TemplateProjectSuffixes([string] $root, [string] $fromName) {
 function Update-FileContent([IO.FileInfo] $file, [System.Collections.Specialized.OrderedDictionary] $replacements, [regex] $identifier, [string] $projectName) {
     $bytes = [IO.File]::ReadAllBytes($file.FullName)
     $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
-    $offset = $hasBom ? 3 : 0
+    $offset = if ($hasBom) { 3 } else { 0 }
     $original = [Text.UTF8Encoding]::new($false).GetString($bytes, $offset, $bytes.Length - $offset)
     $content = $original
     foreach ($entry in $replacements.GetEnumerator()) { $content = $content.Replace($entry.Key, $entry.Value) }
@@ -164,7 +169,10 @@ function Save-ProjectConfig([string] $path, [hashtable] $values) {
         }
     }
     if ($PSCmdlet.ShouldProcess($path, 'Write resolved project configuration')) {
-        Set-Content -LiteralPath $path -Value (($document | ConvertTo-Json -Depth 5) + "`n") -Encoding utf8NoBOM -NoNewline
+        [IO.File]::WriteAllText(
+            $path,
+            (($document | ConvertTo-Json -Depth 5) + "`n"),
+            [Text.UTF8Encoding]::new($false))
     }
 }
 
@@ -174,7 +182,11 @@ $ConfigPath = [IO.Path]::GetFullPath($ConfigPath)
 $config = Read-ProjectConfig $ConfigPath
 
 $wasConfigured = [bool] (Get-ConfigValue $config 'configured')
-$fromName = $wasConfigured ? ((Get-ConfigValue $config 'projectName') ?? $templateName) : $templateName
+$fromName = $templateName
+if ($wasConfigured) {
+    $configuredName = Get-ConfigValue $config 'projectName'
+    if ($configuredName) { $fromName = $configuredName }
+}
 if ($wasConfigured -and $SkipIfConfigured) {
     Write-Host "Already configured as '$fromName'; leaving the repository unchanged."
     exit 0
@@ -183,7 +195,8 @@ if ($wasConfigured -and -not $Force) {
     throw "This repository is already configured as '$fromName'. Pass -Force to reconfigure, and see docs/CUSTOMIZATION.md for what re-running can and cannot change."
 }
 
-$original = (Get-ConfigValue $config 'original') ?? [pscustomobject]@{}
+$original = Get-ConfigValue $config 'original'
+if ($null -eq $original) { $original = [pscustomobject]@{} }
 $name = Resolve-Setting $ProjectName $config 'projectName'
 $display = Resolve-Setting $DisplayName $config 'displayName'
 if (-not $name -or -not $display) {
@@ -212,17 +225,22 @@ $values.BundleId = Resolve-Setting $BundleId $config 'bundleId' `
 $values.CopyrightHolder = Resolve-Setting $CopyrightHolder $config 'copyrightHolder' $values.Publisher
 # A stored year of 0 means 'not chosen yet', so fall back to the current year.
 $storedYear = [int] (Resolve-Setting $CopyrightYear $config 'copyrightYear' 0)
-$values.CopyrightYear = $storedYear -gt 0 ? $storedYear : (Get-Date).Year
+$values.CopyrightYear = if ($storedYear -gt 0) { $storedYear } else { (Get-Date).Year }
 $values.RepositoryUrl = (Resolve-Setting $RepositoryUrl $config 'repositoryUrl' `
     "https://github.com/$($values.Publisher)/$($values.GameId)").TrimEnd('/')
 $resolvedAppId = Resolve-Setting $AppId $config 'appId'
-$values.AppId = $resolvedAppId ? ([guid] $resolvedAppId).ToString('B').ToUpperInvariant() : [guid]::NewGuid().ToString('B').ToUpperInvariant()
+$values.AppId = if ($resolvedAppId) {
+    ([guid] $resolvedAppId).ToString('B').ToUpperInvariant()
+} else {
+    [guid]::NewGuid().ToString('B').ToUpperInvariant()
+}
 # A summary composed from the original-game metadata beats leaving README and
 # NOTICE with a visible placeholder; an explicit summary always wins.
 if (-not $values.Summary -and $values.OriginalTitle) {
     $attribution = @($values.OriginalDeveloper, $values.OriginalReleaseYear) | Where-Object { $_ }
+    $attributionText = if ($attribution.Count) { " ($($attribution -join ', '))" } else { '' }
     $values.Summary = "A clean-room MonoGame reimplementation of $($values.OriginalTitle)" +
-        ($attribution.Count ? " ($($attribution -join ', '))" : '') + '.'
+        $attributionText + '.'
 }
 if ($values.GameId -notmatch '^[a-z0-9][a-z0-9.-]*$') {
     throw "gameId '$($values.GameId)' must be lowercase and start with a letter or digit."
@@ -277,7 +295,11 @@ $rewritten = 0
 foreach ($file in Get-TextFiles $root $selfManaged) {
     if (Update-FileContent $file $replacements $identifier $values.ProjectName) { $rewritten++ }
 }
-$renamed = $fromName -ceq $values.ProjectName ? 0 : (Rename-TemplateItems $root $fromName $values.ProjectName $selfManaged)
+$renamed = if ($fromName -ceq $values.ProjectName) {
+    0
+} else {
+    Rename-TemplateItems $root $fromName $values.ProjectName $selfManaged
+}
 Save-ProjectConfig $ConfigPath $values
 
 Write-Host "Configured '$($values.DisplayName)' as '$($values.ProjectName)' (game id '$($values.GameId)', installer AppId $($values.AppId))."

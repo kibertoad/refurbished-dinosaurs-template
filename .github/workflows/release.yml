@@ -106,7 +106,7 @@ jobs:
         run: |
           $target = Join-Path $env:RUNNER_TEMP 'restoration-release-install-test'
           $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
-          $setup = Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOIMPORT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
+          $setup = Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOEXTRACT=1',"/DIR=`"$target`"") -Wait -PassThru -WindowStyle Hidden
           if ($setup.ExitCode -ne 0) { throw "Installer returned $($setup.ExitCode)." }
           $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\{{SHORTCUT_NAME}}\{{SHORTCUT_NAME}}.lnk'
           if (-not (Test-Path -LiteralPath $shortcut)) { throw "Start menu shortcut is missing: $shortcut" }
@@ -158,11 +158,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-15
-            arch: arm64
+          - arch: arm64
+            os: macos-15
             runtime: osx-arm64
-          - os: macos-15-intel
-            arch: x64
+          - arch: x64
+            os: macos-15-intel
             runtime: osx-x64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -181,7 +181,7 @@ jobs:
       - if: ${{ matrix.arch != 'x64' || inputs.installers == 'all' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: release-${{ matrix.runtime }}
+          name: release-macos-${{ matrix.arch }}
           path: artifacts/*.pkg
           if-no-files-found: error
           retention-days: 1

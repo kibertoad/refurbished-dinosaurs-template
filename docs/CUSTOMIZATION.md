@@ -74,13 +74,13 @@ and `./tools/Verify-Configuration.ps1` runs everywhere.
 Configuration cannot decide these. Each one is also an item in
 `docs/BOOTSTRAP-CHECKLIST.md`:
 
-- `tools/<Project>.Import/source-manifests/*.json`: one fingerprint manifest per
+- `src/<Project>.Extractor/source-manifests/*.json`: one fingerprint manifest per
   supported original edition. Delete the sample; it is reported until it is gone.
 - `tools/repository-policy.json`: the restricted extensions list is a starting
   point aimed at a typical 1990s PC release. Add the extensions the original
   game actually uses, and keep `deniedRoots` as it is.
 - `packaging/windows/<Project>.iss`: original-installation discovery, validation,
-  and the import step shown during Setup.
+  and the extraction step shown during Setup.
 - `tools/Build-LinuxInstaller.ps1`: Debian package name, dependencies, and
   desktop entry categories.
 - `tools/Build-MacInstaller.ps1`: bundle identifier and minimum macOS version.

@@ -57,14 +57,16 @@ game-specific content, keeping each document's structure and confidence
 vocabulary. State confidence honestly; `unknown` is a valid answer and a
 plausible-sounding guess is not.
 
-**4. Make import real.** Replace the sample manifest under
-`tools/<Project>.Import/source-manifests/` with one fingerprint manifest per
+**4. Make extraction real.** Replace the sample manifest under
+`src/<Project>.Extractor/source-manifests/` with one fingerprint manifest per
 supported edition, extend `tools/repository-policy.json` with the extensions the
 original actually uses, and make a missing or unsupported source produce an
-actionable error rather than a crash.
+actionable error rather than a crash. The separately runnable Extractor verifies
+a licensed source and transactionally creates a complete local asset pack; the
+Game consumes only that verified pack.
 
 **5. Build the first vertical slice.** Follow the approved plan. Prefer a thin
-end-to-end slice — identify, import, start, show something real, quit cleanly —
+end-to-end slice — identify, extract, start, show something real, quit cleanly —
 over broad but unplayable systems.
 
 **6. Verify and hand over.** Run the commands below, update the README status
@@ -99,8 +101,9 @@ table and `docs/PARITY-MATRIX.md` to match what is actually true, and tick off
   No MonoGame.
 - `<Project>.Game`: MonoGame DesktopGL presentation, and the only project that
   may depend on both of the above.
-- `<Project>.Import` and `<Project>.Inspect`: tooling over `Resources`.
-  `Inspect` stays read-only.
+- `<Project>.Extractor`: separately runnable licensed-source verification and
+  transactional asset extraction over `Resources`.
+- `<Project>.Inspect`: read-only tooling over `Resources`.
 - `<Project>.Tests`: architecture, safety, and behavioral tests.
 
 Determinism is a feature: identical commands and seed must produce identical
