@@ -12,6 +12,16 @@ dotnet run --project src/Restoration.Extractor -- verify-pack
 dotnet run --project src/Restoration.Game
 ```
 
+Each edition manifest declares `sourceKind` as `directory`, `iso9660`, or
+`cue-bin`. The same `--source` option accepts the corresponding directory, ISO,
+CUE/BIN directory, `.cue`, or `.bin` path. Projects that need InstallShield can
+stage a supported cabinet through the bounded isolated adapter:
+
+```powershell
+dotnet run --project src/Restoration.Extractor -- expand-installshield `
+  --cabinet "C:\path\to\data1.cab" --output "C:\empty\staging"
+```
+
 Extraction is transactional: a new content pack is staged and fully verified before
 it replaces the previous verified pack. Imported content is ignored by Git and
 must not be redistributed.
@@ -42,7 +52,7 @@ responsibilities instead.
 - `Restoration.Tests`: architecture, safety, and behavioral tests.
 
 New repositories start with `tools/project-config.json` and
-`./tools/Configure-Project.ps1`; `docs/CUSTOMIZATION.md` documents every field,
+`./tools/Bootstrap-Project.ps1`; `docs/CUSTOMIZATION.md` documents every field,
 and `./tools/Verify-Configuration.ps1` reports whatever is still left over from
 the template. `AGENTS.md` is the working agreement for the repository, including
 the rule that `docs/IMPLEMENTATION-PLAN.md` is written and approved before

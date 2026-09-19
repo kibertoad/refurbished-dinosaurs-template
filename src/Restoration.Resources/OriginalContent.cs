@@ -4,7 +4,11 @@ using System.Text.Json;
 
 namespace Restoration.Resources;
 
-public sealed record SourceManifest(string GameId, string SourceEdition, IReadOnlyList<SourceFile> Files)
+public sealed record SourceManifest(
+    string GameId,
+    string SourceEdition,
+    IReadOnlyList<SourceFile> Files,
+    string SourceKind = SourceKinds.Directory)
 {
     public static SourceManifest Load(Stream stream)
     {
@@ -21,6 +25,8 @@ public sealed record SourceManifest(string GameId, string SourceEdition, IReadOn
         ArgumentException.ThrowIfNullOrWhiteSpace(SourceEdition);
         if (Files is null || Files.Count == 0)
             throw new InvalidDataException("A source manifest requires at least one fingerprint.");
+        if (!SourceKinds.IsSupported(SourceKind))
+            throw new InvalidDataException($"Unsupported source kind '{SourceKind}'.");
 
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in Files)
@@ -35,6 +41,10 @@ public sealed record SourceManifest(string GameId, string SourceEdition, IReadOn
 
     public string Fingerprint()
     {
+        // Deliberately excludes SourceKind: the fingerprint identifies an edition by its logical
+        // contents, so an edition read from an ISO and the same edition read from a directory the
+        // owner copied it into must fingerprint identically. The source kind is how the bytes are
+        // reached, not what they are, and Validate() already rejects an unsupported one.
         var canonical = string.Join('\n', Files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .Select(file => $"{Normalize(file.Path)}\0{file.Size}\0{file.Sha256.ToLowerInvariant()}"));
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
@@ -117,33 +127,43 @@ public static class OriginalContent
         CancellationToken cancellationToken = default)
     {
         manifest.Validate();
-        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
-            return [new("source_root_missing", "The selected source directory does not exist.", root)];
-
         var diagnostics = new List<ContentDiagnostic>();
-        foreach (var expected in manifest.Files)
+        OriginalContentSource source;
+        try
         {
-            var relative = SourceManifest.Normalize(expected.Path);
-            var path = SafeTarget(root, relative);
-            if (!File.Exists(path))
-            {
-                diagnostics.Add(new("source_file_missing", $"Required source file is missing: {relative}", relative));
-                continue;
-            }
+            source = OriginalContentSource.Open(root, manifest.SourceKind);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+                                         or InvalidDataException or ArgumentException)
+        {
+            return [new("source_unreadable", exception.Message, root)];
+        }
 
-            var actualSize = new FileInfo(path).Length;
-            if (actualSize != expected.Size)
+        using (source)
+        {
+            foreach (var expected in manifest.Files)
             {
-                diagnostics.Add(new("source_size_mismatch", $"Source file has the wrong size: {relative}",
-                    relative, expected.Size.ToString(), actualSize.ToString()));
-                continue;
-            }
+                var relative = SourceManifest.Normalize(expected.Path);
+                if (!source.TryGetFile(relative, out var entry))
+                {
+                    diagnostics.Add(new("source_file_missing",
+                        $"Required source file is missing: {relative}", relative));
+                    continue;
+                }
 
-            await using var stream = File.OpenRead(path);
-            var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken));
-            if (!hash.Equals(expected.Sha256, StringComparison.OrdinalIgnoreCase))
-                diagnostics.Add(new("source_hash_mismatch", $"Source file has the wrong SHA-256: {relative}",
-                    relative, expected.Sha256.ToLowerInvariant(), hash));
+                if (entry!.Size != expected.Size)
+                {
+                    diagnostics.Add(new("source_size_mismatch", $"Source file has the wrong size: {relative}",
+                        relative, expected.Size.ToString(), entry.Size.ToString()));
+                    continue;
+                }
+
+                await using var stream = source.OpenRead(relative);
+                var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken));
+                if (!hash.Equals(expected.Sha256, StringComparison.OrdinalIgnoreCase))
+                    diagnostics.Add(new("source_hash_mismatch", $"Source file has the wrong SHA-256: {relative}",
+                        relative, expected.Sha256.ToLowerInvariant(), hash));
+            }
         }
         return diagnostics;
     }

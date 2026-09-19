@@ -1,7 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Locked mode is opt-in, and CI applies it to the unconfigured template's own build. It
+         cannot be applied to a configured project: the lock file records a project reference by
+         name (restoration.resources), which Configure-Project.ps1 renames, and carries no runtime
+         identifier, while Publish-Windows.ps1 publishes RID-specific and trimmed. Enforcing it
+         everywhere therefore fails restore by construction. Verifying the pinned transitive set on
+         the template's own build is what the lock file is for; a configured project regenerates
+         its own. -->
+    <RestoreLockedMode Condition="'$(RESTORE_LOCKED_MODE)' == 'true'">true</RestoreLockedMode>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Restoration.Resources/Restoration.Resources.csproj" />
+    <PackageReference Include="SabreTools.Serialization" Version="[3.2.0]" />
     <EmbeddedResource Include="source-manifests/*.json" />
   </ItemGroup>
 </Project>

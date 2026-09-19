@@ -11,3 +11,9 @@ or grant rights to original-game assets. Those assets are not distributed by
 this project and must be imported locally from a legally owned copy.
 
 Project contact: {{REPOSITORY_URL}}/issues
+
+InstallShield support uses SabreTools.Serialization, Copyright (c) Matt
+Nadareski 2019-2026, under the MIT License. SabreTools and its transitive
+dependencies remain under their respective licenses; review their locked
+package metadata and complete project-specific third-party notices before a
+configured project publishes binaries.

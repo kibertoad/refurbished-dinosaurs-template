@@ -5,15 +5,24 @@ game is either a `{{PLACEHOLDER}}` token, a value in `tools/project-config.json`
 or a decision recorded in the documents listed under "Decisions that stay
 manual".
 
-## One file, one command
+## Establish facts, then one command
 
-1. Fill in `tools/project-config.json`. Only `projectName` (PascalCase, used for
-   namespaces, assemblies, and directories) and `displayName` (player-facing) are
-   required; every other value is derived when left empty.
-2. Run `./tools/Configure-Project.ps1`. It substitutes the placeholders, renames
+1. Complete and obtain approval for `docs/IMPLEMENTATION-PLAN.md`.
+2. Establish the latest official patch/version once, patch and fingerprint the
+   legally owned analysis copy, and record the evidence and matching versions in
+   `tools/project-config.json` and `docs/SOURCE-EDITIONS.md`. Bootstrap refuses an
+   older or unestablished analysis build; do not redo this investigation after a
+   conclusive record exists unless new evidence contradicts it.
+3. Fill in `tools/project-config.json`. `projectName` (PascalCase, used for
+   namespaces, assemblies, and directories), `displayName` (player-facing), the
+   original-game facts, and patch-status evidence are required. Identity fields
+   with documented defaults may remain empty.
+4. Run `./tools/Bootstrap-Project.ps1`. It checks the plan and patch gates, calls
+   `Configure-Project.ps1`, substitutes the placeholders, renames
    the template's `Restoration.*` projects, and writes the resolved identity back
    to `tools/project-config.json` with `"configured": true`.
-3. Run `./tools/Verify-Configuration.ps1` and resolve whatever it reports.
+5. Customize the provisional `AGENTS.md` for the game and resolve the remaining
+   items reported by `./tools/Verify-Configuration.ps1`.
 
 Command-line parameters override the file for one run, so
 `./tools/Configure-Project.ps1 -ProjectName Sanctuary -DisplayName 'Sanctuary Restored'`
@@ -32,6 +41,7 @@ and unresolved placeholder without changing anything.
 | `{{APP_ID}}` | `appId` | a newly generated GUID, kept stable afterwards |
 | `{{BUNDLE_ID}}` | `bundleId` | `io.github.<publisher>.<gameId>` |
 | `{{SHORTCUT_NAME}}` | `shortcutName` | `displayName` without path-hostile characters |
+| `{{SOURCE_ENVIRONMENT_VARIABLE}}` | `sourceEnvironmentVariable` | screaming-snake `projectName` plus `_SOURCE_PATH` |
 | `{{PUBLISHER}}` | `publisher` | `kibertoad` |
 | `{{COPYRIGHT_HOLDER}}` | `copyrightHolder` | `publisher` |
 | `{{COPYRIGHT_YEAR}}` | `copyrightYear` | the current year |
@@ -53,6 +63,8 @@ with a plausible guess, so `./tools/Verify-Configuration.ps1` keeps reporting it
   after it. Only `Restoration` followed by a project suffix or `Game` is
   replaced, so prose and unrelated identifiers survive.
 - `tools/project-config.json`, which becomes the record of the chosen identity.
+- The root `Start {{SHORTCUT_NAME}}.bat` filename and content, including the
+  configured source environment variable.
 
 `tools/Configure-Project.ps1` and `tools/Verify-Configuration.ps1` are excluded
 from rewriting; they hold the placeholder table and the template name that make
@@ -85,6 +97,8 @@ Configuration cannot decide these. Each one is also an item in
   desktop entry categories.
 - `tools/Build-MacInstaller.ps1`: bundle identifier and minimum macOS version.
 - `README.md`: the status table, the controls section, and acknowledgements.
+- `AGENTS.md`: canonical patched oracle, game terminology, evidence ledgers,
+  local tools, validation commands, and game-specific invariants.
 - `docs/*`: the research and parity documents, which start as instructions for
   what to record rather than as content.
 

@@ -15,6 +15,15 @@ on:
           - windows
           - no-mac-x64
           - all
+      signed_release:
+        description: Installer platforms to sign; macOS installers are never signed
+        required: true
+        default: Windows
+        type: choice
+        options:
+          - none
+          - Windows
+          - Windows/Linux
 permissions: {}
 concurrency:
   group: release-${{ github.workflow }}-${{ inputs.tag }}
@@ -64,6 +73,9 @@ jobs:
     name: Build Windows x64 installer
     needs: [prepare, test]
     runs-on: windows-latest
+    # An empty name means "no environment", so an unsigned run does not wait on the signing
+    # environment's protection rules or need its secrets.
+    environment: ${{ inputs.signed_release != 'none' && 'release-signing' || '' }}
     permissions:
       contents: read
     steps:
@@ -74,6 +86,20 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
+      - name: Verify eSigner configuration
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        env:
+          ES_USERNAME: ${{ secrets.ES_USERNAME }}
+          ES_PASSWORD: ${{ secrets.ES_PASSWORD }}
+          CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
+          ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
+        run: |
+          $missing = @('ES_USERNAME', 'ES_PASSWORD', 'CREDENTIAL_ID', 'ES_TOTP_SECRET') |
+            Where-Object { -not [Environment]::GetEnvironmentVariable($_) }
+          if ($missing.Count -ne 0) {
+            throw "Missing release-signing environment secret(s): $($missing -join ', ')."
+          }
       - name: Install pinned installer compiler
         shell: pwsh
         env:
@@ -98,14 +124,93 @@ jobs:
             throw "Inno Setup installation returned $($install.ExitCode)."
           }
           "INNO_COMPILER=$compilerRoot\ISCC.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - shell: pwsh
+      - name: Build Windows package
+        shell: pwsh
+        run: ./tools/Publish-Windows.ps1 -SkipArchive
+      - name: Install SSL.com CodeSignTool
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        run: |
+          $toolPath = ./tools/Install-CodeSignTool.ps1 `
+            -DestinationPath (Join-Path $env:RUNNER_TEMP 'CodeSignTool-1.3.2')
+          "CODESIGNTOOL_PATH=$toolPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Stage executables for signing
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        run: |
+          $packageRoot = 'artifacts/{{PACKAGE_ID}}-win-x64'
+          $signingInput = 'artifacts/esigner-input'
+          $executables = @(Get-ChildItem -LiteralPath $packageRoot -Recurse -File -Filter '{{PROJECT_NAME}}*.exe')
+          if ($executables.Count -eq 0) { throw "No project executables were found below '$packageRoot'." }
+          $duplicates = $executables | Group-Object Name | Where-Object Count -gt 1
+          if ($duplicates) { throw "Executable names must be unique for signing: $($duplicates.Name -join ', ')." }
+          New-Item -ItemType Directory -Path $signingInput -Force | Out-Null
+          $executables | Copy-Item -Destination $signingInput
+      - name: Sign Windows executables with SSL.com eSigner
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        env:
+          ES_USERNAME: ${{ secrets.ES_USERNAME }}
+          ES_PASSWORD: ${{ secrets.ES_PASSWORD }}
+          CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
+          ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
+        run: |
+          ./tools/Invoke-ESigner.ps1 `
+            -CodeSignToolPath $env:CODESIGNTOOL_PATH `
+            -InputDirectory (Join-Path $PWD 'artifacts/esigner-input') `
+            -OutputDirectory (Join-Path $PWD 'artifacts/esigner-output')
+      - name: Install and verify signed executables
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        run: |
+          $packageRoot = 'artifacts/{{PACKAGE_ID}}-win-x64'
+          $expected = @(Get-ChildItem 'artifacts/esigner-input' -File -Filter '*.exe' | Select-Object -ExpandProperty Name)
+          $signed = @(Get-ChildItem 'artifacts/esigner-output' -File -Filter '*.exe')
+          $difference = @(Compare-Object $expected @($signed | Select-Object -ExpandProperty Name))
+          if ($difference.Count -ne 0) { throw "eSigner output did not match staged executables." }
+          foreach ($file in $signed) {
+            $destinations = @(Get-ChildItem $packageRoot -Recurse -File -Filter $file.Name)
+            if ($destinations.Count -ne 1) { throw "Expected one destination for '$($file.Name)'." }
+            Copy-Item $file.FullName $destinations[0].FullName -Force
+            $signature = Get-AuthenticodeSignature $destinations[0].FullName
+            if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
+              throw "Invalid or untimestamped signature on '$($destinations[0].FullName)'."
+            }
+          }
+      - name: Build installer from verified package
+        shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
-        run: ./tools/Build-WindowsInstaller.ps1 -Version $env:RELEASE_VERSION -Compiler "$env:INNO_COMPILER"
+        run: ./tools/Build-WindowsInstaller.ps1 -Version $env:RELEASE_VERSION -Compiler "$env:INNO_COMPILER" -SkipPackage
+      - name: Sign Windows installer with SSL.com eSigner
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        env:
+          ES_USERNAME: ${{ secrets.ES_USERNAME }}
+          ES_PASSWORD: ${{ secrets.ES_PASSWORD }}
+          CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
+          ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          ./tools/Invoke-ESigner.ps1 `
+            -CodeSignToolPath $env:CODESIGNTOOL_PATH `
+            -InputFile (Join-Path $PWD "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe")
+      - name: Verify signed installer
+        if: ${{ inputs.signed_release != 'none' }}
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
+          $signature = Get-AuthenticodeSignature $installer
+          if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
+            throw "Invalid or untimestamped signature on '$installer'."
+          }
       - name: Smoke-test installed layout and shortcut
         shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+          SIGNED_RELEASE: ${{ inputs.signed_release }}
         run: |
           $target = Join-Path $env:RUNNER_TEMP 'restoration-release-install-test'
           $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
@@ -116,6 +221,12 @@ jobs:
           $link = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut)
           $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target 'Game/Restoration.Game.exe'))
           if ($link.TargetPath -ne $expectedTarget) { throw "Shortcut target is invalid: '$($link.TargetPath)'." }
+          if ($env:SIGNED_RELEASE -ne 'none') {
+            $signature = Get-AuthenticodeSignature $link.TargetPath
+            if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
+              throw "Installed executable has an invalid or missing timestamped signature."
+            }
+          }
           $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -Wait -PassThru -WindowStyle Hidden
           if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
           $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
@@ -132,6 +243,8 @@ jobs:
     needs: [prepare, test]
     if: ${{ inputs.installers != 'windows' }}
     runs-on: ubuntu-latest
+    # See the Windows job: an empty name means "no environment".
+    environment: ${{ inputs.signed_release == 'Windows/Linux' && 'release-signing' || '' }}
     permissions:
       contents: read
     steps:
@@ -142,14 +255,35 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.400
+      - name: Verify OpenPGP configuration
+        if: ${{ inputs.signed_release == 'Windows/Linux' }}
+        shell: pwsh
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_FINGERPRINT: ${{ secrets.GPG_FINGERPRINT }}
+        run: ./tools/Invoke-GpgSigner.ps1 -TestConfiguration
       - shell: pwsh
         env:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: ./tools/Build-LinuxInstaller.ps1 -Version $env:RELEASE_VERSION
+      - name: Sign Linux installer with OpenPGP
+        if: ${{ inputs.signed_release == 'Windows/Linux' }}
+        shell: pwsh
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_FINGERPRINT: ${{ secrets.GPG_FINGERPRINT }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          ./tools/Invoke-GpgSigner.ps1 -InputFile (Join-Path $PWD `
+            "artifacts/{{PACKAGE_ID}}-linux-x64-Setup-$env:RELEASE_VERSION.deb")
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-linux-x64
-          path: artifacts/*.deb
+          path: |
+            artifacts/*.deb
+            artifacts/*.deb.asc
           if-no-files-found: error
           retention-days: 1
   macos:
@@ -234,11 +368,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.prepare.outputs.version }}
           RELEASE_INSTALLERS: ${{ inputs.installers }}
+          SIGNED_RELEASE: ${{ inputs.signed_release }}
         run: |
           mapfile -t assets < <(find release-assets -type f -print | sort)
           expected=1
           if [[ "$RELEASE_INSTALLERS" == no-mac-x64 ]]; then expected=3; fi
           if [[ "$RELEASE_INSTALLERS" == all ]]; then expected=4; fi
+          if [[ "$SIGNED_RELEASE" == Windows/Linux && "$RELEASE_INSTALLERS" != windows ]]; then ((expected+=1)); fi
           if (( ${#assets[@]} != expected )); then
             echo "Expected $expected installer(s), found ${#assets[@]}." >&2
             exit 1

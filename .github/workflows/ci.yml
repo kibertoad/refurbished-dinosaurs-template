@@ -10,17 +10,17 @@ concurrency:
 jobs:
   verify:
     name: Verify (${{ matrix.os }})
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
       fail-fast: false
+      # A pull request runs the tests, the repository policy, and the template infrastructure
+      # checks on one runner; a dispatch runs the full cross-platform matrix. Skipping this job
+      # entirely on pull requests is what let a build error reach review.
       matrix:
-        include:
-          - os: windows-latest
-          - os: ubuntu-latest
-          - os: macos-15
-          - os: macos-15-intel
+        os: ${{ github.event_name == 'workflow_dispatch'
+          && fromJSON('["windows-latest", "ubuntu-latest", "macos-15", "macos-15-intel"]')
+          || fromJSON('["ubuntu-latest"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,6 +30,10 @@ jobs:
           dotnet-version: 10.0.400
       - name: Verify repository, build, and test
         shell: pwsh
+        env:
+          # This job builds the template unconfigured, so its project names still match
+          # packages.lock.json and the pinned transitive set can actually be enforced here.
+          RESTORE_LOCKED_MODE: 'true'
         run: ./tools/Invoke-Validation.ps1
       - run: dotnet publish src/Restoration.Game/Restoration.Game.csproj --no-restore -c Release --output artifacts/assetless-game -v minimal
       - run: dotnet artifacts/assetless-game/Restoration.Game.dll --smoke-test
@@ -80,6 +84,8 @@ jobs:
           -ProjectName TemplateSample -DisplayName 'Template Sample'
           -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
           -OriginalReleaseYear 1990 -OriginalGenre sample
+          -LatestOfficialVersion synthetic -AnalysisVersion synthetic
+          -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
       - shell: pwsh
         run: ./tools/Build-WindowsInstaller.ps1 -Compiler "$env:INNO_COMPILER"
       - name: Smoke-test installed layout
@@ -138,6 +144,8 @@ jobs:
           -ProjectName TemplateSample -DisplayName 'Template Sample'
           -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
           -OriginalReleaseYear 1990 -OriginalGenre sample
+          -LatestOfficialVersion synthetic -AnalysisVersion synthetic
+          -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
       - shell: pwsh
         run: ./tools/Build-LinuxInstaller.ps1
       - name: Verify Debian layout
@@ -184,6 +192,8 @@ jobs:
           -ProjectName TemplateSample -DisplayName 'Template Sample'
           -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
           -OriginalReleaseYear 1990 -OriginalGenre sample
+          -LatestOfficialVersion synthetic -AnalysisVersion synthetic
+          -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
       - shell: pwsh
         env:
           TARGET_RUNTIME: ${{ matrix.runtime }}

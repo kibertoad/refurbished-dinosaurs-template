@@ -1,6 +1,7 @@
 {
   "gameId": "{{GAME_ID}}",
   "sourceEdition": "replace-with-supported-edition",
+  "sourceKind": "directory",
   "files": [
     {
       "path": "REPLACE.ME",

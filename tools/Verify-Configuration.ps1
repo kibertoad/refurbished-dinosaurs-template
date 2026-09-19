@@ -99,17 +99,28 @@ elseif ($isConfigured) {
         displayName = $config.displayName
         gameId = $config.gameId
         appId = $config.appId
+        sourceEnvironmentVariable = $config.sourceEnvironmentVariable
         repositoryUrl = $config.repositoryUrl
         summary = $config.summary
         'original.title' = $original.title
         'original.developer' = $original.developer
         'original.releaseYear' = $original.releaseYear
         'original.genre' = $original.genre
+        'original.latestOfficialVersion' = $original.latestOfficialVersion
+        'original.analysisVersion' = $original.analysisVersion
+        'original.patchStatusEvidence' = $original.patchStatusEvidence
     }
     foreach ($entry in $required.GetEnumerator()) {
         if ([string]::IsNullOrWhiteSpace([string] $entry.Value)) {
             $findings.Add("tools/project-config.json is missing a value for '$($entry.Key)'.")
         }
+    }
+    if (-not [bool] $original.patchStatusEstablished) {
+        $findings.Add("tools/project-config.json has not conclusively established the analysis edition's patch status.")
+    }
+    if ($original.latestOfficialVersion -and $original.analysisVersion -and
+        $original.latestOfficialVersion -cne $original.analysisVersion) {
+        $findings.Add("analysisVersion does not match latestOfficialVersion; patch the owned game before analysis.")
     }
 }
 

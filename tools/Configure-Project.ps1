@@ -35,6 +35,7 @@ param(
     [string] $AppDataDirectory,
     [string] $BundleId,
     [string] $ShortcutName,
+    [string] $SourceEnvironmentVariable,
     [string] $Publisher,
     [string] $CopyrightHolder,
     [int] $CopyrightYear,
@@ -44,6 +45,10 @@ param(
     [string] $OriginalDeveloper,
     [string] $OriginalReleaseYear,
     [string] $OriginalGenre,
+    [string] $LatestOfficialVersion,
+    [string] $AnalysisVersion,
+    [string] $PatchStatusEvidence,
+    [switch] $PatchStatusEstablished,
     [guid] $AppId,
     [string] $ConfigPath,
     [switch] $Force,
@@ -144,9 +149,25 @@ function Rename-TemplateItems([string] $root, [string] $fromName, [string] $proj
     return $renamed
 }
 
+function Rename-PlaceholderFiles([string] $root, [System.Collections.Specialized.OrderedDictionary] $replacements, [string[]] $excludedFiles) {
+    $renamed = 0
+    foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File -Force |
+        Where-Object { $excludedFiles -notcontains $_.FullName -and (Test-IncludedPath $root $_.FullName) } |
+        Sort-Object FullName -Descending) {
+        $name = $file.Name
+        foreach ($entry in $replacements.GetEnumerator()) { $name = $name.Replace($entry.Key, $entry.Value) }
+        if ($name -ceq $file.Name) { continue }
+        if ($PSCmdlet.ShouldProcess($file.FullName, "Rename to '$name'")) {
+            Rename-Item -LiteralPath $file.FullName -NewName $name
+            $renamed++
+        }
+    }
+    return $renamed
+}
+
 function Save-ProjectConfig([string] $path, [hashtable] $values) {
     $document = [ordered]@{
-        '$schema-note' = 'Resolved identity for this project. Re-run ./tools/Configure-Project.ps1 -Force after changing projectName; other values are already substituted into the repository and must be updated in place.'
+        '$schema-note' = 'Resolved identity and latest-official-version gate. Re-run ./tools/Configure-Project.ps1 -Force after changing projectName; other substituted values must be updated in place.'
         configured = $true
         projectName = $values.ProjectName
         displayName = $values.DisplayName
@@ -156,6 +177,7 @@ function Save-ProjectConfig([string] $path, [hashtable] $values) {
         appId = $values.AppId
         bundleId = $values.BundleId
         shortcutName = $values.ShortcutName
+        sourceEnvironmentVariable = $values.SourceEnvironmentVariable
         publisher = $values.Publisher
         copyrightHolder = $values.CopyrightHolder
         copyrightYear = $values.CopyrightYear
@@ -166,6 +188,10 @@ function Save-ProjectConfig([string] $path, [hashtable] $values) {
             developer = $values.OriginalDeveloper
             releaseYear = $values.OriginalReleaseYear
             genre = $values.OriginalGenre
+            latestOfficialVersion = $values.LatestOfficialVersion
+            analysisVersion = $values.AnalysisVersion
+            patchStatusEvidence = $values.PatchStatusEvidence
+            patchStatusEstablished = $values.PatchStatusEstablished
         }
     }
     if ($PSCmdlet.ShouldProcess($path, 'Write resolved project configuration')) {
@@ -213,12 +239,20 @@ $values = @{
     PackageId = Resolve-Setting $PackageId $config 'packageId' $name
     AppDataDirectory = Resolve-Setting $AppDataDirectory $config 'appDataDirectory' $name
     ShortcutName = Resolve-Setting $ShortcutName $config 'shortcutName' ($display -replace '[:\\/*?"<>|]', '-')
+    SourceEnvironmentVariable = Resolve-Setting $SourceEnvironmentVariable $config 'sourceEnvironmentVariable' `
+        (([regex]::Replace($name, '([a-z0-9])([A-Z])', '$1_$2')).ToUpperInvariant() + '_SOURCE_PATH')
     Publisher = Resolve-Setting $Publisher $config 'publisher' 'kibertoad'
     Summary = Resolve-Setting $Summary $config 'summary'
     OriginalTitle = Resolve-Setting $OriginalTitle $original 'title'
     OriginalDeveloper = Resolve-Setting $OriginalDeveloper $original 'developer'
     OriginalReleaseYear = Resolve-Setting $OriginalReleaseYear $original 'releaseYear'
     OriginalGenre = Resolve-Setting $OriginalGenre $original 'genre'
+    LatestOfficialVersion = Resolve-Setting $LatestOfficialVersion $original 'latestOfficialVersion'
+    AnalysisVersion = Resolve-Setting $AnalysisVersion $original 'analysisVersion'
+    PatchStatusEvidence = Resolve-Setting $PatchStatusEvidence $original 'patchStatusEvidence'
+    PatchStatusEstablished = if ($PatchStatusEstablished) { $true } else {
+        [bool] (Get-ConfigValue $original 'patchStatusEstablished')
+    }
 }
 $values.BundleId = Resolve-Setting $BundleId $config 'bundleId' `
     "io.github.$($values.Publisher.ToLowerInvariant() -replace '[^a-z0-9.]', '').$($values.GameId -replace '[^a-zA-Z0-9.]', '')"
@@ -245,6 +279,14 @@ if (-not $values.Summary -and $values.OriginalTitle) {
 if ($values.GameId -notmatch '^[a-z0-9][a-z0-9.-]*$') {
     throw "gameId '$($values.GameId)' must be lowercase and start with a letter or digit."
 }
+if ($values.SourceEnvironmentVariable -notmatch '^[A-Z_][A-Z0-9_]*$') {
+    throw "sourceEnvironmentVariable '$($values.SourceEnvironmentVariable)' must be a portable uppercase environment-variable name."
+}
+# shortcutName is substituted into file names as well as file contents, so a value supplied through
+# project-config.json has to satisfy the same rule the derived default is sanitized to.
+if ($values.ShortcutName -match '[:\\/*?"<>|]' -or $values.ShortcutName -match '[\s.]$') {
+    throw "shortcutName '$($values.ShortcutName)' must be usable as a file name: no :\/*?`"<>| and no trailing space or dot."
+}
 
 # Placeholders with no resolved value are left untouched on purpose: an obvious
 # {{TOKEN}} that Verify-Configuration.ps1 reports beats a plausible wrong default.
@@ -258,6 +300,7 @@ $candidates = [ordered]@{
     '{{APP_ID}}' = $values.AppId
     '{{BUNDLE_ID}}' = $values.BundleId
     '{{SHORTCUT_NAME}}' = $values.ShortcutName
+    '{{SOURCE_ENVIRONMENT_VARIABLE}}' = $values.SourceEnvironmentVariable
     '{{PUBLISHER}}' = $values.Publisher
     '{{COPYRIGHT_HOLDER}}' = $values.CopyrightHolder
     '{{COPYRIGHT_YEAR}}' = [string] $values.CopyrightYear
@@ -300,6 +343,7 @@ $renamed = if ($fromName -ceq $values.ProjectName) {
 } else {
     Rename-TemplateItems $root $fromName $values.ProjectName $selfManaged
 }
+$renamed += Rename-PlaceholderFiles $root $replacements $selfManaged
 Save-ProjectConfig $ConfigPath $values
 
 Write-Host "Configured '$($values.DisplayName)' as '$($values.ProjectName)' (game id '$($values.GameId)', installer AppId $($values.AppId))."
