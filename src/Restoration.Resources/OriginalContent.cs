@@ -41,7 +41,11 @@ public sealed record SourceManifest(
 
     public string Fingerprint()
     {
-        var canonical = SourceKind + "\n" + string.Join('\n', Files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
+        // Deliberately excludes SourceKind: the fingerprint identifies an edition by its logical
+        // contents, so an edition read from an ISO and the same edition read from a directory the
+        // owner copied it into must fingerprint identically. The source kind is how the bytes are
+        // reached, not what they are, and Validate() already rejects an unsupported one.
+        var canonical = string.Join('\n', Files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .Select(file => $"{Normalize(file.Path)}\0{file.Size}\0{file.Sha256.ToLowerInvariant()}"));
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
     }

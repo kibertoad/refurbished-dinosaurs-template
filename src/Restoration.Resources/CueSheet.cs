@@ -5,21 +5,37 @@ namespace Restoration.Resources;
 public sealed record CueTrack(int Number, string Type, IReadOnlyDictionary<int, int> Indices);
 
 /// <summary>Bounded parser for a single-file MODE1/2352 CUE/BIN image.</summary>
-public sealed record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tracks)
+public sealed partial record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tracks)
 {
     public const int RawSectorSize = 2352;
     private const int MaximumCueBytes = 1024 * 1024;
-    private static readonly Regex FilePattern = new(
-        "^\\s*FILE\\s+(?:\"(?<quoted>[^\"]+)\"|(?<plain>\\S+))\\s+\\S+\\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-    private static readonly Regex TrackPattern = new(
-        "^\\s*TRACK\\s+(?<number>\\d+)\\s+(?<type>\\S+)\\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-    private static readonly Regex IndexPattern = new(
-        "^\\s*INDEX\\s+(?<number>\\d+)\\s+(?<minute>\\d+):(?<second>\\d+):(?<frame>\\d+)\\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-    public long? DataTrackSectors => Tracks.Count > 1 ? Tracks[1].Indices[1] : null;
+    // Source-generated and non-backtracking: a CUE sheet is untrusted input, and these patterns mix
+    // \s+ with \S+ in a way a backtracking engine can be made to walk quadratically.
+    [GeneratedRegex("^\\s*FILE\\s+(?:\"(?<quoted>[^\"]+)\"|(?<plain>\\S+))\\s+\\S+\\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
+    private static partial Regex FilePattern();
+    [GeneratedRegex("^\\s*TRACK\\s+(?<number>\\d+)\\s+(?<type>\\S+)\\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
+    private static partial Regex TrackPattern();
+    [GeneratedRegex("^\\s*INDEX\\s+(?<number>\\d+)\\s+(?<minute>\\d+):(?<second>\\d+):(?<frame>\\d+)\\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking)]
+    private static partial Regex IndexPattern();
+
+    /// <summary>
+    /// Sectors of the BIN that belong to the leading MODE1/2352 data track, or <c>null</c> when the
+    /// sheet has no second track to bound it.
+    /// </summary>
+    /// <remarks>
+    /// The data track ends where the next track's content begins. When the following audio track
+    /// declares a pregap with INDEX 00, that pregap is stored in the BIN ahead of the audio itself,
+    /// so INDEX 00 -- not INDEX 01 -- is the boundary. Taking INDEX 01 would hand the ISO-9660
+    /// reader the pregap (typically 150 sectors) as if it were data, which both loosens its extent
+    /// bound and lets a read past the real end of the track return audio bytes instead of failing.
+    /// </remarks>
+    public long? DataTrackSectors => Tracks.Count > 1
+        ? (Tracks[1].Indices.TryGetValue(0, out var pregap) ? pregap : Tracks[1].Indices[1])
+        : null;
 
     public static CueSheet Load(string path)
     {
@@ -39,7 +55,7 @@ public sealed record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tra
         MutableTrack? current = null;
         foreach (var line in text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
         {
-            var file = FilePattern.Match(line);
+            var file = FilePattern().Match(line);
             if (file.Success)
             {
                 if (referencedFile is not null)
@@ -49,7 +65,7 @@ public sealed record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tra
                 continue;
             }
 
-            var track = TrackPattern.Match(line);
+            var track = TrackPattern().Match(line);
             if (track.Success)
             {
                 if (!int.TryParse(track.Groups["number"].Value, out var number))
@@ -59,7 +75,7 @@ public sealed record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tra
                 continue;
             }
 
-            var index = IndexPattern.Match(line);
+            var index = IndexPattern().Match(line);
             if (!index.Success) continue;
             if (current is null) throw new InvalidDataException("CUE INDEX appears before TRACK.");
             if (!int.TryParse(index.Groups["number"].Value, out var indexNumber) ||
@@ -92,6 +108,13 @@ public sealed record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tra
                 throw new InvalidDataException("CUE track numbers must be consecutive and start at 1.");
             if (!track.Indices.TryGetValue(1, out var start))
                 throw new InvalidDataException($"Track {track.Number:D2} has no INDEX 01.");
+            if (track.Indices.TryGetValue(0, out var pregap))
+            {
+                if (pregap > start)
+                    throw new InvalidDataException(
+                        $"Track {track.Number:D2} has INDEX 00 after INDEX 01.");
+                start = pregap;
+            }
             if (start < previous) throw new InvalidDataException("CUE track indices are not monotonic.");
             if (offset > 0 && track.Type != "AUDIO")
                 throw new InvalidDataException($"Unsupported non-audio track {track.Number:D2}: {track.Type}.");
@@ -110,8 +133,10 @@ public sealed record CueSheet(string ReferencedFile, IReadOnlyList<CueTrack> Tra
             throw new InvalidDataException($"BIN length must be a positive multiple of {RawSectorSize} bytes.");
         var sectors = info.Length / RawSectorSize;
         foreach (var track in Tracks)
-            if (track.Indices[1] >= sectors)
-                throw new InvalidDataException($"Track {track.Number:D2} starts outside the BIN image.");
+            foreach (var index in track.Indices)
+                if (index.Value >= sectors)
+                    throw new InvalidDataException(
+                        $"Track {track.Number:D2} INDEX {index.Key:D2} starts outside the BIN image.");
     }
 
     private static void ValidateReference(string value)

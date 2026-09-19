@@ -42,13 +42,15 @@ $configure = Join-Path $PSScriptRoot 'Configure-Project.ps1'
 $verify = Join-Path $PSScriptRoot 'Verify-Configuration.ps1'
 if ($WhatIfPreference) {
     & $configure -ConfigPath $ConfigPath -WhatIf
-    if ($LASTEXITCODE -ne 0) { throw 'Configuration preview failed.' }
     Write-Host 'Preview complete. No files were changed.'
     exit 0
 }
 if ($PSCmdlet.ShouldProcess($root, 'Configure and verify restoration project')) {
+    # Configure-Project.ps1 reports failure by throwing, and only calls exit on its
+    # -SkipIfConfigured path, so $LASTEXITCODE says nothing about how it went: in a fresh session
+    # it is still $null, and $null -ne 0 would fail every successful bootstrap. Verify-Configuration.ps1
+    # does exit with a status, so that one is checked.
     & $configure -ConfigPath $ConfigPath
-    if ($LASTEXITCODE -ne 0) { throw 'Project configuration failed.' }
     & $verify -RepositoryRoot $root -Strict
     if ($LASTEXITCODE -ne 0) { throw 'Project configuration remains incomplete.' }
 }

@@ -17,6 +17,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# PowerShell 7.4+ turns a non-zero native exit code into a terminating error while
+# $ErrorActionPreference is 'Stop'. That would abort at the `& gpg` call itself, before
+# Write-GpgStatus can dump the status output -- which is the whole reason a rejected signature is
+# diagnosable from a release log. Handle each exit code explicitly instead.
+$PSNativeCommandUseErrorActionPreference = $false
 
 # Windows PowerShell 5.1 leaves $IsWindows undefined, where -not $IsWindows would otherwise send a
 # local run down the POSIX branch. tools/Capture-OriginalWindow.ps1 guards the same variable.

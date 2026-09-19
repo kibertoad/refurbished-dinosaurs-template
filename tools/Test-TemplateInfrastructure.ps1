@@ -8,7 +8,7 @@ $failures = [Collections.Generic.List[string]]::new()
 $config = Get-Content -LiteralPath (Join-Path $root 'tools/project-config.json') -Raw | ConvertFrom-Json
 $projectName = if ($config.configured -and $config.projectName) { $config.projectName } else { 'Restoration' }
 
-function Require-File([string] $relative) {
+function Assert-RequiredFile([string] $relative) {
     if (-not (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Leaf)) {
         $failures.Add("missing required infrastructure file: $relative")
     }
@@ -20,7 +20,7 @@ foreach ($relative in @(
     'tools/Invoke-ESigner.ps1',
     'tools/Invoke-GpgSigner.ps1',
     "src/$projectName.Extractor/packages.lock.json"
-)) { Require-File $relative }
+)) { Assert-RequiredFile $relative }
 
 $release = Get-Content -LiteralPath (Join-Path $root '.github/workflows/release.yml') -Raw
 foreach ($required in @('signed_release:', 'release-signing', 'Invoke-ESigner.ps1',
@@ -46,11 +46,20 @@ else {
 foreach ($name in @('ExportEditionAnalysis.java', 'ExportFunctionAddressCorrelations.java',
     'ExportVersionTrackingAddressContexts.java', 'ExportVersionTrackingMatches.java')) {
     $path = Join-Path $root "tools/ghidra/$name"
-    Require-File "tools/ghidra/$name"
+    Assert-RequiredFile "tools/ghidra/$name"
     if ((Test-Path -LiteralPath $path) -and
         (Get-Content -LiteralPath $path -Raw).IndexOf('requireLocalOutput', [StringComparison]::Ordinal) -lt 0) {
         $failures.Add("$name does not guard broad export output")
     }
+}
+
+# Bootstrap-Project.ps1 gates on the FIRST '**Status:**' line in the plan, so a second one -- a
+# maintenance record, an appended slice log -- would silently decide the approval gate.
+$plan = Get-Content -LiteralPath (Join-Path $root 'docs/IMPLEMENTATION-PLAN.md') -Raw
+$statusLines = @([regex]::Matches($plan, '(?im)^\*\*Status:\*\*'))
+if ($statusLines.Count -ne 1) {
+    $failures.Add(
+        "docs/IMPLEMENTATION-PLAN.md must contain exactly one '**Status:**' line, found $($statusLines.Count)")
 }
 
 foreach ($name in @('latestOfficialVersion', 'analysisVersion', 'patchStatusEvidence', 'patchStatusEstablished')) {

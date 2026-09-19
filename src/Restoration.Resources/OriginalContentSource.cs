@@ -51,10 +51,13 @@ internal sealed class DirectoryContentSource : OriginalContentSource
             IgnoreInaccessible = false,
             AttributesToSkip = FileAttributes.ReparsePoint
         };
-        foreach (var fullPath in Directory.EnumerateFiles(root, "*", options))
+        // EnumerateFiles on DirectoryInfo yields FileInfo objects whose length is already populated
+        // from the directory scan, which saves a second stat per file on a large source.
+        foreach (var file in new DirectoryInfo(root).EnumerateFiles("*", options))
         {
+            var fullPath = file.FullName;
             var relative = SourceManifest.Normalize(Path.GetRelativePath(root, fullPath));
-            var entry = new SourceEntry(relative, new FileInfo(fullPath).Length);
+            var entry = new SourceEntry(relative, file.Length);
             if (!files.TryAdd(relative, (entry, fullPath)))
                 throw new InvalidDataException($"Source contains duplicate path '{relative}'.");
             if (files.Count > MaximumEntries)
@@ -151,8 +154,8 @@ internal sealed class Iso9660ContentSource : OriginalContentSource
     public override string Kind => kind;
     public override string? Label { get; }
     public override IReadOnlyList<SourceEntry> Files { get; }
-    public string? CuePath { get; private init; }
-    public string? BinPath { get; private init; }
+    internal string? CuePath { get; private init; }
+    internal string? BinPath { get; private init; }
     public override CueSheet? Cue { get; protected init; }
 
     public override bool TryGetFile(string relativePath, out SourceEntry? entry)
@@ -352,10 +355,23 @@ internal sealed class Iso9660ContentSource : OriginalContentSource
         bool IsDirectory, bool IsMultiExtent);
 }
 
+/// <summary>
+/// Presents the user data of a MODE1/2352 track as a flat 2048-byte-sector stream.
+/// </summary>
+/// <remarks>
+/// Each raw sector is read whole and its 16-byte header checked before the payload is handed on. A
+/// CUE sheet only declares what a track is; without this check an image that is really MODE2/2352,
+/// or a BIN that does not match its sheet, would be read at the wrong offset and surface as
+/// unintelligible ISO-9660 rather than as a source the caller can be told to re-dump.
+/// </remarks>
 internal sealed class RawMode1UserDataStream(Stream source, long sectorCount) : Stream
 {
     private const int UserDataOffset = 16;
     private const int LogicalSectorSize = 2048;
+    private const byte Mode1 = 1;
+    private static ReadOnlySpan<byte> SyncPattern =>
+        [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00];
+    private readonly byte[] sector = new byte[CueSheet.RawSectorSize];
     private long position;
     public override bool CanRead => true;
     public override bool CanSeek => true;
@@ -369,15 +385,27 @@ internal sealed class RawMode1UserDataStream(Stream source, long sectorCount) : 
         var total = remaining;
         while (remaining > 0)
         {
-            var sector = position / LogicalSectorSize;
+            var index = position / LogicalSectorSize;
             var within = (int)(position % LogicalSectorSize);
             var count = Math.Min(remaining, LogicalSectorSize - within);
-            source.Position = checked(sector * CueSheet.RawSectorSize + UserDataOffset + within);
-            source.ReadExactly(buffer.Slice(total - remaining, count));
+            ReadRawSector(index);
+            sector.AsSpan(UserDataOffset + within, count).CopyTo(buffer[(total - remaining)..]);
             position += count;
             remaining -= count;
         }
         return total;
+    }
+
+    private void ReadRawSector(long index)
+    {
+        source.Position = checked(index * CueSheet.RawSectorSize);
+        source.ReadExactly(sector);
+        if (!sector.AsSpan(0, SyncPattern.Length).SequenceEqual(SyncPattern))
+            throw new InvalidDataException(
+                $"Sector {index} has no MODE1/2352 sync pattern; the BIN does not match its CUE sheet.");
+        if (sector[15] != Mode1)
+            throw new InvalidDataException(
+                $"Sector {index} is mode {sector[15]}, but the CUE sheet declares MODE1/2352.");
     }
     public override long Seek(long offset, SeekOrigin origin) => Position = origin switch
     {

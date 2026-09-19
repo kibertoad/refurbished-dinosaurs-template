@@ -105,7 +105,7 @@ public class ExportEditionAnalysis extends GhidraScript {
     }
 
     private void writeMetadata(BufferedWriter writer, String edition) throws Exception {
-        writer.write("# schema=magic-mayhem-ghidra-analysis-v1\n");
+        writer.write("# schema=restoration-ghidra-analysis-v1\n");
         writer.write("# edition=" + clean(edition) + "\n");
         writer.write("# ghidra=" + clean(Application.getApplicationVersion()) + "\n");
         writer.write("# program=" + clean(currentProgram.getName()) + "\n");

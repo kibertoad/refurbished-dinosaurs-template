@@ -8,7 +8,16 @@ namespace Restoration.Extractor;
 
 public sealed record InstallShieldExtractedFile(string Path, long Size, string Sha256);
 
-/// <summary>Isolated, bounded expansion of a supported InstallShield cabinet set.</summary>
+/// <summary>
+/// Bounded expansion of a supported InstallShield cabinet set.
+/// </summary>
+/// <remarks>
+/// The expansion runs in a short-lived child process. That is a crash and handle boundary -- a
+/// third-party parser that faults, leaks a file handle, or corrupts its own heap takes the child
+/// down instead of the caller -- and not a sandbox: the child inherits this process's user,
+/// filesystem access, and environment. Containment of the output itself comes from the path,
+/// count, and size limits enforced below, which apply in both processes.
+/// </remarks>
 public static partial class InstallShieldCabinetExtractor
 {
     private const int MaximumFiles = 10_000;
@@ -80,11 +89,18 @@ public static partial class InstallShieldCabinetExtractor
             RedirectStandardOutput = true,
             UseShellExecute = false
         };
+        // A single-file publish runs the apphost directly, so there is nothing to pass. A framework
+        // run (`dotnet run`, `dotnet Extractor.dll`) needs the managed entry assembly named back,
+        // and Assembly.Location is empty in a single-file app -- so derive it from the base
+        // directory and the entry assembly's simple name instead.
         if (Path.GetFileNameWithoutExtension(executable).Equals("dotnet", StringComparison.OrdinalIgnoreCase))
         {
-            var assembly = Assembly.GetEntryAssembly()?.Location;
-            if (string.IsNullOrWhiteSpace(assembly))
+            var name = Assembly.GetEntryAssembly()?.GetName().Name;
+            if (string.IsNullOrWhiteSpace(name))
                 throw new InvalidOperationException("Cannot locate the Extractor assembly.");
+            var assembly = Path.Combine(AppContext.BaseDirectory, name + ".dll");
+            if (!File.Exists(assembly))
+                throw new InvalidOperationException($"Cannot locate the Extractor assembly at '{assembly}'.");
             start.ArgumentList.Add(assembly);
         }
         start.ArgumentList.Add("--internal-extract-installshield");
@@ -92,16 +108,28 @@ public static partial class InstallShieldCabinetExtractor
         start.ArgumentList.Add(outputRoot);
         using var process = Process.Start(start)
             ?? throw new InvalidOperationException("Failed to start the isolated InstallShield extractor.");
-        var output = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var error = process.StandardError.ReadToEndAsync(cancellationToken);
-        try { await process.WaitForExitAsync(cancellationToken); }
+        // The reads are started before the wait so a child that fills a pipe buffer cannot deadlock,
+        // and they are given a cancellation token of their own: cancelling the wait must not leave
+        // them running against a killed process as unobserved tasks.
+        using var readCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var output = process.StandardOutput.ReadToEndAsync(readCancellation.Token);
+        var error = process.StandardError.ReadToEndAsync(readCancellation.Token);
+        string outputText;
+        string errorText;
+        try
+        {
+            await process.WaitForExitAsync(cancellationToken);
+            outputText = await output;
+            errorText = await error;
+        }
         catch (OperationCanceledException)
         {
-            process.Kill(entireProcessTree: true);
+            try { process.Kill(entireProcessTree: true); }
+            catch (InvalidOperationException) { /* The child already exited. */ }
+            await readCancellation.CancelAsync();
+            await Task.WhenAll(output, error).ContinueWith(_ => { }, TaskScheduler.Default);
             throw;
         }
-        var outputText = await output;
-        var errorText = await error;
         if (process.ExitCode != 0)
             throw new InvalidDataException("InstallShield extraction failed: " +
                 (string.IsNullOrWhiteSpace(errorText) ? outputText.Trim() : errorText.Trim()));

@@ -73,6 +73,8 @@ jobs:
     name: Build Windows x64 installer
     needs: [prepare, test]
     runs-on: windows-latest
+    # An empty name means "no environment", so an unsigned run does not wait on the signing
+    # environment's protection rules or need its secrets.
     environment: ${{ inputs.signed_release != 'none' && 'release-signing' || '' }}
     permissions:
       contents: read
@@ -241,6 +243,7 @@ jobs:
     needs: [prepare, test]
     if: ${{ inputs.installers != 'windows' }}
     runs-on: ubuntu-latest
+    # See the Windows job: an empty name means "no environment".
     environment: ${{ inputs.signed_release == 'Windows/Linux' && 'release-signing' || '' }}
     permissions:
       contents: read

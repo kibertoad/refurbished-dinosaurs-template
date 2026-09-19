@@ -22,7 +22,7 @@ try
         {
             path = entry.Path,
             size = entry.Size,
-            sha256 = Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant()
+            sha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream))
         });
     }
     Console.WriteLine(JsonSerializer.Serialize(new

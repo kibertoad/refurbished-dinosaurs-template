@@ -159,8 +159,8 @@ function Rename-PlaceholderFiles([string] $root, [System.Collections.Specialized
         if ($name -ceq $file.Name) { continue }
         if ($PSCmdlet.ShouldProcess($file.FullName, "Rename to '$name'")) {
             Rename-Item -LiteralPath $file.FullName -NewName $name
+            $renamed++
         }
-        $renamed++
     }
     return $renamed
 }
@@ -281,6 +281,11 @@ if ($values.GameId -notmatch '^[a-z0-9][a-z0-9.-]*$') {
 }
 if ($values.SourceEnvironmentVariable -notmatch '^[A-Z_][A-Z0-9_]*$') {
     throw "sourceEnvironmentVariable '$($values.SourceEnvironmentVariable)' must be a portable uppercase environment-variable name."
+}
+# shortcutName is substituted into file names as well as file contents, so a value supplied through
+# project-config.json has to satisfy the same rule the derived default is sanitized to.
+if ($values.ShortcutName -match '[:\\/*?"<>|]' -or $values.ShortcutName -match '[\s.]$') {
+    throw "shortcutName '$($values.ShortcutName)' must be usable as a file name: no :\/*?`"<>| and no trailing space or dot."
 }
 
 # Placeholders with no resolved value are left untouched on purpose: an obvious

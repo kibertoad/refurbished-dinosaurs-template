@@ -2,7 +2,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
+    <!-- Nothing in this repository sets ContinuousIntegrationBuild, so the CI environment variable
+         is what actually engages locked mode; without it the lock file is never enforced. -->
+    <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true' or '$(CI)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Restoration.Resources/Restoration.Resources.csproj" />

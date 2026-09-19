@@ -46,8 +46,61 @@ internal static class SyntheticIso9660
         WriteDirectoryRecord(directory, offset, payloadSector, content.Length, false,
             Encoding.ASCII.GetBytes(parts[1] + ";1"));
         content.CopyTo(Sector(image, sectorSize, payloadSector));
+        if (sectorSize == RawSectorSize)
+            for (var sector = 0; sector < image.Length / RawSectorSize; sector++)
+                WriteRawSectorHeader(image.AsSpan(sector * RawSectorSize, RawSectorSize), sector);
         return image;
     }
+
+    /// <summary>
+    /// Replaces the identifier of the single leaf file record, so a test can present a name the
+    /// reader is expected to reject. The replacement must fit the record the fixture already wrote.
+    /// </summary>
+    public static void OverwriteLeafIdentifier(byte[] image, int sectorSize, string identifier)
+    {
+        var directory = Sector(image, sectorSize, 21);
+        var offset = LeafOffset(directory);
+        var bytes = Encoding.ASCII.GetBytes(identifier + ";1");
+        var recordLength = 33 + bytes.Length + (bytes.Length % 2 == 0 ? 1 : 0);
+        if (offset + recordLength > directory.Length)
+            throw new ArgumentException("Replacement identifier does not fit.", nameof(identifier));
+        // The leaf is the last record in the sector, so it is free to grow into the trailing zeroes
+        // a reader treats as "no further records here".
+        var record = directory.Slice(offset, recordLength);
+        record[0] = checked((byte)recordLength);
+        record[32] = checked((byte)bytes.Length);
+        record[33..].Clear();
+        bytes.CopyTo(record[33..]);
+    }
+
+    /// <summary>Rewrites the declared data length of the single leaf file record.</summary>
+    public static void OverwriteLeafDataLength(byte[] image, int sectorSize, uint length) =>
+        WriteBothEndian32(LeafRecord(image, sectorSize), 10, length);
+
+    private static Span<byte> LeafRecord(byte[] image, int sectorSize)
+    {
+        var directory = Sector(image, sectorSize, 21);
+        var offset = LeafOffset(directory);
+        return directory.Slice(offset, directory[offset]);
+    }
+
+    /// <summary>The fixture lays the directory sector out as ".", "..", then the one file.</summary>
+    private static int LeafOffset(Span<byte> directory) => directory[0] + directory[directory[0]];
+
+    /// <summary>Writes the 16-byte MODE1/2352 header the raw reader validates before each payload.</summary>
+    private static void WriteRawSectorHeader(Span<byte> sector, int lba)
+    {
+        sector[0] = 0x00;
+        sector[1..11].Fill(0xFF);
+        sector[11] = 0x00;
+        var total = lba + 150;
+        sector[12] = Bcd(total / (60 * 75));
+        sector[13] = Bcd(total / 75 % 60);
+        sector[14] = Bcd(total % 75);
+        sector[15] = 1;
+    }
+
+    private static byte Bcd(int value) => checked((byte)(((value / 10) << 4) | (value % 10)));
 
     private static Span<byte> Sector(byte[] image, int sectorSize, int sector) =>
         image.AsSpan(sector * sectorSize + (sectorSize == RawSectorSize ? UserDataOffset : 0), CookedSectorSize);

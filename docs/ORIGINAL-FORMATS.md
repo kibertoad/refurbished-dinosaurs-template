@@ -6,10 +6,15 @@ The template supplies bounded read-only adapters for directories, cooked
 2048-byte-sector ISO-9660 images, and single-file CUE/BIN images whose first
 track is MODE1/2352 and remaining tracks are audio. Source manifests select
 `directory`, `iso9660`, or `cue-bin` through `sourceKind`; fingerprints address
-logical files inside that source. The adapters reject traversal, ambiguous
-media, invalid sector alignment, unsupported track layouts, inconsistent
-both-endian ISO fields, oversized directory structures, duplicate normalized
-paths, and extents outside the image.
+logical files inside that source, and deliberately do not cover `sourceKind`
+itself, so one edition fingerprints identically whether it is read from an image
+or from a directory the owner copied it into. The adapters reject traversal,
+ambiguous media, invalid sector alignment, raw sectors whose header does not
+match the MODE1/2352 the CUE sheet declares, unsupported track layouts,
+inconsistent both-endian ISO fields, oversized directory structures, duplicate
+normalized paths, and extents outside the image. A CUE/BIN data track ends at
+the following track's INDEX 00 where one is declared, so an audio pregap is
+never presented as data.
 
 The Extractor also exposes bounded InstallShield cabinet expansion through
 `expand-installshield`. It runs the pinned SabreTools parser in a child process,
