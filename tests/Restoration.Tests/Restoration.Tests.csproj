@@ -9,6 +9,7 @@
     <PackageReference Include="xunit.v3" Version="4.0.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
     <ProjectReference Include="../../src/Restoration.Core/Restoration.Core.csproj" />
+    <ProjectReference Include="../../src/Restoration.Game/Restoration.Game.csproj" />
     <ProjectReference Include="../../src/Restoration.Extractor/Restoration.Extractor.csproj" />
     <ProjectReference Include="../../src/Restoration.Resources/Restoration.Resources.csproj" />
   </ItemGroup>

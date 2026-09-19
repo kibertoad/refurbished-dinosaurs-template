@@ -5,7 +5,20 @@ using Restoration.Resources;
 var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
 try
 {
+    // Decided before the --smoke-test shortcut so that asking for software rendering in a mode
+    // that never draws anything is refused rather than silently ignored.
+    var softwareRendering = SoftwareRenderer.Evaluate(
+        args.Contains(SoftwareRenderer.Flag, StringComparer.OrdinalIgnoreCase),
+        platformSmoke,
+        Environment.GetEnvironmentVariable(SoftwareRenderer.DriverVariable));
+    if (softwareRendering.Rejection is not null)
+    {
+        Console.Error.WriteLine(softwareRendering.Rejection);
+        return 64;
+    }
+
     if (args.Contains("--smoke-test", StringComparer.OrdinalIgnoreCase)) return 0;
+    if (softwareRendering.Enabled) SoftwareRenderer.Apply(softwareRendering.DriverPath!);
     if (!platformSmoke)
     {
         var assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();

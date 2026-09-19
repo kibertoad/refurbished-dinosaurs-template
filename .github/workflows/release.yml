@@ -124,6 +124,24 @@ jobs:
             throw "Inno Setup installation returned $($install.ExitCode)."
           }
           "INNO_COMPILER=$compilerRoot\ISCC.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Provision software OpenGL for the platform smoke test
+        shell: pwsh
+        run: |
+          # Hosted runners expose only the GDI generic OpenGL renderer, which has no framebuffer
+          # objects, so MonoGame cannot create a graphics device. Mesa's llvmpipe can. While the
+          # download is unpinned this step is a deliberate no-op: the smoke tests then run against
+          # the runner's own driver and report the graphics failure themselves, which is the
+          # behaviour without this step at all. Nothing is skipped or masked either way.
+          try {
+            $driver = ./tools/Install-MesaSoftwareGL.ps1 `
+              -DestinationPath (Join-Path $env:RUNNER_TEMP 'software-opengl')
+            "PLATFORM_SMOKE_TEST_GL_DRIVER=$driver" | Out-File -FilePath $env:GITHUB_ENV -Append
+            Write-Host "Software OpenGL driver provisioned at $driver"
+          }
+          catch {
+            Write-Warning ("Software OpenGL is unavailable, so the platform smoke tests will run " +
+              "against the runner's own driver and are expected to fail: $($_.Exception.Message)")
+          }
       - name: Build Windows package
         shell: pwsh
         run: ./tools/Publish-Windows.ps1 -SkipArchive
@@ -244,7 +262,11 @@ jobs:
                 Get-Content -LiteralPath $_.FullName | Write-Host
               }
           }
-          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' `
+          # The flag is accepted only when a driver was provisioned above; the game refuses it
+          # otherwise, which is what keeps this mode out of a player's hands.
+          $smokeArguments = @('--platform-smoke-test')
+          if ($env:PLATFORM_SMOKE_TEST_GL_DRIVER) { $smokeArguments += '--software-renderer' }
+          $game = Start-Process $link.TargetPath -ArgumentList $smokeArguments `
             -WorkingDirectory $link.WorkingDirectory -PassThru `
             -RedirectStandardOutput $smokeOut -RedirectStandardError $smokeErr
           if (-not $game.WaitForExit(120000)) {
