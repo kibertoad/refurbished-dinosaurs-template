@@ -111,7 +111,9 @@ jobs:
             --repo jrsoftware/issrc `
             --pattern 'innosetup-7.1.0-x64.exe' `
             --dir $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the pinned Inno Setup installer.' }
           gh release verify-asset $installer --repo jrsoftware/issrc
+          if ($LASTEXITCODE -ne 0) { throw 'Attestation verification failed for the pinned Inno Setup installer.' }
           $signature = Get-AuthenticodeSignature -LiteralPath $installer
           if ($signature.Status -ne 'Valid' -or
               $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
@@ -348,25 +350,11 @@ jobs:
           pattern: release-*
           path: release-assets
           merge-multiple: true
-      - name: Create annotated tag
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.version }}
-        run: |
-          $commit = git rev-parse HEAD
-          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve release commit.' }
-          $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" `
-            -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" `
-            -f "object=$commit" -f 'type=commit' | ConvertFrom-Json
-          gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/refs" `
-            -f "ref=refs/tags/$env:RELEASE_TAG" -f "sha=$($tagObject.sha)"
-          if ($LASTEXITCODE -ne 0) { throw 'Could not create release tag reference.' }
-      - name: Create GitHub Release
+      # The asset count gates tag creation: a tag pushed without a Release blocks
+      # `prepare` from ever re-running this version until someone deletes it by hand.
+      - name: Verify installer assets
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.version }}
           RELEASE_INSTALLERS: ${{ inputs.installers }}
           SIGNED_RELEASE: ${{ inputs.signed_release }}
         run: |
@@ -379,6 +367,30 @@ jobs:
             echo "Expected $expected installer(s), found ${#assets[@]}." >&2
             exit 1
           fi
+          printf '%s\n' "${assets[@]}" > "$RUNNER_TEMP/release-assets.txt"
+      - name: Create annotated tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve release commit.' }
+          $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" `
+            -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" `
+            -f "object=$commit" -f 'type=commit' | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not create the release tag object.' }
+          if (-not $tagObject.sha) { throw 'Release tag object response contained no sha.' }
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/refs" `
+            -f "ref=refs/tags/$env:RELEASE_TAG" -f "sha=$($tagObject.sha)"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not create release tag reference.' }
+      - name: Create GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          mapfile -t assets < "$RUNNER_TEMP/release-assets.txt"
           gh release create "$RELEASE_TAG" "${assets[@]}" \
             --verify-tag \
             --generate-notes \

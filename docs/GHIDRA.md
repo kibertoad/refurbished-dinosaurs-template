@@ -98,7 +98,7 @@ compatibility logic. Never redirect broad output into the repository.
 | `ReportInstructionContext.java` | instruction addresses | at most eight instructions on either side within the function |
 | `ReportCallArguments.java` | one callee address | the three nearest pushed arguments at each direct call |
 | `ReportCallSitesWithScalars.java` | one callee address then exact scalars | calls whose preceding argument setup contains one of the values |
-| `ReportRandomnessCandidates.java` | none | candidate timing/random imports and their referencing functions |
+| `ReportRandomnessCandidates.java` | none | at most 100 candidate timing/random imports and 100 referencing functions each |
 | `ReportCallPaths.java` | start function, target function, maximum depth (1-12) | bounded direct-call paths with fixed edge and result caps |
 | `ReportConstantFirstArgumentCalls.java` | callee address and exact scalar | x86 cdecl calls whose immediately pushed first argument matches |
 | `ReportFirstArgumentCallSummary.java` | one callee address | immediate x86 cdecl first-argument values and non-literal follow-ups |

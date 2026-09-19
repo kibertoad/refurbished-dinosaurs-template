@@ -43,7 +43,7 @@ jobs:
   installer:
     name: Windows installer
     needs: verify
-    if: ${{ always() && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
+    if: ${{ !cancelled() && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -64,7 +64,9 @@ jobs:
             --repo jrsoftware/issrc `
             --pattern 'innosetup-7.1.0-x64.exe' `
             --dir $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the pinned Inno Setup installer.' }
           gh release verify-asset $installer --repo jrsoftware/issrc
+          if ($LASTEXITCODE -ne 0) { throw 'Attestation verification failed for the pinned Inno Setup installer.' }
           $signature = Get-AuthenticodeSignature -LiteralPath $installer
           if ($signature.Status -ne 'Valid' -or
               $signature.SignerCertificate.Subject -notlike '*Pyrsys B.V.*') {
