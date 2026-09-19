@@ -28,6 +28,8 @@ finally {
 }
 $repositoryIdentity = [BitConverter]::ToString($repositoryHash).Replace('-', '')
 $lockPath = Join-Path $temporaryRoot "restoration-validation-$($repositoryIdentity.Substring(0, 16)).lock"
+$validationBuildRoot = Join-Path $temporaryRoot (
+    "restoration-validation-$($repositoryIdentity.Substring(0, 16))-$([Guid]::NewGuid().ToString('N'))")
 $lock = $null
 
 function Invoke-CheckedDotnet {
@@ -75,6 +77,10 @@ try {
 
     Stop-CheckoutGame
 
+    New-Item -ItemType Directory -Path $validationBuildRoot -Force | Out-Null
+    $validationProjectRoot = [IO.Path]::GetFullPath($validationBuildRoot) +
+        [IO.Path]::DirectorySeparatorChar
+
     & (Join-Path $PSScriptRoot 'Verify-Repository.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Repository policy verification failed.' }
 
@@ -89,14 +95,15 @@ try {
         '-nodeReuse:true',
         '--verbosity', 'minimal'
     )
+    $isolatedOutputArguments = @("-p:ValidationArtifactsRoot=$validationProjectRoot")
     Invoke-CheckedDotnet -Arguments (@(
         'restore', (Join-Path $repositoryRoot 'Restoration.slnx')
-    ) + $msbuildArguments)
+    ) + $msbuildArguments + $isolatedOutputArguments)
     Invoke-CheckedDotnet -Arguments (@(
             'build', (Join-Path $repositoryRoot 'Restoration.slnx'),
             '--configuration', 'Release',
             '--no-restore'
-    ) + $msbuildArguments)
+    ) + $msbuildArguments + $isolatedOutputArguments)
     $testArguments = @(
         'test',
         '--project', (Join-Path $repositoryRoot 'tests/Restoration.Tests/Restoration.Tests.csproj'),
@@ -105,7 +112,8 @@ try {
         '--no-restore',
         '--no-progress',
         '--timeout', '30m',
-        '--verbosity', 'minimal'
+        '--verbosity', 'minimal',
+        "-p:ValidationArtifactsRoot=$validationProjectRoot"
     )
     if ($TestFilter) {
         $testArguments += @('--filter', $TestFilter)
@@ -139,5 +147,9 @@ finally {
 
     if ($lock) {
         $lock.Dispose()
+    }
+
+    if (Test-Path -LiteralPath $validationBuildRoot) {
+        Remove-Item -LiteralPath $validationBuildRoot -Recurse -Force
     }
 }

@@ -14,4 +14,12 @@
          project's conventional obj directory as source, producing duplicate assembly attributes. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);**/bin/**;**/obj/**</DefaultItemExcludes>
   </PropertyGroup>
+
+  <!-- Validation creates this per-run root outside the checkout. Keeping every project's
+       intermediates and binaries there prevents stale or access-controlled local obj files
+       from participating in the build. -->
+  <PropertyGroup Condition="'$(ValidationArtifactsRoot)' != ''">
+    <BaseIntermediateOutputPath>$(ValidationArtifactsRoot)$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(ValidationArtifactsRoot)$(MSBuildProjectName)\bin\</BaseOutputPath>
+  </PropertyGroup>
 </Project>
