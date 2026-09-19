@@ -66,11 +66,17 @@ public sealed class SoftwareRendererTests
         Directory.CreateDirectory(directory);
         var driver = Path.Combine(directory, "opengl32.dll");
         File.WriteAllBytes(driver, [0]);
-        var saved = new[] { "SDL_VIDEO_GL_DRIVER", "LIBGL_ALWAYS_SOFTWARE", "GALLIUM_DRIVER", "PATH" }
+        var saved = new[]
+            {
+                "SDL_OPENGL_LIBRARY", "SDL_VIDEO_GL_DRIVER", "LIBGL_ALWAYS_SOFTWARE",
+                "GALLIUM_DRIVER", "PATH"
+            }
             .ToDictionary(name => name, Environment.GetEnvironmentVariable);
         try
         {
             SoftwareRenderer.Apply(driver);
+            // SDL_OPENGL_LIBRARY is the one the desktop GL backends read; the other is for EGL.
+            Assert.Equal(driver, Environment.GetEnvironmentVariable("SDL_OPENGL_LIBRARY"));
             Assert.Equal(driver, Environment.GetEnvironmentVariable("SDL_VIDEO_GL_DRIVER"));
             Assert.Equal("1", Environment.GetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE"));
             Assert.Equal("llvmpipe", Environment.GetEnvironmentVariable("GALLIUM_DRIVER"));

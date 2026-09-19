@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace Restoration.Game;
 
 /// <summary>The outcome of asking for software rendering: enabled, refused, or not asked for.</summary>
@@ -54,16 +56,48 @@ internal static class SoftwareRenderer
         // tree is what stops it reaching a player.
         var driverDirectory = Path.GetDirectoryName(Path.GetFullPath(driverPath));
         if (!string.IsNullOrEmpty(driverDirectory))
-            Environment.SetEnvironmentVariable("PATH",
-                driverDirectory + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH"));
+            Publish("PATH", driverDirectory + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH"));
 
-        // SDL loads the OpenGL implementation named here instead of the system one; the remaining
-        // variables tell Mesa to rasterize on the CPU rather than look for hardware it will not find.
-        Environment.SetEnvironmentVariable("SDL_VIDEO_GL_DRIVER", driverPath);
-        Environment.SetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE", "1");
-        Environment.SetEnvironmentVariable("GALLIUM_DRIVER", "llvmpipe");
+        // SDL_OPENGL_LIBRARY is the variable SDL's desktop GL backends read to load an
+        // implementation other than the system one -- verified by pointing it at a library that is
+        // not OpenGL and watching startup fail, which SDL_VIDEO_GL_DRIVER does not do. That one is
+        // set as well because SDL's EGL path reads it instead.
+        Publish("SDL_OPENGL_LIBRARY", driverPath);
+        Publish("SDL_VIDEO_GL_DRIVER", driverPath);
+        Publish("LIBGL_ALWAYS_SOFTWARE", "1");
+        Publish("GALLIUM_DRIVER", "llvmpipe");
         Console.Error.WriteLine(
             $"[software-renderer] Rendering through the software OpenGL driver at '{driverPath}'. " +
             "This mode exists for the platform smoke test and is never used by a shipped build.");
     }
+
+    /// <summary>
+    /// Sets a variable so that native code in this process can read it.
+    /// </summary>
+    /// <remarks>
+    /// SDL and Mesa read their configuration with getenv. On Unix, .NET keeps its own copy of the
+    /// environment and never calls setenv, so a value set only through Environment.SetEnvironmentVariable
+    /// is invisible to them -- which is why setting the right variable still changed nothing until
+    /// this went in. Windows updates the process environment block, which SDL does read.
+    /// </remarks>
+    private static void Publish(string name, string value)
+    {
+        Environment.SetEnvironmentVariable(name, value);
+        if (OperatingSystem.IsWindows()) return;
+        try
+        {
+            if (setenv(name, value, 1) != 0)
+                Console.Error.WriteLine($"[software-renderer] Could not publish {name} to native code.");
+        }
+        catch (Exception exception) when (exception is DllNotFoundException or EntryPointNotFoundException)
+        {
+            Console.Error.WriteLine($"[software-renderer] Could not publish {name}: {exception.Message}");
+        }
+    }
+
+    [DllImport("libc", EntryPoint = "setenv", SetLastError = true)]
+    private static extern int setenv(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string name,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string value,
+        int overwrite);
 }
