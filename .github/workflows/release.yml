@@ -227,8 +227,35 @@ jobs:
               throw "Installed executable has an invalid or missing timestamped signature."
             }
           }
-          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -Wait -PassThru -WindowStyle Hidden
-          if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
+          # Same as the CI smoke test: bound the wait and surface the reason. Unbounded, a launch
+          # that stops on a dialog nobody can dismiss holds the release job until it times out.
+          $smokeOut = Join-Path $env:RUNNER_TEMP 'platform-smoke-stdout.txt'
+          $smokeErr = Join-Path $env:RUNNER_TEMP 'platform-smoke-stderr.txt'
+          function Write-SmokeDiagnostics {
+            foreach ($file in @($smokeOut, $smokeErr)) {
+              if ((Test-Path -LiteralPath $file) -and (Get-Item -LiteralPath $file).Length -gt 0) {
+                Write-Host "--- $(Split-Path -Leaf $file) ---"
+                Get-Content -LiteralPath $file | Write-Host
+              }
+            }
+            Get-ChildItem -LiteralPath $env:LOCALAPPDATA -Recurse -Depth 3 -Filter 'startup-error.log' `
+              -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "--- $($_.FullName) ---"
+                Get-Content -LiteralPath $_.FullName | Write-Host
+              }
+          }
+          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' `
+            -WorkingDirectory $link.WorkingDirectory -PassThru `
+            -RedirectStandardOutput $smokeOut -RedirectStandardError $smokeErr
+          if (-not $game.WaitForExit(120000)) {
+            Write-SmokeDiagnostics
+            $game.Kill($true)
+            throw 'Installed platform smoke test did not exit within 120 seconds.'
+          }
+          if ($game.ExitCode -ne 0) {
+            Write-SmokeDiagnostics
+            throw "Installed platform smoke test returned $($game.ExitCode)."
+          }
           $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
           if (Test-Path -LiteralPath $shortcut) { throw "Uninstaller left the Start menu shortcut behind: $shortcut" }

@@ -1,10 +1,11 @@
 using Restoration.Game;
 using Restoration.Resources;
 
+// Read before the try so the failure path knows whether this launch is a person or a smoke test.
+var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
 try
 {
     if (args.Contains("--smoke-test", StringComparer.OrdinalIgnoreCase)) return 0;
-    var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
     if (!platformSmoke)
     {
         var assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
@@ -25,7 +26,7 @@ try
 }
 catch (Exception exception)
 {
-    StartupFailureReporter.Report(exception);
+    StartupFailureReporter.Report(exception, allowDialog: !platformSmoke);
     return 1;
 }
 static string? Option(string[] values, string name)
