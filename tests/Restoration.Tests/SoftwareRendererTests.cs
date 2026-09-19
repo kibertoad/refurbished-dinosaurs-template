@@ -60,6 +60,32 @@ public sealed class SoftwareRendererTests
     }
 
     [Fact]
+    public void ApplyPointsSdlAtTheDriverAndMakesItsNeighboursLoadable()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var driver = Path.Combine(directory, "opengl32.dll");
+        File.WriteAllBytes(driver, [0]);
+        var saved = new[] { "SDL_VIDEO_GL_DRIVER", "LIBGL_ALWAYS_SOFTWARE", "GALLIUM_DRIVER", "PATH" }
+            .ToDictionary(name => name, Environment.GetEnvironmentVariable);
+        try
+        {
+            SoftwareRenderer.Apply(driver);
+            Assert.Equal(driver, Environment.GetEnvironmentVariable("SDL_VIDEO_GL_DRIVER"));
+            Assert.Equal("1", Environment.GetEnvironmentVariable("LIBGL_ALWAYS_SOFTWARE"));
+            Assert.Equal("llvmpipe", Environment.GetEnvironmentVariable("GALLIUM_DRIVER"));
+            // The driver's own directory has to come first, or its sibling libraries never load.
+            Assert.StartsWith(directory + Path.PathSeparator,
+                Environment.GetEnvironmentVariable("PATH"), StringComparison.Ordinal);
+        }
+        finally
+        {
+            foreach (var entry in saved) Environment.SetEnvironmentVariable(entry.Key, entry.Value);
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
     public void ApplyRefusesADriverThatIsNotThere()
     {
         var missing = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "opengl32.dll");

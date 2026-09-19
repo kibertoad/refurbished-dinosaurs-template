@@ -47,6 +47,16 @@ internal static class SoftwareRenderer
             throw new FileNotFoundException(
                 $"The software OpenGL driver named by {DriverVariable} does not exist.", driverPath);
 
+        // Windows resolves a loaded DLL's own dependencies from the process search path, not from
+        // the directory it was loaded from, so a driver outside the application directory would
+        // fail to find the rasterizer libraries sitting beside it. Putting its directory on PATH
+        // first is what makes an out-of-tree driver loadable -- and keeping the driver out of the
+        // tree is what stops it reaching a player.
+        var driverDirectory = Path.GetDirectoryName(Path.GetFullPath(driverPath));
+        if (!string.IsNullOrEmpty(driverDirectory))
+            Environment.SetEnvironmentVariable("PATH",
+                driverDirectory + Path.PathSeparator + Environment.GetEnvironmentVariable("PATH"));
+
         // SDL loads the OpenGL implementation named here instead of the system one; the remaining
         // variables tell Mesa to rasterize on the CPU rather than look for hardware it will not find.
         Environment.SetEnvironmentVariable("SDL_VIDEO_GL_DRIVER", driverPath);
