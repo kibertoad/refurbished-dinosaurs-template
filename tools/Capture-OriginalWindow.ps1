@@ -27,7 +27,7 @@ if (-not $IsWindows -and $PSVersionTable.PSEdition -eq 'Core') {
 
 if (-not $OutputRoot) {
     $repositoryRoot = Split-Path -Parent $PSScriptRoot
-    $OutputRoot = Join-Path $repositoryRoot 'artifacts\reference-captures'
+    $OutputRoot = Join-Path $repositoryRoot 'reference\original\captures'
 }
 
 Add-Type -AssemblyName System.Drawing

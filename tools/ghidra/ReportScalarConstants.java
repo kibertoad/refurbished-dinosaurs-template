@@ -30,7 +30,7 @@ public class ReportScalarConstants extends GhidraScript {
             for (int operand = 0; operand < instruction.getNumOperands(); operand++) {
                 for (Object object : instruction.getOpObjects(operand)) {
                     if (!(object instanceof Scalar scalar)
-                        || !requested.contains(scalar.getUnsignedValue())) continue;
+                        || !matchesRequested(scalar, requested)) continue;
                     Function function = currentProgram.getFunctionManager()
                         .getFunctionContaining(instruction.getAddress());
                     println(scalar.getUnsignedValue() + " at " + instruction.getAddress()
@@ -44,5 +44,12 @@ public class ReportScalarConstants extends GhidraScript {
             }
         }
         if (matches == 0) println("No requested scalar constants matched.");
+    }
+
+    // Arguments are decoded as signed longs while operands are reported unsigned, so a request
+    // such as -1 must also be compared against the operand's signed value to match at all.
+    private static boolean matchesRequested(Scalar scalar, Set<Long> requested) {
+        return requested.contains(scalar.getUnsignedValue())
+            || requested.contains(scalar.getSignedValue());
     }
 }

@@ -53,8 +53,10 @@ area in burst frames with SHA-256 metadata into a `checkpoint.json` plus an
 interactive, one-shot, and hotkey (Ctrl+Shift+F12) modes, and `-ListWindows` to
 discover the correct process and title. The helper deliberately captures the
 visible desktop client area because a legacy DirectDraw window may not produce
-reliable window-only captures on modern systems. Keep captured pixels under
-ignored `reference/original`; never commit them.
+reliable window-only captures on modern systems. It writes to
+`reference/original/captures` unless `-OutputRoot` says otherwise; keep captured
+pixels under ignored `reference/original`, which the repository policy also
+denies, and never commit them.
 
 ## Static binary research
 

@@ -78,10 +78,18 @@ public class ReportCallSitesWithScalars extends GhidraScript {
     private static boolean containsRequestedScalar(Instruction instruction, Set<Long> requested) {
         for (int operand = 0; operand < instruction.getNumOperands(); operand++) {
             for (Object object : instruction.getOpObjects(operand)) {
-                if (object instanceof Scalar scalar
-                    && requested.contains(scalar.getUnsignedValue())) return true;
+                if (object instanceof Scalar scalar && matchesRequested(scalar, requested)) {
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    // Arguments are decoded as signed longs while operands are reported unsigned, so a request
+    // such as -1 must also be compared against the operand's signed value to match at all.
+    private static boolean matchesRequested(Scalar scalar, Set<Long> requested) {
+        return requested.contains(scalar.getUnsignedValue())
+            || requested.contains(scalar.getSignedValue());
     }
 }
