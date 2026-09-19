@@ -1,10 +1,24 @@
 using Restoration.Game;
 using Restoration.Resources;
 
+// Read before the try so the failure path knows whether this launch is a person or a smoke test.
+var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
 try
 {
+    // Decided before the --smoke-test shortcut so that asking for software rendering in a mode
+    // that never draws anything is refused rather than silently ignored.
+    var softwareRendering = SoftwareRenderer.Evaluate(
+        args.Contains(SoftwareRenderer.Flag, StringComparer.OrdinalIgnoreCase),
+        platformSmoke,
+        Environment.GetEnvironmentVariable(SoftwareRenderer.DriverVariable));
+    if (softwareRendering.Rejection is not null)
+    {
+        Console.Error.WriteLine(softwareRendering.Rejection);
+        return 64;
+    }
+
     if (args.Contains("--smoke-test", StringComparer.OrdinalIgnoreCase)) return 0;
-    var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
+    if (softwareRendering.Enabled) SoftwareRenderer.Apply(softwareRendering.DriverPath!);
     if (!platformSmoke)
     {
         var assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
@@ -25,7 +39,7 @@ try
 }
 catch (Exception exception)
 {
-    StartupFailureReporter.Report(exception);
+    StartupFailureReporter.Report(exception, allowDialog: !platformSmoke);
     return 1;
 }
 static string? Option(string[] values, string name)

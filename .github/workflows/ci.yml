@@ -88,6 +88,24 @@ jobs:
           -OriginalReleaseYear 1990 -OriginalGenre sample
           -LatestOfficialVersion synthetic -AnalysisVersion synthetic
           -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
+      - name: Provision software OpenGL for the platform smoke test
+        shell: pwsh
+        run: |
+          # Hosted runners expose only the GDI generic OpenGL renderer, which has no framebuffer
+          # objects, so MonoGame cannot create a graphics device. Mesa's llvmpipe can. While the
+          # download is unpinned this step is a deliberate no-op: the smoke tests then run against
+          # the runner's own driver and report the graphics failure themselves, which is the
+          # behaviour without this step at all. Nothing is skipped or masked either way.
+          try {
+            $driver = ./tools/Install-MesaSoftwareGL.ps1 `
+              -DestinationPath (Join-Path $env:RUNNER_TEMP 'software-opengl')
+            "PLATFORM_SMOKE_TEST_GL_DRIVER=$driver" | Out-File -FilePath $env:GITHUB_ENV -Append
+            Write-Host "Software OpenGL driver provisioned at $driver"
+          }
+          catch {
+            Write-Warning ("Software OpenGL is unavailable, so the platform smoke tests will run " +
+              "against the runner's own driver and are expected to fail: $($_.Exception.Message)")
+          }
       - shell: pwsh
         run: ./tools/Build-WindowsInstaller.ps1 -Compiler "$env:INNO_COMPILER"
       - name: Smoke-test installed layout
@@ -111,12 +129,44 @@ jobs:
             $nativePath = Join-Path (Split-Path -Parent $link.TargetPath) $nativeLibrary
             if (-not (Test-Path -LiteralPath $nativePath)) { throw "Installed native library is missing: $nativePath" }
           }
-          $game = Start-Process $link.TargetPath -ArgumentList '--platform-smoke-test' -WorkingDirectory $link.WorkingDirectory -PassThru
-          if (-not $game.WaitForExit(120000)) {
-            $game.Kill($true)
-            throw 'Installed platform smoke test did not exit within 120 seconds; it is waiting on something no one can dismiss.'
+          # A failed launch explains itself on stderr and in its own startup log; neither reaches
+          # the job log on its own, which is how a broken smoke test reads as a bare timeout.
+          $smokeOut = Join-Path $env:RUNNER_TEMP 'platform-smoke-stdout.txt'
+          $smokeErr = Join-Path $env:RUNNER_TEMP 'platform-smoke-stderr.txt'
+          function Write-SmokeDiagnostics {
+            foreach ($file in @($smokeOut, $smokeErr)) {
+              if ((Test-Path -LiteralPath $file) -and (Get-Item -LiteralPath $file).Length -gt 0) {
+                Write-Host "--- $(Split-Path -Leaf $file) ---"
+                Get-Content -LiteralPath $file | Write-Host
+              }
+            }
+            Get-ChildItem -LiteralPath $env:LOCALAPPDATA -Recurse -Depth 3 -Filter 'startup-error.log' `
+              -ErrorAction SilentlyContinue | ForEach-Object {
+                Write-Host "--- $($_.FullName) ---"
+                Get-Content -LiteralPath $_.FullName | Write-Host
+              }
           }
-          if ($game.ExitCode -ne 0) { throw "Installed platform smoke test returned $($game.ExitCode)." }
+          # The flag is accepted only when a driver was provisioned above; the game refuses it
+          # otherwise, which is what keeps this mode out of a player's hands.
+          $smokeArguments = @('--platform-smoke-test')
+          if ($env:PLATFORM_SMOKE_TEST_GL_DRIVER) { $smokeArguments += '--software-renderer' }
+          $game = Start-Process $link.TargetPath -ArgumentList $smokeArguments `
+            -WorkingDirectory $link.WorkingDirectory -PassThru `
+            -RedirectStandardOutput $smokeOut -RedirectStandardError $smokeErr
+          if (-not $game.WaitForExit(120000)) {
+            Write-SmokeDiagnostics
+            $game.Kill($true)
+            throw 'Installed platform smoke test did not exit within 120 seconds.'
+          }
+          # Empty on an ordinary run, and the software-renderer banner otherwise: a passing run
+          # should say which renderer it exercised rather than leave it to be inferred.
+          if ((Test-Path -LiteralPath $smokeErr) -and (Get-Item -LiteralPath $smokeErr).Length -gt 0) {
+            Get-Content -LiteralPath $smokeErr | Write-Host
+          }
+          if ($game.ExitCode -ne 0) {
+            Write-SmokeDiagnostics
+            throw "Installed platform smoke test returned $($game.ExitCode)."
+          }
           $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART') -Wait -PassThru -WindowStyle Hidden
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller returned $($uninstall.ExitCode)." }
           if (Test-Path -LiteralPath $shortcut) { throw "Uninstaller left the Start menu shortcut behind: $shortcut" }

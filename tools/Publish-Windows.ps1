@@ -58,12 +58,57 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'packaging/windows/Extract Ori
 if (Test-Path -LiteralPath (Join-Path $packageRoot 'UserContent')) {
     throw 'The portable package contains imported original content.'
 }
-& (Join-Path $gameOutput 'Restoration.Game.exe') --smoke-test
-if ($LASTEXITCODE -ne 0) { throw 'Packaged game smoke check failed.' }
-& (Join-Path $gameOutput 'Restoration.Game.exe') --platform-smoke-test
-if ($LASTEXITCODE -ne 0) {
-    throw 'Packaged game could not initialize its native platform libraries.'
+# A software rasterizer belongs to CI and nowhere else. If one ever reached a package, every player
+# who installed it would be rendering through the CPU and would read the game as broken, so the
+# package is checked for one rather than trusted not to have picked one up.
+$softwareDrivers = @('opengl32.dll', 'libgallium_wgl.dll', 'libglapi.dll', 'osmesa.dll')
+$leaked = @(Get-ChildItem -LiteralPath $packageRoot -Recurse -File |
+    Where-Object { $softwareDrivers -contains $_.Name })
+if ($leaked.Count) {
+    throw ("The package contains an OpenGL driver, which would override the player's own: " +
+        (($leaked | ForEach-Object { $_.FullName }) -join ', '))
 }
+
+# PowerShell does not wait for a GUI-subsystem process launched with the call operator, so the
+# checks below ran as `&` were reporting a stale $LASTEXITCODE and passing no matter what the game
+# did. Start-Process with an explicit, bounded wait is what actually verifies the packaged build.
+function Invoke-PackagedGame([string] $executable, [string[]] $gameArguments, [string] $failure) {
+    $stdout = [IO.Path]::GetTempFileName()
+    $stderr = [IO.Path]::GetTempFileName()
+    try {
+        $process = Start-Process -FilePath $executable -ArgumentList $gameArguments -PassThru `
+            -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+        $exited = $process.WaitForExit(120000)
+        if (-not $exited) {
+            $process.Kill($true)
+            throw "$failure The packaged game did not exit within 120 seconds."
+        }
+        # Always surface stderr: it is empty on an ordinary run and carries the software-renderer
+        # banner otherwise, which is the only record of which renderer a passing run exercised.
+        if ((Test-Path -LiteralPath $stderr) -and (Get-Item -LiteralPath $stderr).Length -gt 0) {
+            Get-Content -LiteralPath $stderr | Write-Host
+        }
+        if ($process.ExitCode -ne 0) {
+            if ((Test-Path -LiteralPath $stdout) -and (Get-Item -LiteralPath $stdout).Length -gt 0) {
+                Get-Content -LiteralPath $stdout | Write-Host
+            }
+            throw "$failure It exited with $($process.ExitCode)."
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $stdout, $stderr -Force -ErrorAction SilentlyContinue
+    }
+}
+
+$gameExecutable = Join-Path $gameOutput 'Restoration.Game.exe'
+Invoke-PackagedGame $gameExecutable @('--smoke-test') 'Packaged game smoke check failed.'
+
+# A machine with a real OpenGL driver needs nothing extra; a runner without one supplies a software
+# driver through the environment variable, which is the only thing that unlocks --software-renderer.
+$platformArguments = @('--platform-smoke-test')
+if ($env:PLATFORM_SMOKE_TEST_GL_DRIVER) { $platformArguments += '--software-renderer' }
+Invoke-PackagedGame $gameExecutable $platformArguments `
+    'Packaged game could not initialize its native platform libraries.'
 foreach ($nativeLibrary in @('SDL2.dll', 'openal.dll')) {
     if (-not (Test-Path -LiteralPath (Join-Path $gameOutput $nativeLibrary) -PathType Leaf)) {
         throw "Packaged game is missing native library '$nativeLibrary'."
