@@ -83,11 +83,14 @@ function Invoke-PackagedGame([string] $executable, [string[]] $gameArguments, [s
             $process.Kill($true)
             throw "$failure The packaged game did not exit within 120 seconds."
         }
+        # Always surface stderr: it is empty on an ordinary run and carries the software-renderer
+        # banner otherwise, which is the only record of which renderer a passing run exercised.
+        if ((Test-Path -LiteralPath $stderr) -and (Get-Item -LiteralPath $stderr).Length -gt 0) {
+            Get-Content -LiteralPath $stderr | Write-Host
+        }
         if ($process.ExitCode -ne 0) {
-            foreach ($stream in @($stderr, $stdout)) {
-                if ((Test-Path -LiteralPath $stream) -and (Get-Item -LiteralPath $stream).Length -gt 0) {
-                    Get-Content -LiteralPath $stream | Write-Host
-                }
+            if ((Test-Path -LiteralPath $stdout) -and (Get-Item -LiteralPath $stdout).Length -gt 0) {
+                Get-Content -LiteralPath $stdout | Write-Host
             }
             throw "$failure It exited with $($process.ExitCode)."
         }

@@ -274,6 +274,11 @@ jobs:
             $game.Kill($true)
             throw 'Installed platform smoke test did not exit within 120 seconds.'
           }
+          # Empty on an ordinary run, and the software-renderer banner otherwise: a passing run
+          # should say which renderer it exercised rather than leave it to be inferred.
+          if ((Test-Path -LiteralPath $smokeErr) -and (Get-Item -LiteralPath $smokeErr).Length -gt 0) {
+            Get-Content -LiteralPath $smokeErr | Write-Host
+          }
           if ($game.ExitCode -ne 0) {
             Write-SmokeDiagnostics
             throw "Installed platform smoke test returned $($game.ExitCode)."
