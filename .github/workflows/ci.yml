@@ -30,6 +30,10 @@ jobs:
           dotnet-version: 10.0.400
       - name: Verify repository, build, and test
         shell: pwsh
+        env:
+          # This job builds the template unconfigured, so its project names still match
+          # packages.lock.json and the pinned transitive set can actually be enforced here.
+          RESTORE_LOCKED_MODE: 'true'
         run: ./tools/Invoke-Validation.ps1
       - run: dotnet publish src/Restoration.Game/Restoration.Game.csproj --no-restore -c Release --output artifacts/assetless-game -v minimal
       - run: dotnet artifacts/assetless-game/Restoration.Game.dll --smoke-test
