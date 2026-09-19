@@ -81,6 +81,9 @@ try {
     & (Join-Path $PSScriptRoot 'Verify-Configuration.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Project configuration is incomplete.' }
 
+    & (Join-Path $PSScriptRoot 'Test-TemplateInfrastructure.ps1') -RepositoryRoot $repositoryRoot
+    if ($LASTEXITCODE -ne 0) { throw 'Template infrastructure verification failed.' }
+
     $msbuildArguments = @(
         "-maxCpuCount:$MaxCpuCount",
         '-nodeReuse:true',

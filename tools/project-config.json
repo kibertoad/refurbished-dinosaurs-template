@@ -1,5 +1,5 @@
 {
-  "$schema-note": "Single source of truth for this project's identity. Fill this in, then run ./tools/Configure-Project.ps1 (no arguments needed). Leave a value empty to accept the derived default described in docs/CUSTOMIZATION.md.",
+  "$schema-note": "Single source of truth for identity and the one-time latest-official-version gate. Fill this in after plan approval, then run ./tools/Bootstrap-Project.ps1. Leave optional identity values empty to accept documented defaults.",
   "configured": false,
   "projectName": "",
   "displayName": "",
@@ -9,6 +9,7 @@
   "appId": "",
   "bundleId": "",
   "shortcutName": "",
+  "sourceEnvironmentVariable": "",
   "publisher": "kibertoad",
   "copyrightHolder": "",
   "copyrightYear": 0,
@@ -18,6 +19,10 @@
     "title": "",
     "developer": "",
     "releaseYear": "",
-    "genre": ""
+    "genre": "",
+    "latestOfficialVersion": "",
+    "analysisVersion": "",
+    "patchStatusEvidence": "",
+    "patchStatusEstablished": false
   }
 }

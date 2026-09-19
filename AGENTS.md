@@ -1,5 +1,10 @@
 # Agent instructions
 
+> **Provisional template policy.** During bootstrap, review this entire file,
+> preserve the universal safety and evidence rules, replace template terminology
+> and commands with game-specific details, add the canonical owned-edition and
+> local-tool facts, and record that review in `docs/BOOTSTRAP-CHECKLIST.md`.
+
 These instructions apply to the whole repository and to humans and coding agents
 alike. Read them before changing anything.
 
@@ -40,13 +45,24 @@ media they came from, and what research already exists (manuals, community
 documentation, prior reverse-engineering). Ask the owner for anything you cannot
 determine; never invent an edition, a fingerprint, or a file format.
 
+Before any executable analysis, conclusively determine the latest official
+patch/version from authoritative release media, publisher/developer material, or
+corroborated archival evidence. Patch the legally owned analysis copy to that
+version, fingerprint it, and record the version, patch provenance, file length,
+and SHA-256 in `tools/project-config.json`, `docs/SOURCE-EDITIONS.md`, and
+`docs/GHIDRA.md`. Refuse analysis of an older build: doing so creates avoidable
+address maps and later version-migration work. Once the latest-version status is
+conclusively established and documented, treat it as a durable fact; do not
+repeat the same investigation unless new contradictory evidence appears.
+
 **1. Write the implementation plan.** Fill in `docs/IMPLEMENTATION-PLAN.md`: the
 game profile, the scope and non-goals, the ordered vertical slices with
 acceptance criteria, the risks, and the open questions. Then stop and ask for
 approval. This is the gate.
 
 **2. Configure the project identity.** Fill in `tools/project-config.json` and
-run `./tools/Configure-Project.ps1`, then `./tools/Verify-Configuration.ps1`.
+run `./tools/Bootstrap-Project.ps1`; it enforces the plan and latest-version
+gates, invokes configuration, and verifies the result.
 `docs/CUSTOMIZATION.md` documents every field and every derived default. Do not
 hand-edit placeholders the script can substitute.
 
@@ -92,6 +108,40 @@ table and `docs/PARITY-MATRIX.md` to match what is actually true, and tick off
 - **Parse defensively.** Original files are untrusted input: bound every length,
   reject path traversal, and fail with a diagnosable error instead of throwing
   from deep inside a reader.
+
+## Reverse-engineering discipline
+
+Start with one narrow player-visible question. Prefer manuals, controlled play,
+and bounded data inspection before executable analysis. For a non-trivial rule:
+state the question, locate evidence, form competing hypotheses, seek falsifying
+evidence, corroborate against observable behavior, record the conclusion and
+confidence, then implement it under the approved plan with a deterministic test.
+
+Use the repository vocabulary `unknown`, `low`, `medium`, `high`, and
+`verified`. Never silently promote a plausible interpretation. Decompiler output
+is not source: inferred names, types, signedness, casts, and control flow can be
+wrong, so inspect bounded instruction context when the distinction matters.
+
+Faithfulness beats cleanup. Preserve meaningful asymmetries, rounding,
+ordering, timing, overflow behavior, and bugs unless the approved fidelity
+policy explicitly chooses otherwise. Separate verified reconstruction from
+speculative enhancements.
+
+Durable findings belong in the evidence ledgers, not conversation history or
+large retained dumps. A configured project should customize a concise
+`docs/re/` structure for findings, systems, hypotheses, unresolved questions,
+and address/name mappings while keeping rules in `RULES-AND-EVIDENCE.md`, formats
+in `ORIGINAL-FORMATS.md`, and tool procedure in `GHIDRA.md`. Never commit broad
+decompiler, instruction, or Version Tracking exports.
+
+## Context and process hygiene
+
+Treat logs, analysis listings, and experiments as a temporary working set.
+Summarize reusable conclusions into durable documentation, record remaining
+unknowns, then discard obsolete intermediate state. Avoid unrelated refactors
+during evidence-driven work. After commands that start games, servers, analyzers,
+or compiler services, check for orphaned processes and stop only the processes
+created by the current task.
 
 ## Architecture boundaries
 

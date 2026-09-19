@@ -1,5 +1,10 @@
 # Validation
 
+`tools/Test-TemplateInfrastructure.ps1` is part of the canonical validation
+gate. It checks that signing helpers and workflow wiring, the smart root
+launcher, package lock, latest-version bootstrap fields, and local-only guards
+on broad Ghidra exporters remain present after template configuration.
+
 Accuracy is established separately at four layers, and a pass at one layer does
 not imply a pass at the next:
 

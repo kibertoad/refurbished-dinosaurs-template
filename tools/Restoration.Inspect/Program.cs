@@ -1,23 +1,49 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Restoration.Resources;
 
-if (args.Length != 1 || !Directory.Exists(args[0]))
+try
 {
-    Console.Error.WriteLine("Usage: Restoration.Inspect <owned-original-directory>");
-    return 64;
-}
-
-var root = Path.GetFullPath(args[0]);
-var files = new List<object>();
-foreach (var path in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Order())
-{
-    await using var stream = File.OpenRead(path);
-    files.Add(new
+    var sourcePath = Option(args, "--source") ?? (args.Length == 1 ? args[0] : null);
+    var sourceKind = Option(args, "--kind") ?? SourceKinds.Directory;
+    if (string.IsNullOrWhiteSpace(sourcePath) || !SourceKinds.IsSupported(sourceKind))
     {
-        path = Path.GetRelativePath(root, path).Replace('\\', '/'),
-        size = stream.Length,
-        sha256 = Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant()
-    });
+        Console.Error.WriteLine("Usage: Restoration.Inspect --source <path> " +
+            "[--kind directory|iso9660|cue-bin]");
+        return 64;
+    }
+
+    using var source = OriginalContentSource.Open(sourcePath, sourceKind);
+    var files = new List<object>();
+    foreach (var entry in source.Files)
+    {
+        await using var stream = source.OpenRead(entry.Path);
+        files.Add(new
+        {
+            path = entry.Path,
+            size = entry.Size,
+            sha256 = Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant()
+        });
+    }
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        source = Path.GetFullPath(sourcePath),
+        kind = source.Kind,
+        label = source.Label,
+        cueTracks = source.Cue?.Tracks.Count,
+        files
+    }, new JsonSerializerOptions { WriteIndented = true }));
+    return 0;
 }
-Console.WriteLine(JsonSerializer.Serialize(new { root, files }, new JsonSerializerOptions { WriteIndented = true }));
-return 0;
+catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+                                  or InvalidDataException or ArgumentException)
+{
+    Console.Error.WriteLine($"[inspect_failed] Source inspection failed safely: {exception.Message}");
+    return 1;
+}
+
+static string? Option(string[] arguments, string name)
+{
+    var index = Array.FindIndex(arguments, value => value.Equals(name, StringComparison.OrdinalIgnoreCase));
+    return index >= 0 && index + 1 < arguments.Length ? arguments[index + 1] : null;
+}

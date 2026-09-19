@@ -80,6 +80,8 @@ jobs:
           -ProjectName TemplateSample -DisplayName 'Template Sample'
           -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
           -OriginalReleaseYear 1990 -OriginalGenre sample
+          -LatestOfficialVersion synthetic -AnalysisVersion synthetic
+          -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
       - shell: pwsh
         run: ./tools/Build-WindowsInstaller.ps1 -Compiler "$env:INNO_COMPILER"
       - name: Smoke-test installed layout
@@ -138,6 +140,8 @@ jobs:
           -ProjectName TemplateSample -DisplayName 'Template Sample'
           -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
           -OriginalReleaseYear 1990 -OriginalGenre sample
+          -LatestOfficialVersion synthetic -AnalysisVersion synthetic
+          -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
       - shell: pwsh
         run: ./tools/Build-LinuxInstaller.ps1
       - name: Verify Debian layout
@@ -184,6 +188,8 @@ jobs:
           -ProjectName TemplateSample -DisplayName 'Template Sample'
           -OriginalTitle 'Template Sample' -OriginalDeveloper 'Template Project'
           -OriginalReleaseYear 1990 -OriginalGenre sample
+          -LatestOfficialVersion synthetic -AnalysisVersion synthetic
+          -PatchStatusEvidence 'Synthetic CI identity' -PatchStatusEstablished
       - shell: pwsh
         env:
           TARGET_RUNTIME: ${{ matrix.runtime }}

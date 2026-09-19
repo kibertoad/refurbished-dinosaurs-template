@@ -99,10 +99,43 @@ compatibility logic. Never redirect broad output into the repository.
 | `ReportCallArguments.java` | one callee address | the three nearest pushed arguments at each direct call |
 | `ReportCallSitesWithScalars.java` | one callee address then exact scalars | calls whose preceding argument setup contains one of the values |
 | `ReportRandomnessCandidates.java` | none | candidate timing/random imports and their referencing functions |
+| `ReportCallPaths.java` | start function, target function, maximum depth (1-12) | bounded direct-call paths with fixed edge and result caps |
+| `ReportConstantFirstArgumentCalls.java` | callee address and exact scalar | x86 cdecl calls whose immediately pushed first argument matches |
+| `ReportFirstArgumentCallSummary.java` | one callee address | immediate x86 cdecl first-argument values and non-literal follow-ups |
+| `ReportFunctionScalarConstants.java` | function address and exact scalars | at most 200 matching instructions inside that function |
+| `ReportCallsToRange.java` | inclusive start and end addresses | at most 50 calls or jumps whose target lies in the selected range |
+| `ReportFilePatternInMemory.java` | executable file offset and optional byte count | at most eight loaded-memory matches and ten references per match |
+| `ReportMemoryBlockForFileOffset.java` | executable file offset | the matching loaded block and translated address, if any |
+| `ReportJumpTable.java` | NE16 table address, count (1-128), optional dispatch | bounded word-indexed segmented jump targets |
 
 Use the narrow scripts to locate line numbers and addresses, then request only
 the explicitly selected decompiler or instruction windows. Do not stitch
 adjacent windows together to reconstruct or retain a complete function.
+
+### Cross-edition comparison
+
+The four `Export*.java` scripts support reproducible local comparison of two
+legally owned executable editions:
+
+- `ExportEditionAnalysis.java` writes deterministic function, instruction, and
+  reference inventories labelled with executable SHA-256 and Ghidra version;
+- `ExportVersionTrackingMatches.java` records Ghidra Version Tracking matches;
+- `ExportVersionTrackingAddressContexts.java` adds bounded address context to
+  selected matches;
+- `ExportFunctionAddressCorrelations.java` correlates explicitly supplied
+  address pairs between editions.
+
+Unlike the narrow reporting scripts, the first two can produce broad
+whole-program inventories. They therefore reject output paths outside the
+system temporary directory or an ignored `analysis/original/` directory. Their
+TSV output is local navigation material: never commit it, cite it as proof, or
+use it as production input. Record only independently worded, bounded findings
+and corroborate them through controlled observation.
+
+For segmented NE executables, prefer `segment:offset` addresses and the bounded
+instruction, range, jump-table, and file-offset helpers when the decompiler
+cannot recover a function. An empty or failed decompile is a tool limitation,
+not evidence that the original behavior is absent.
 
 ## Evidence record
 

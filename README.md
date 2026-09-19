@@ -8,8 +8,9 @@ that copy and builds a local content pack without modifying the original
 installation. The runtime consumes only the verified pack and never loads or
 executes the original game.
 
-> New repository checklist: fill in `tools/project-config.json`, run
-> `./tools/Configure-Project.ps1`, then work through
+> New repository checklist: approve the implementation plan, establish and
+> document the latest official original-game version, fill in
+> `tools/project-config.json`, run `./tools/Bootstrap-Project.ps1`, then work through
 > `docs/BOOTSTRAP-CHECKLIST.md`. `docs/CUSTOMIZATION.md` explains every knob,
 > and `AGENTS.md` is the working agreement for humans and coding agents alike.
 
@@ -27,7 +28,7 @@ content locally from the copy selected by the player.
 
 | Area | Supported now | Current limitations |
 |---|---|---|
-| Installation and assets | Windows, Linux, and macOS packages include a separate Asset Extractor for supported legal releases. | Original assets are never bundled; release packages are unsigned by default. |
+| Installation and assets | Windows, Linux, and macOS packages include a separate Asset Extractor for supported legal directories, ISO-9660 images, CUE/BIN media, and optional bounded InstallShield expansion. Releases can Authenticode-sign Windows artifacts and attach an OpenPGP signature to Linux packages. | Original assets are never bundled; each configured project must declare the exact supported media subset. macOS signing and notarization are not configured. |
 | Gameplay | Describe the currently playable end-to-end slice here. | List material missing or provisional behavior here. |
 | Saves and compatibility | Describe native save, replay, and migration support here. | State compatibility guarantees and unsupported original formats here. |
 | Presentation | Describe restored graphics, audio, controls, and scaling here. | List presentation work still awaiting parity validation here. |

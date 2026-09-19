@@ -1,7 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Restoration.Resources/Restoration.Resources.csproj" />
+    <PackageReference Include="SabreTools.Serialization" Version="[3.2.0]" />
     <EmbeddedResource Include="source-manifests/*.json" />
   </ItemGroup>
 </Project>

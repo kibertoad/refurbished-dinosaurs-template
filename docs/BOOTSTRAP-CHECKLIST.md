@@ -7,12 +7,22 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 
 - [ ] Record the original title, developer, release year, genre, and the
       editions available for validation.
+- [ ] **Mandatory analysis gate:** establish from authoritative or corroborated
+      evidence the latest official patch/version, patch the legally owned
+      analysis copy to it, and record the conclusion, patch provenance,
+      executable length, and SHA-256 in `tools/project-config.json`,
+      `docs/SOURCE-EDITIONS.md`, and `docs/GHIDRA.md`. Refuse executable analysis
+      until this is complete. Once conclusively documented, do not repeat the
+      same version investigation unless contradictory evidence appears.
 - [ ] Fill in `docs/IMPLEMENTATION-PLAN.md` and have it approved before writing
       implementation code.
 
 ## Configure
 
-- [ ] Fill in `tools/project-config.json` and run `./tools/Configure-Project.ps1`.
+- [ ] Customize the provisional root `AGENTS.md` for this game's terminology,
+      canonical patched oracle, evidence ledgers, local tools, and validation
+      commands while preserving its universal safety rules.
+- [ ] Fill in `tools/project-config.json` and run `./tools/Bootstrap-Project.ps1`.
 - [ ] Run `./tools/Verify-Configuration.ps1` and resolve every finding.
 - [ ] Customize the player-facing README, acknowledgements, NOTICE description,
       and the supported/limited feature table.
@@ -24,6 +34,8 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Extend `tools/repository-policy.json` with the extensions the original
       game actually uses.
 - [ ] Decide what may be clean-room/open data and what must remain user-imported.
+- [ ] Review the locked InstallShield dependency tree and complete the
+      configured project's third-party notices before distributing binaries.
 - [ ] Add a separate Asset Extractor with explicit/manual source selection first;
       make the Game consume only its verified versioned pack; add storefront, registry,
       media, or archive discovery as optional adapters.
