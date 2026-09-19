@@ -9,5 +9,9 @@
     <!-- Keep NuGet auditing enabled, but do not turn an unreachable advisory
          service into a compiler error after dependencies have been restored. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900</WarningsNotAsErrors>
+    <!-- The SDK normally excludes only the configured output roots. A validation or CI build
+         that redirects BaseIntermediateOutputPath would otherwise glob generated files left in a
+         project's conventional obj directory as source, producing duplicate assembly attributes. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/bin/**;**/obj/**</DefaultItemExcludes>
   </PropertyGroup>
 </Project>
