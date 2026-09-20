@@ -18,23 +18,6 @@ games. A checkout is in one of two states, and
 - **Configured project** (`"configured": true`): a restoration of one specific
   game. Changes here are game-specific and must keep the evidence trail intact.
 
-## Plan before you build
-
-**Do not write implementation code before `docs/IMPLEMENTATION-PLAN.md`
-describes the work and the repository owner has approved it.** This applies to
-specializing the template for a game, to a new vertical slice, and to any change
-that introduces a format reader, a rule, or a persisted file layout.
-
-A plan is ready for review when it states, for each slice: the player-visible
-outcome, the evidence it relies on, the acceptance criteria for rules,
-presentation, and original-content behavior, the automated tests that prove it,
-and the questions still open. Guesses belong in the open-questions register, not
-in an API.
-
-Small, self-contained changes — fixing a bug, tightening a test, editing prose,
-finishing a slice the plan already covers — do not need a new plan. When in
-doubt, propose the plan; it is cheaper than the wrong abstraction.
-
 ## Specializing this template for a game
 
 Work in this order. Steps 2 onward start only after the plan is approved.
@@ -57,8 +40,7 @@ repeat the same investigation unless new contradictory evidence appears.
 
 **1. Write the implementation plan.** Fill in `docs/IMPLEMENTATION-PLAN.md`: the
 game profile, the scope and non-goals, the ordered vertical slices with
-acceptance criteria, the risks, and the open questions. Then stop and ask for
-approval. This is the gate.
+acceptance criteria, the risks, and the open questions.
 
 **2. Configure the project identity.** Fill in `tools/project-config.json` and
 run `./tools/Bootstrap-Project.ps1`; it enforces the plan and latest-version
