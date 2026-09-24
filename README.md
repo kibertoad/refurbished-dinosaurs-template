@@ -8,7 +8,7 @@ that copy and builds a local content pack without modifying the original
 installation. The runtime consumes only the verified pack and never loads or
 executes the original game.
 
-> New repository checklist: approve the implementation plan, establish and
+> New repository checklist: write the implementation plan, establish and
 > document the latest official original-game version, fill in
 > `tools/project-config.json`, run `./tools/Bootstrap-Project.ps1`, then work through
 > `docs/BOOTSTRAP-CHECKLIST.md`. `docs/CUSTOMIZATION.md` explains every knob,

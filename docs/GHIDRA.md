@@ -154,7 +154,7 @@ a different edition, fails the check before anyone builds on it.
 dotnet run --project tools/Restoration.Inspect -- citations `
   --executable analysis/original/<game>.exe `
   --docs spec `
-  --sha256 <expected-sha256> `
+  --xxh3 <xxh3 from the build entry> `
   --build BLD-<alias> `
   --instructions <temp>/<edition>.instructions.tsv `
   --report docs/address-citations.csv
@@ -169,7 +169,9 @@ range (`0x00401000..0x00401200`) is checked as the byte before it.
 Without other options the check reports which section holds each address, and
 fails for addresses outside every section. The options add:
 
-- `--sha256` refuses an executable with a different hash;
+- `--xxh3` refuses an executable whose xxh3 differs from the one its build
+  entry gives, and `--sha256` does the same with the SHA-256 recorded by the
+  latest-version gate;
 - `--build` skips files whose front matter names other builds and not this one,
   so a repository that documents two editions can check each against its own
   executable. A finding that lists both builds has addresses from each, and
@@ -240,9 +242,10 @@ the launch, hash check and breakpoint loop are the parts worth copying.
 
 Each useful result becomes a finding entry, `spec/findings/FND-<AREA>-<NNN>.md`,
 in the form `docs/SPEC-ENTRY-TEMPLATES.md` gives. Its `builds` and `locations`
-name the build entry, whose SHA-256 identifies the executable, and give each
+name the build entry, whose xxh3 identifies the executable, and give each
 address range in the notation for the executable's format. `tool` gives the
-Ghidra version. The Observation section states the constants, comparisons,
+Ghidra version, and `environment` stays `null` because the finding is static.
+The Observation section states the constants, comparisons,
 reads and writes, and the order of calls in independent words, the
 Alternatives section the readings that were ruled out or not yet ruled out,
 and How to reproduce the entry address and the string or constant that leads

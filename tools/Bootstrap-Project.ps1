@@ -9,12 +9,6 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot 'project-config.json' }
 $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-$plan = Get-Content -LiteralPath (Join-Path $root 'docs/IMPLEMENTATION-PLAN.md') -Raw
-
-$planStatus = [regex]::Match($plan, '(?im)^\*\*Status:\*\*\s+([^\r\n]+)').Groups[1].Value
-if ($planStatus -notmatch '(?i)^approved\b') {
-    throw 'docs/IMPLEMENTATION-PLAN.md must record owner approval before bootstrap continues.'
-}
 
 $required = [ordered]@{
     projectName = $config.projectName

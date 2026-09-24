@@ -1,5 +1,5 @@
 {
-  "$schema-note": "Single source of truth for identity and the one-time latest-official-version gate. Fill this in after plan approval, then run ./tools/Bootstrap-Project.ps1. Leave optional identity values empty to accept documented defaults.",
+  "$schema-note": "Single source of truth for identity and the one-time latest-official-version gate. Fill this in, then run ./tools/Bootstrap-Project.ps1. Leave optional identity values empty to accept documented defaults.",
   "configured": false,
   "projectName": "",
   "displayName": "",

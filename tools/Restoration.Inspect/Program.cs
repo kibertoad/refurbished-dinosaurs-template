@@ -24,13 +24,18 @@ try
     var files = new List<object>();
     foreach (var entry in source.Files)
     {
-        await using var stream = source.OpenRead(entry.Path);
-        files.Add(new
+        string sha256;
+        await using (var stream = source.OpenRead(entry.Path))
         {
-            path = entry.Path,
-            size = entry.Size,
-            sha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream))
-        });
+            sha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream));
+        }
+        string xxh3;
+        await using (var stream = source.OpenRead(entry.Path))
+        {
+            xxh3 = SpecHash.Xxh3(stream);
+        }
+        // sha256 is what source manifests use; xxh3 is the hash spec build entries give.
+        files.Add(new { path = entry.Path, size = entry.Size, sha256, xxh3 });
     }
     Console.WriteLine(JsonSerializer.Serialize(new
     {

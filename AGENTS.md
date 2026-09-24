@@ -20,7 +20,7 @@ games. A checkout is in one of two states, and
 
 ## Specializing this template for a game
 
-Work in this order. Steps 2 onward start only after the plan is approved.
+Work in this order.
 
 **0. Establish the facts.** Identify the original game, its developer, release
 year, genre, and the editions the owner legally has. Record which storefronts or
@@ -73,7 +73,7 @@ actionable error rather than a crash. The separately runnable Extractor verifies
 a licensed source and transactionally creates a complete local asset pack; the
 Game consumes only that verified pack.
 
-**5. Build the first vertical slice.** Follow the approved plan. Prefer a thin
+**5. Build the first vertical slice.** Follow the plan. Prefer a thin
 end-to-end slice — identify, extract, start, show something real, quit cleanly —
 over broad but unplayable systems.
 
@@ -145,7 +145,12 @@ Durable findings go in `spec/`, one entry per file named after its ID, and not
 in conversation history or large retained dumps. IDs are never reused or
 renumbered, and an entry that turns out wrong becomes `superseded`. The spec
 describes the original only and never names a class, file, or setting from this
-repository. Tool procedure stays in `docs/GHIDRA.md`. Never commit broad
+repository. It never reproduces content: texts, images, sounds, maps, scripts,
+the per-unit or per-item statistics a designer filled in, or the names of
+individual things a designer made, such as a unit, an item, a site, or a
+character (an enumeration of those is named `UNIT_TYPE_3`, not by the unit's
+name). The names the game gives its concepts and mechanics are terms the spec
+uses, and constants the code does arithmetic with are written down in full. Tool procedure stays in `docs/GHIDRA.md`. Never commit broad
 decompiler, instruction, or Version Tracking exports.
 
 ## Fidelity

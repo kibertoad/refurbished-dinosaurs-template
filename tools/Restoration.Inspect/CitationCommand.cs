@@ -11,7 +11,7 @@ public static class CitationCommand
 {
     private const string Usage =
         "Usage: Restoration.Inspect citations --executable <owned.exe> --docs <directory> " +
-        "[--sha256 <expected>] [--build <BLD-id>] [--instructions <edition.instructions.tsv>] [--report <file.csv>]";
+        "[--sha256 <expected>] [--xxh3 <expected>] [--build <BLD-id>] [--instructions <edition.instructions.tsv>] [--report <file.csv>]";
 
     public static int Run(string[] args)
     {
@@ -33,6 +33,14 @@ public static class CitationCommand
                 Console.Error.WriteLine($"[citations_failed] {executable} has SHA-256 {sha256}, expected {expected}.");
                 return 1;
             }
+            // The build entry in spec/builds gives the executable's xxh3.
+            var xxh3 = SpecHash.Xxh3(bytes);
+            var expectedXxh3 = Option(args, "--xxh3")?.Trim().ToLowerInvariant();
+            if (expectedXxh3 is not null && expectedXxh3 != xxh3)
+            {
+                Console.Error.WriteLine($"[citations_failed] {executable} has xxh3 {xxh3}, expected {expectedXxh3}.");
+                return 1;
+            }
 
             var image = PortableExecutableImage.Read(bytes);
             var instructionsPath = Option(args, "--instructions");
@@ -49,6 +57,7 @@ public static class CitationCommand
 
             Console.WriteLine($"executable: {Path.GetFullPath(executable)}");
             Console.WriteLine($"sha256: {sha256}");
+            Console.WriteLine($"xxh3: {xxh3}");
             Console.WriteLine($"image: 0x{image.ImageBase:X8}..0x{image.ImageBase + image.SizeOfImage:X8}, " +
                 $"{image.Sections.Count} sections");
             Console.WriteLine($"cited addresses: {results.Count} " +

@@ -27,7 +27,7 @@ files:
   - path: <path relative to the install directory, or CD:path>
     format: <MZ, COM, NE, PE, LE, LX, ELF, cdda or data>
     size: <bytes>
-    sha256: <lower-case hex>
+    xxh3: <32 lower-case hex digits, as `xxhsum -H2` prints>
 ---
 
 ## Obtaining
@@ -36,6 +36,11 @@ files:
 
 ## Other files
 ````
+
+A build has one executable that runs the game's rules. An installation that
+ships two, such as a DOS and a Windows version over the same data files, is two
+builds, and both list the shared files. `Restoration.Inspect --source <dir>`
+prints each file's size and `xxh3`.
 
 ## Source
 
@@ -47,7 +52,7 @@ superseded_by: []
 author: <author>
 date: "<year or date>"
 location: <URL or archive location>
-sha256: null
+xxh3: null
 licence: null
 ---
 
@@ -73,6 +78,7 @@ locations:
     file: <path from the build entry>
     address: <range in the notation for the file's format, or offset: for data files and overlays>
 tool: <tool and version>
+environment: null
 ---
 
 ## Observation
@@ -84,7 +90,8 @@ tool: <tool and version>
 ## How to reproduce
 ````
 
-A dynamic finding also has `environment`, in the form an experiment uses.
+`environment` stays `null` for a static finding. A dynamic finding gives it in
+the form an experiment uses.
 
 ## Experiment
 
@@ -255,8 +262,8 @@ related: []
 
 ## Drawn elements
 
-| Element | Resource | Position | Shown when | Evidence |
-|---|---|---|---|---|
+| Element | Resource | Shows | Position | Shown when | Evidence |
+|---|---|---|---|---|---|
 
 ## Mouse input
 

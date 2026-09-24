@@ -7,7 +7,7 @@ manual".
 
 ## Establish facts, then one command
 
-1. Complete and obtain approval for `docs/IMPLEMENTATION-PLAN.md`.
+1. Fill in `docs/IMPLEMENTATION-PLAN.md`.
 2. Establish the latest official patch/version once, patch and fingerprint the
    legally owned analysis copy, and record the evidence and matching versions in
    `tools/project-config.json` and `docs/SOURCE-EDITIONS.md`. Bootstrap refuses an
@@ -17,7 +17,7 @@ manual".
    namespaces, assemblies, and directories), `displayName` (player-facing), the
    original-game facts, and patch-status evidence are required. Identity fields
    with documented defaults may remain empty.
-4. Run `./tools/Bootstrap-Project.ps1`. It checks the plan and patch gates, calls
+4. Run `./tools/Bootstrap-Project.ps1`. It checks the latest-version gate, calls
    `Configure-Project.ps1`, substitutes the placeholders, renames
    the template's `Restoration.*` projects, and writes the resolved identity back
    to `tools/project-config.json` with `"configured": true`.

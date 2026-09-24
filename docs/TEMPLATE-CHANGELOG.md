@@ -3,10 +3,8 @@
 Maintenance history of the **unconfigured template itself**: what changed in the
 shared scaffolding, and the evidence behind each decision.
 
-This file is not part of a configured project's plan gate. A project records its
-own work in `docs/IMPLEMENTATION-PLAN.md`, which `tools/Bootstrap-Project.ps1`
-reads for owner approval; keeping the two apart is what stops that gate from
-depending on which `**Status:**` line comes first in a shared document.
+A configured project records its own work in `docs/IMPLEMENTATION-PLAN.md`,
+not here.
 
 A project created from this template may delete this file.
 
@@ -34,6 +32,17 @@ The template now follows the dinorefurb.com
   `GAME_DIR` in the standard's layout, checks their hashes, and skips tests
   when they are absent.
 - `Test-TemplateInfrastructure.ps1` requires the spec skeleton and both ledgers.
+- Follows the standard's seventh review (refurbished-dinosaurs `b7e5341`): spec
+  hashes are 128-bit xxHash3. `SpecHash` in `Restoration.Inspect` computes it,
+  the source inventory prints `xxh3` next to `sha256`, `citations` takes
+  `--xxh3`, and `OriginalGameFiles` checks and names captures by it. Checked
+  against the standard's GOG `Chaos Overlords.exe` example. The entry
+  templates gain `environment` on findings and a Shows column on screens, and
+  `docs/VALIDATION.md` covers base saves in the captures, distribution tests
+  from recorded generator states, and unscaled palette-true screen captures.
+- The implementation-plan approval gate is gone: `Bootstrap-Project.ps1` no
+  longer reads a `**Status:**` line, and the plan, checklist, and guides no
+  longer ask for approval.
 
 ## Research tools from the game repositories, 2026-09-24
 

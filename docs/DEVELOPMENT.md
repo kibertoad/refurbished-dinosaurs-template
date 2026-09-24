@@ -59,9 +59,8 @@ responsibilities instead.
 New repositories start with `tools/project-config.json` and
 `./tools/Bootstrap-Project.ps1`; `docs/CUSTOMIZATION.md` documents every field,
 and `./tools/Verify-Configuration.ps1` reports whatever is still left over from
-the template. `AGENTS.md` is the working agreement for the repository, including
-the rule that `docs/IMPLEMENTATION-PLAN.md` is written and approved before
-implementation starts.
+the template. `AGENTS.md` is the working agreement for the repository, and
+`docs/IMPLEMENTATION-PLAN.md` records the slices, open questions, and risks.
 
 The original game is documented in `spec/`, following the
 [documentation standard](https://dinorefurb.com/documentation-standard/), and

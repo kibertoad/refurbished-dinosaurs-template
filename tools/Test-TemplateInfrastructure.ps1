@@ -59,15 +59,6 @@ foreach ($name in @('ExportEditionAnalysis.java', 'ExportFunctionAddressCorrelat
     }
 }
 
-# Bootstrap-Project.ps1 gates on the FIRST '**Status:**' line in the plan, so a second one -- a
-# maintenance record, an appended slice log -- would silently decide the approval gate.
-$plan = Get-Content -LiteralPath (Join-Path $root 'docs/IMPLEMENTATION-PLAN.md') -Raw
-$statusLines = @([regex]::Matches($plan, '(?im)^\*\*Status:\*\*'))
-if ($statusLines.Count -ne 1) {
-    $failures.Add(
-        "docs/IMPLEMENTATION-PLAN.md must contain exactly one '**Status:**' line, found $($statusLines.Count)")
-}
-
 foreach ($name in @('latestOfficialVersion', 'analysisVersion', 'patchStatusEvidence', 'patchStatusEstablished')) {
     if (-not $config.original.PSObject.Properties[$name]) {
         $failures.Add("project configuration is missing original.$name")

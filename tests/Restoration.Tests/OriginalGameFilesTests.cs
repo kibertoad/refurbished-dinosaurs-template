@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using Restoration.Inspect;
 using Xunit;
 
 namespace Restoration.Tests;
@@ -84,5 +84,5 @@ public sealed class OriginalGameFilesTests : IDisposable
         return Hash(bytes);
     }
 
-    private static string Hash(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
+    private static string Hash(byte[] bytes) => SpecHash.Xxh3(bytes);
 }

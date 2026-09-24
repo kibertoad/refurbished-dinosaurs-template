@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Restoration.Inspect;
 using Xunit;
 
 namespace Restoration.Tests;
@@ -10,8 +10,9 @@ namespace Restoration.Tests;
 /// it. They live under the directory named by <c>GAME_DIR</c>: one directory per build, named by
 /// its build ID, laid out as the build entry's paths give them, with a file from a disc under a
 /// directory named after the disc (<c>CD:</c>, <c>CD2:</c>). Captures, dumps and recordings that
-/// cannot be committed sit in <c>GAME_DIR/captures/</c>, named by their SHA-256. A test whose file
-/// is absent is skipped, and a file whose hash differs from the spec fails the test.
+/// cannot be committed, and the saves experiments start from, sit in <c>GAME_DIR/captures/</c>,
+/// named by their xxh3 (<see cref="SpecHash"/>). A test whose file is absent is skipped, and a
+/// file whose hash differs from the spec fails the test.
 /// </summary>
 public static partial class OriginalGameFiles
 {
@@ -23,23 +24,23 @@ public static partial class OriginalGameFiles
     [GeneratedRegex(@"^(?<disc>CD[0-9]*):(?<path>.+)$")]
     private static partial Regex DiscPattern();
 
-    [GeneratedRegex(@"^[0-9a-f]{64}$")]
-    private static partial Regex Sha256Pattern();
+    [GeneratedRegex(@"^[0-9a-f]{32}$")]
+    private static partial Regex Xxh3Pattern();
 
     /// <summary>
     /// The full path of <paramref name="path"/> in <paramref name="build"/>, after checking it
-    /// against <paramref name="sha256"/> from the build entry. Skips the test when it is absent.
+    /// against <paramref name="xxh3"/> from the build entry. Skips the test when it is absent.
     /// </summary>
-    public static string Require(string build, string path, string sha256) =>
-        Resolve(Environment.GetEnvironmentVariable(EnvironmentVariable), build, path, sha256)
+    public static string Require(string build, string path, string xxh3) =>
+        Resolve(Environment.GetEnvironmentVariable(EnvironmentVariable), build, path, xxh3)
         ?? throw SkipMissing($"{build}/{path}");
 
-    /// <summary>The full path of a capture, dump or recording named by its SHA-256.</summary>
-    public static string RequireCapture(string sha256) =>
-        ResolveCapture(Environment.GetEnvironmentVariable(EnvironmentVariable), sha256)
-        ?? throw SkipMissing($"captures/{sha256}");
+    /// <summary>The full path of a capture, dump or recording named by its xxh3.</summary>
+    public static string RequireCapture(string xxh3) =>
+        ResolveCapture(Environment.GetEnvironmentVariable(EnvironmentVariable), xxh3)
+        ?? throw SkipMissing($"captures/{xxh3}");
 
-    internal static string? Resolve(string? root, string build, string path, string sha256)
+    internal static string? Resolve(string? root, string build, string path, string xxh3)
     {
         if (!BuildPattern().IsMatch(build))
         {
@@ -47,17 +48,17 @@ public static partial class OriginalGameFiles
         }
         var disc = DiscPattern().Match(path);
         var relative = disc.Success ? $"{disc.Groups["disc"].Value}/{disc.Groups["path"].Value}" : path;
-        return Verified(root, Path.Combine(build, Portable(relative)), sha256);
+        return Verified(root, Path.Combine(build, Portable(relative)), xxh3);
     }
 
-    internal static string? ResolveCapture(string? root, string sha256) =>
-        Verified(root, Path.Combine("captures", sha256), sha256);
+    internal static string? ResolveCapture(string? root, string xxh3) =>
+        Verified(root, Path.Combine("captures", xxh3), xxh3);
 
-    private static string? Verified(string? root, string relative, string sha256)
+    private static string? Verified(string? root, string relative, string xxh3)
     {
-        if (!Sha256Pattern().IsMatch(sha256))
+        if (!Xxh3Pattern().IsMatch(xxh3))
         {
-            throw new ArgumentException($"'{sha256}' is not a lower-case SHA-256.", nameof(sha256));
+            throw new ArgumentException($"'{xxh3}' is not a lower-case xxh3.", nameof(xxh3));
         }
         if (string.IsNullOrWhiteSpace(root))
         {
@@ -69,10 +70,10 @@ public static partial class OriginalGameFiles
             return null;
         }
         using var stream = File.OpenRead(file);
-        var actual = Convert.ToHexStringLower(SHA256.HashData(stream));
-        if (actual != sha256)
+        var actual = SpecHash.Xxh3(stream);
+        if (actual != xxh3)
         {
-            throw new InvalidDataException($"{file} has SHA-256 {actual}, but the spec gives {sha256}.");
+            throw new InvalidDataException($"{file} has xxh3 {actual}, but the spec gives {xxh3}.");
         }
         return file;
     }

@@ -22,8 +22,7 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Write the analysis copy's build entry in `spec/builds/`, fill in the
       scope and area list in `spec/README.md`, and add a source entry for each
       manual, FAQ, or earlier tool the work relies on.
-- [ ] Fill in `docs/IMPLEMENTATION-PLAN.md` and have it approved before writing
-      implementation code.
+- [ ] Fill in `docs/IMPLEMENTATION-PLAN.md`.
 
 ## Configure
 

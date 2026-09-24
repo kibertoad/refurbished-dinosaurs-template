@@ -1,11 +1,7 @@
 # Implementation plan
 
-> Fill this document in and have it approved **before** writing implementation
-> code. `AGENTS.md` explains the gate; this file is what gets reviewed. Replace
-> the italic guidance with real content and delete nothing structural.
-
-**Status:** draft — not approved.
-**Approved by:** _name_ on _date_, covering slices _…_.
+> Fill this document in before writing implementation code. Replace the italic
+> guidance with real content and delete nothing structural.
 
 ## Game profile
 

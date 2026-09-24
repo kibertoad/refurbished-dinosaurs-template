@@ -30,10 +30,19 @@ Tests that need the original's files find them under the directory named by the
 its build ID, with the files laid out as the build entry's paths give them:
 `GAME_DIR/BLD-GOG-EN-1.1/GAME.EXE`, with a file from a disc under a directory
 named after the disc (`CD`, `CD2`). `GAME_DIR/captures/` holds the dumps,
-captures, and recordings that cannot be committed, each named by its SHA-256.
-`OriginalGameFiles` in the test project resolves both, checks each file's hash
-before a test reads it, and skips the test when the file is absent. Listed
-tests run with every deviation that has a setting switched off.
+captures, recordings, and saves that cannot be committed, each named by its
+hash. That includes the base save an experiment's patch applies to, and the
+save after patching. Every hash in the spec is the 128-bit xxHash3 the standard
+specifies (`xxhsum -H2`); `SpecHash` in `Restoration.Inspect` computes it, and
+`Restoration.Inspect --source <dir>` prints it for every file of a source.
+`OriginalGameFiles` in the test project resolves both kinds of path, checks
+each file's hash before a test reads it, and skips the test when the file is
+absent. Listed tests run with every deviation that has a setting switched off.
+
+A test that compares a distribution with the original runs the rebuild from the
+generator states the experiment fixture recorded, or from its `seeds` where the
+original's state could not be read. It then gets the same result on every run,
+so a correct rebuild never fails it by chance.
 
 Pull requests, including those from forks, run without a copy, so these tests
 skip there. A configured project adds a main-branch CI job on a self-hosted
@@ -85,9 +94,17 @@ visible desktop client area because a legacy DirectDraw window may not produce
 reliable window-only captures on modern systems. It writes to
 `reference/original/captures` unless `-OutputRoot` says otherwise; keep captured
 pixels under ignored `reference/original`, which the repository policy also
-denies, and never commit them. A finding or experiment that cites a capture
-gives its SHA-256, and a test that compares against it reads a copy from
-`GAME_DIR/captures/<sha256>`.
+denies, and never commit them.
+
+A capture that a test compares with the rebuild pixel for pixel has to be taken
+at the size of the screen entry's `resolution`, with no scaling, filtering, or
+aspect correction, and in the colors the game set in its palette. A desktop
+capture from this helper meets that only when the game runs unscaled in its
+window, for example with DxWnd's scaling and filtering off. DOSBox's own
+screenshot saves the emulated video memory and meets it directly. The finding
+or experiment that cites a capture says which tool took it and with what
+settings, and gives its xxh3. A test reads a copy from
+`GAME_DIR/captures/<xxh3>`.
 
 ## Static binary research
 
