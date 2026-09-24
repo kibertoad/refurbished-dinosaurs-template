@@ -9,6 +9,7 @@
 |---|---|
 | Original title | {{ORIGINAL_TITLE}} |
 | Developer | {{ORIGINAL_DEVELOPER}} |
+| Publisher | {{ORIGINAL_PUBLISHER}} |
 | Release year | {{ORIGINAL_RELEASE_YEAR}} |
 | Genre | {{ORIGINAL_GENRE}} |
 | Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |

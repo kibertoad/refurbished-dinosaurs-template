@@ -104,6 +104,7 @@ elseif ($isConfigured) {
         summary = $config.summary
         'original.title' = $original.title
         'original.developer' = $original.developer
+        'original.publisher' = $original.publisher
         'original.releaseYear' = $original.releaseYear
         'original.genre' = $original.genre
         'original.latestOfficialVersion' = $original.latestOfficialVersion

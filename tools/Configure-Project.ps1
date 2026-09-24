@@ -43,6 +43,7 @@ param(
     [string] $Summary,
     [string] $OriginalTitle,
     [string] $OriginalDeveloper,
+    [string] $OriginalPublisher,
     [string] $OriginalReleaseYear,
     [string] $OriginalGenre,
     [string] $LatestOfficialVersion,
@@ -186,6 +187,7 @@ function Save-ProjectConfig([string] $path, [hashtable] $values) {
         original = [ordered]@{
             title = $values.OriginalTitle
             developer = $values.OriginalDeveloper
+            publisher = $values.OriginalPublisher
             releaseYear = $values.OriginalReleaseYear
             genre = $values.OriginalGenre
             latestOfficialVersion = $values.LatestOfficialVersion
@@ -245,6 +247,7 @@ $values = @{
     Summary = Resolve-Setting $Summary $config 'summary'
     OriginalTitle = Resolve-Setting $OriginalTitle $original 'title'
     OriginalDeveloper = Resolve-Setting $OriginalDeveloper $original 'developer'
+    OriginalPublisher = Resolve-Setting $OriginalPublisher $original 'publisher'
     OriginalReleaseYear = Resolve-Setting $OriginalReleaseYear $original 'releaseYear'
     OriginalGenre = Resolve-Setting $OriginalGenre $original 'genre'
     LatestOfficialVersion = Resolve-Setting $LatestOfficialVersion $original 'latestOfficialVersion'
@@ -308,6 +311,7 @@ $candidates = [ordered]@{
     '{{PROJECT_SUMMARY}}' = $values.Summary
     '{{ORIGINAL_TITLE}}' = $values.OriginalTitle
     '{{ORIGINAL_DEVELOPER}}' = $values.OriginalDeveloper
+    '{{ORIGINAL_PUBLISHER}}' = $values.OriginalPublisher
     '{{ORIGINAL_RELEASE_YEAR}}' = $values.OriginalReleaseYear
     '{{ORIGINAL_GENRE}}' = $values.OriginalGenre
 }

@@ -45,7 +45,7 @@ compact table works well once the playable interaction model is established.
 
 ## Acknowledgements
 
-Credit {{ORIGINAL_DEVELOPER}} and the other original creators and publishers,
+Credit {{ORIGINAL_DEVELOPER}}, {{ORIGINAL_PUBLISHER}} and the other original creators and publishers,
 reverse-engineering research, and further sources that materially helped the
 clean-room restoration. Do not imply that those parties endorse this project.
 

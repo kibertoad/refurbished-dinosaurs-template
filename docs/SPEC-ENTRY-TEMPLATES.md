@@ -19,6 +19,8 @@ reviewers go through the standard's list of checks by hand.
 id: BLD-<ALIAS>
 title: <Game> <version>, <language>, <distribution>
 superseded_by: []
+developer: <the studio that made the game>
+publisher: <the company that released the game>
 publisher_version: "<version>"
 distribution: <GOG, Steam, CD-ROM, ...>
 languages: [<ISO 639-1 codes>]
@@ -49,7 +51,8 @@ prints each file's size and `xxh3`.
 id: SRC-<ALIAS>
 title: <title>
 superseded_by: []
-author: <author>
+author: <who wrote it>
+publisher: <who published it, or null when the author did>
 date: "<year or date>"
 location: <URL or archive location>
 xxh3: null

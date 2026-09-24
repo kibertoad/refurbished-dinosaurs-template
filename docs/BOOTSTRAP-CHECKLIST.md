@@ -5,7 +5,7 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 
 ## Plan
 
-- [ ] Record the original title, developer, release year, genre, and the
+- [ ] Record the original title, developer, publisher, release year, genre, and the
       editions available for validation.
 - [ ] **Eligibility gate:** confirm once that the game was released in 2004 or
       earlier and that no official remake or remaster is on sale, and record

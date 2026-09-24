@@ -15,6 +15,7 @@ $required = [ordered]@{
     displayName = $config.displayName
     'original.title' = $config.original.title
     'original.developer' = $config.original.developer
+    'original.publisher' = $config.original.publisher
     'original.releaseYear' = $config.original.releaseYear
     'original.genre' = $config.original.genre
     'original.latestOfficialVersion' = $config.original.latestOfficialVersion

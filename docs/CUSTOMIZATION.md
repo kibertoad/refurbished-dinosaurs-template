@@ -49,6 +49,7 @@ and unresolved placeholder without changing anything.
 | `{{PROJECT_SUMMARY}}` | `summary` | composed from the `original` metadata |
 | `{{ORIGINAL_TITLE}}` | `original.title` | left unresolved and reported |
 | `{{ORIGINAL_DEVELOPER}}` | `original.developer` | left unresolved and reported |
+| `{{ORIGINAL_PUBLISHER}}` | `original.publisher` | left unresolved and reported |
 | `{{ORIGINAL_RELEASE_YEAR}}` | `original.releaseYear` | left unresolved and reported |
 | `{{ORIGINAL_GENRE}}` | `original.genre` | left unresolved and reported |
 
