@@ -1,6 +1,12 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using Restoration.Inspect;
 using Restoration.Resources;
+
+if (args.Length > 0 && args[0] == "citations")
+{
+    return CitationCommand.Run(args[1..]);
+}
 
 try
 {
@@ -9,7 +15,8 @@ try
     if (string.IsNullOrWhiteSpace(sourcePath) || !SourceKinds.IsSupported(sourceKind))
     {
         Console.Error.WriteLine("Usage: Restoration.Inspect --source <path> " +
-            "[--kind directory|iso9660|cue-bin]");
+            "[--kind directory|iso9660|cue-bin]\n" +
+            "       Restoration.Inspect citations --executable <owned.exe> --docs <directory> [options]");
         return 64;
     }
 

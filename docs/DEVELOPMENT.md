@@ -48,7 +48,8 @@ responsibilities instead.
 - `Restoration.Resources`: bounded binary parsing and original-content contracts.
 - `Restoration.Game`: MonoGame DesktopGL presentation with assetless smoke modes.
 - `Restoration.Extractor`: separate legal-copy verification and transactional extraction executable.
-- `Restoration.Inspect`: read-only inventory and research output.
+- `Restoration.Inspect`: read-only inventory and research output, including the
+  `citations` check of documented addresses (`docs/GHIDRA.md`).
 - `Restoration.Tests`: architecture, safety, and behavioral tests.
 
 New repositories start with `tools/project-config.json` and

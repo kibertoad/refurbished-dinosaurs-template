@@ -137,6 +137,97 @@ instruction, range, jump-table, and file-offset helpers when the decompiler
 cannot recover a function. An empty or failed decompile is a tool limitation,
 not evidence that the original behavior is absent.
 
+## Checking cited addresses
+
+`Restoration.Inspect citations` reads every Markdown file under a directory,
+collects the addresses it cites, and checks each one against the owned
+executable they came from. A mistyped address, or one copied from notes about
+a different edition, fails the check before anyone builds on it.
+
+```powershell
+dotnet run --project tools/Restoration.Inspect -- citations `
+  --executable analysis/original/<game>.exe `
+  --docs docs `
+  --sha256 <expected-sha256> `
+  --build BLD-<alias> `
+  --instructions <temp>/<edition>.instructions.tsv `
+  --report docs/address-citations.csv
+```
+
+An address is cited when it is written the way the documentation standard
+requires: `0x` and eight hex digits, or a neutral name such as `fn_00478CD0` or
+`g_004C1F20`. Plain `0x` values count only within 16 MiB above the image base,
+so file offsets and ordinary constants are left alone. The end of a half-open
+range (`0x00401000..0x00401200`) is checked as the byte before it.
+
+Without other options the check reports which section holds each address, and
+fails for addresses outside every section. The options add:
+
+- `--sha256` refuses an executable with a different hash;
+- `--build` skips files whose front matter names other builds and not this one,
+  so a repository that documents two editions can check each against its own
+  executable;
+- `--instructions` takes the `*.instructions.tsv` written by
+  `ExportEditionAnalysis.java` for the same executable (the hash in its header
+  must match). Addresses in code are then reported as function entries,
+  instruction starts, inside an instruction, or not disassembled, and a
+  `fn_` name that is not a function entry fails;
+- `--report` writes one CSV row per address with its section, classification
+  and every file and line that cites it. The report holds no bytes from the
+  executable, so it may be committed.
+
+The check needs the owned executable, so it runs locally and never in CI. Run it
+before committing findings. It reads PE32 executables only. NE (16-bit Windows)
+and LE/LX (DOS extender) executables use segmented or object-relative
+addresses, which it rejects with a message saying so.
+
+The check started as `tools/validate_native_citations.py` in the Enemy
+Infestation restoration (`kibertoad/enemy-reinfestation`), which validated
+about 700 addresses against the v1.195 `Ei.exe`. That script matched only
+unprefixed `004xxxxx` addresses and wrote 16 original bytes per address into
+its committed report. This version follows the documentation standard's
+notation and leaves the bytes out.
+
+## DOS-extender executables
+
+DOS games built with a DOS extender (DOS/4GW, DOS16M and similar) ship a 32-bit
+Linear Executable behind an MZ stub. Ghidra's importer loads the outer MZ
+program and does not map the embedded LE objects correctly, so its default
+disassembly of such a file is wrong and must not be used as evidence.
+
+The Conqueror A.D. 1086 restoration (`kibertoad/reconqueror1086`) solves this
+without Ghidra. `src/Conqueror.Resources/LinearExecutableFixups.cs` finds the
+nested MZ module that owns the LE header, applies module-relative page offsets,
+maps LE virtual addresses through the object and page tables, and decodes the
+fixup tables. `tools/Conqueror.Inspect` then disassembles selected addresses
+with the [Iced](https://github.com/icedland/iced) decoder and reports data
+references found through the fixups. Its `docs/ghidra.md` records the offsets
+for the GOG build and the one easy mistake: adding the page offset to the LE
+header position instead of the module start puts every page `0x2AA8` bytes off
+in that build.
+
+This code is not in the template yet. Copy it from that repository when a
+second DOS-extender game needs it, and move it here at that point.
+
+## Watching the original run
+
+Some questions are answered faster by watching the original than by reading it:
+the value of a global after the generator runs, the order of calls during a
+load, what a seed produces. The general-purpose runtime tools are still being
+compared (see
+[Methodology](https://dinorefurb.com/methodology/#studying-the-original)), so
+the template does not ship one.
+
+The Magic & Mayhem restoration (`kibertoad/magic-and-mayhem-again`) has a
+working example in `tools/MagicMayhemAgain.OriginalCapture`, documented in its
+`docs/ORIGINAL-RUNTIME-CAPTURE.md`. It checks the SHA-256 of the owned
+executable before launch, starts the game as its own child under the Windows
+debugging API, places INT3 breakpoints at chosen addresses, reads the child's
+memory when they hit, writes the result as JSON, and ends the process. It never
+attaches to another process or changes the executable on disk, and CI never
+runs it. The breakpoints and memory layouts in it are specific to that game;
+the launch, hash check and breakpoint loop are the parts worth copying.
+
 ## Evidence record
 
 For each useful finding record:

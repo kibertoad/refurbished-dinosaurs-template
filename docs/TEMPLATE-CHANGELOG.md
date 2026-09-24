@@ -10,6 +10,19 @@ depending on which `**Status:**` line comes first in a shared document.
 
 A project created from this template may delete this file.
 
+## Research tools from the game repositories, 2026-09-24
+
+- `Restoration.Inspect citations` checks documented addresses against the owned
+  PE32 executable, optionally against a Ghidra instruction export, and fails on
+  addresses outside every section or `fn_` names that are not function entries.
+  Ported from Enemy Infestation's `tools/validate_native_citations.py`, changed
+  to the documentation standard's `0x`/`fn_`/`g_` notation and with no original
+  bytes in its report. Synthetic PE tests in `AddressCitationTests`.
+- `docs/GHIDRA.md` points to the LE loader and Iced disassembly in the Conqueror
+  A.D. 1086 restoration for DOS-extender executables, and to the Windows
+  debugging-API capture harness in the Magic & Mayhem restoration. Neither is
+  copied into the template until a second game needs it.
+
 ## Template infrastructure evolution — 2026-09-19
 
 **Status:** complete and verified on 2026-09-19; approved by the repository

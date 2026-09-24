@@ -12,5 +12,6 @@
     <ProjectReference Include="../../src/Restoration.Game/Restoration.Game.csproj" />
     <ProjectReference Include="../../src/Restoration.Extractor/Restoration.Extractor.csproj" />
     <ProjectReference Include="../../src/Restoration.Resources/Restoration.Resources.csproj" />
+    <ProjectReference Include="../../tools/Restoration.Inspect/Restoration.Inspect.csproj" />
   </ItemGroup>
 </Project>
