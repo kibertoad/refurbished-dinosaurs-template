@@ -8,10 +8,39 @@ on broad Ghidra exporters remain present after template configuration.
 Accuracy is established separately at four layers, and a pass at one layer does
 not imply a pass at the next:
 
-1. **Source identity** - original input files match known cryptographic hashes.
-2. **Decode fidelity** - bytes are consumed at exact offsets into exact values.
-3. **Behavioral parity** - controlled inputs produce matching state transitions.
-4. **Presentation parity** - the same state produces equivalent screens/media.
+1. **Source identity** - original input files match the hashes in their build
+   entries.
+2. **Decode fidelity** - the decoders read every byte of every file a format
+   entry lists into the value its Kaitai definition gives.
+3. **Behavioral parity** - the same starting state and inputs produce the state
+   changes and events an experiment fixture recorded in the original.
+4. **Presentation parity** - the same state produces the screen a capture of the
+   original shows, pixel for pixel, and starts the same sounds on the same tick.
+
+`PARITY.md` records which rows have tests at these levels. A test counts there
+only if it compares the rebuild with evidence from the original. Decoder tests on
+synthetic files, and tests that compare the rebuild with an earlier version of
+itself, are still required but are left out of that column. Manual play never
+counts.
+
+## Tests against the original
+
+Tests that need the original's files find them under the directory named by the
+`GAME_DIR` environment variable, which holds one directory per build, named by
+its build ID, with the files laid out as the build entry's paths give them:
+`GAME_DIR/BLD-GOG-EN-1.1/GAME.EXE`, with a file from a disc under a directory
+named after the disc (`CD`, `CD2`). `GAME_DIR/captures/` holds the dumps,
+captures, and recordings that cannot be committed, each named by its SHA-256.
+`OriginalGameFiles` in the test project resolves both, checks each file's hash
+before a test reads it, and skips the test when the file is absent. Listed
+tests run with every deviation that has a setting switched off.
+
+Pull requests, including those from forks, run without a copy, so these tests
+skip there. A configured project adds a main-branch CI job on a self-hosted
+runner, or with storage only the maintainers can read, that sets `GAME_DIR` to a
+maintainer-owned copy and fails if any test listed for a `validated` row in
+`PARITY.md` skipped. The copy never goes in the repository or a published build
+artifact.
 
 ## Local automated checks
 
@@ -56,14 +85,26 @@ visible desktop client area because a legacy DirectDraw window may not produce
 reliable window-only captures on modern systems. It writes to
 `reference/original/captures` unless `-OutputRoot` says otherwise; keep captured
 pixels under ignored `reference/original`, which the repository policy also
-denies, and never commit them.
+denies, and never commit them. A finding or experiment that cites a capture
+gives its SHA-256, and a test that compares against it reads a copy from
+`GAME_DIR/captures/<sha256>`.
 
 ## Static binary research
 
 `tools/ghidra/` holds bounded, clean-room Ghidra scripts for navigating a
 legally owned original executable. `docs/GHIDRA.md` documents the headless
-workflow and each script's arguments and output caps. Findings feed the format
-and rules documents; decompiler output is never committed.
+workflow and each script's arguments and output caps. Results are written up as
+finding entries in `spec/findings/`; decompiler output is never committed.
+
+## Spec checks
+
+The documentation standard's check script, which validates `spec/`,
+`PARITY.md`, and `DEVIATIONS.md` and generates `spec/index/`, will be published
+in [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit)
+and is not wired in yet. Until then, reviewers go through the standard's list of
+[checks](https://dinorefurb.com/documentation-standard/#checks) by hand, compile
+each `.ksy` file with the Kaitai Struct compiler, and give each save-patch write
+as a byte offset and value in the experiment's Setup section.
 
 ## Repository policy
 

@@ -21,7 +21,13 @@ If sandboxing prevents Ghidra from persisting user preferences, request only the
 necessary user-level permission rather than reinstalling it.
 
 Always verify executable length and SHA-256 before interpreting an address.
-Findings from another version require a separate edition record and address map.
+Another version of the executable is another build, with its own
+`spec/builds/` entry, and a finding lists it only when it was checked there
+too, with a location in each build. Addresses are written in the
+[notation](https://dinorefurb.com/documentation-standard/#notation) for the
+executable's format: the full virtual address at the header's image base for
+PE, and `segment:offset` for MZ, COM, and NE, with the load segment the
+standard fixes for each.
 
 ## When to use Ghidra
 
@@ -147,7 +153,7 @@ a different edition, fails the check before anyone builds on it.
 ```powershell
 dotnet run --project tools/Restoration.Inspect -- citations `
   --executable analysis/original/<game>.exe `
-  --docs docs `
+  --docs spec `
   --sha256 <expected-sha256> `
   --build BLD-<alias> `
   --instructions <temp>/<edition>.instructions.tsv `
@@ -166,7 +172,9 @@ fails for addresses outside every section. The options add:
 - `--sha256` refuses an executable with a different hash;
 - `--build` skips files whose front matter names other builds and not this one,
   so a repository that documents two editions can check each against its own
-  executable;
+  executable. A finding that lists both builds has addresses from each, and
+  those from the other build are checked against this executable too, so
+  review failures in such files by hand;
 - `--instructions` takes the `*.instructions.tsv` written by
   `ExportEditionAnalysis.java` for the same executable (the hash in its header
   must match). Addresses in code are then reported as function entries,
@@ -230,21 +238,21 @@ the launch, hash check and breakpoint loop are the parts worth copying.
 
 ## Evidence record
 
-For each useful finding record:
+Each useful result becomes a finding entry, `spec/findings/FND-<AREA>-<NNN>.md`,
+in the form `docs/SPEC-ENTRY-TEMPLATES.md` gives. Its `builds` and `locations`
+name the build entry, whose SHA-256 identifies the executable, and give each
+address range in the notation for the executable's format. `tool` gives the
+Ghidra version. The Observation section states the constants, comparisons,
+reads and writes, and the order of calls in independent words, the
+Alternatives section the readings that were ruled out or not yet ruled out,
+and How to reproduce the entry address and the string or constant that leads
+to it. Decompiler line numbers are never a location.
 
-- a stable ID and the exact question;
-- executable edition, length, and SHA-256;
-- Ghidra/JDK versions and load settings;
-- virtual/file address or bounded range and call relationship;
-- constants, comparisons, reads/writes, and operation order in independent words;
-- competing interpretations and rejected hypotheses;
-- confidence: `unknown`, `low`, `medium`, `high`, or `verified`;
-- controlled runtime/data corroboration;
-- production entry point and synthetic test once implemented.
-
-An interpretation remains provisional until independent evidence supports its
-semantics. Production code uses repository-owned names and architecture, never
-addresses or copied decompiled structure.
+A finding is evidence, not a claim. The rule or format it supports stays
+`supported` until a run of the original agrees with it, which makes it
+`established`. Production code uses repository-owned names and architecture,
+never addresses or copied decompiled structure, and cites the spec IDs it
+implements.
 
 ## Clean-room boundary
 

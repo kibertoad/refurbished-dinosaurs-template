@@ -33,6 +33,11 @@ content locally from the copy selected by the player.
 | Saves and compatibility | Describe native save, replay, and migration support here. | State compatibility guarantees and unsupported original formats here. |
 | Presentation | Describe restored graphics, audio, controls, and scaling here. | List presentation work still awaiting parity validation here. |
 
+How closely the rebuild matches the original is tracked row by row in
+[PARITY.md](PARITY.md), and every deliberate difference is listed in
+[DEVIATIONS.md](DEVIATIONS.md). The original game itself is documented in
+[spec/](spec/README.md).
+
 ## Controls
 
 Document the keyboard, mouse, and controller mappings that players need. A
@@ -53,8 +58,11 @@ legally owned copy.
 Copyright (C) {{COPYRIGHT_YEAR}} {{COPYRIGHT_HOLDER}}.
 
 The original code in this repository is licensed under the [MIT License](LICENSE).
-The license does not cover or grant rights to original-game assets, which are not
-distributed by this project.
+The documentation of the original game in `spec/` is licensed under
+[Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/),
+and its machine-readable files under the MIT License; `spec/LICENSE` says which
+files each covers. Neither license covers or grants rights to original-game
+assets, which are not distributed by this project.
 
 Developer setup is documented in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md),
 and packaging and releases are documented in

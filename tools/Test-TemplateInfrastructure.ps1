@@ -19,7 +19,13 @@ foreach ($relative in @(
     'tools/Install-CodeSignTool.ps1',
     'tools/Invoke-ESigner.ps1',
     'tools/Invoke-GpgSigner.ps1',
-    "src/$projectName.Extractor/packages.lock.json"
+    "src/$projectName.Extractor/packages.lock.json",
+    # The documentation standard's layout: the spec, its licences, and the implementation's two ledgers.
+    'spec/README.md',
+    'spec/LICENSE',
+    'spec/glossary.md',
+    'PARITY.md',
+    'DEVIATIONS.md'
 )) { Assert-RequiredFile $relative }
 
 $release = Get-Content -LiteralPath (Join-Path $root '.github/workflows/release.yml') -Raw

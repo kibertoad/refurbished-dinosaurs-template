@@ -11,8 +11,8 @@ manual".
 2. Establish the latest official patch/version once, patch and fingerprint the
    legally owned analysis copy, and record the evidence and matching versions in
    `tools/project-config.json` and `docs/SOURCE-EDITIONS.md`. Bootstrap refuses an
-   older or unestablished analysis build; do not redo this investigation after a
-   conclusive record exists unless new evidence contradicts it.
+   older or unestablished analysis build. Once the record exists, it is settled;
+   do not redo the investigation unless the repository owner asks for it.
 3. Fill in `tools/project-config.json`. `projectName` (PascalCase, used for
    namespaces, assemblies, and directories), `displayName` (player-facing), the
    original-game facts, and patch-status evidence are required. Identity fields
@@ -99,8 +99,14 @@ Configuration cannot decide these. Each one is also an item in
 - `README.md`: the status table, the controls section, and acknowledgements.
 - `AGENTS.md`: canonical patched oracle, game terminology, evidence ledgers,
   local tools, validation commands, and game-specific invariants.
-- `docs/*`: the research and parity documents, which start as instructions for
-  what to record rather than as content.
+- `spec/`: the documentation of the original game, in the format the
+  [documentation standard](https://dinorefurb.com/documentation-standard/)
+  sets. It starts with a scope and area list to fill in and empty directories
+  for each kind of entry; `docs/SPEC-ENTRY-TEMPLATES.md` has blank entries.
+- `PARITY.md` and `DEVIATIONS.md`: how much of the spec the rebuild does, and
+  where it departs from it on purpose.
+- `docs/*`: the source-edition, tool, and architecture documents, which start
+  as instructions for what to record rather than as content.
 
 ## Renaming or reconfiguring later
 

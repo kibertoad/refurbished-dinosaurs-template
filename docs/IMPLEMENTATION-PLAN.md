@@ -15,8 +15,9 @@
 | Developer | {{ORIGINAL_DEVELOPER}} |
 | Release year | {{ORIGINAL_RELEASE_YEAR}} |
 | Genre | {{ORIGINAL_GENRE}} |
-| Editions available for validation | _list them; `docs/SOURCE-EDITIONS.md` holds the detail_ |
-| Existing research relied on | _manuals, community documentation, prior analysis_ |
+| Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |
+| Editions available for validation | _their `BLD-` IDs; `docs/SOURCE-EDITIONS.md` holds the detail_ |
+| Existing research relied on | _their `SRC-` IDs: manuals, community documentation, prior analysis_ |
 
 ## Scope
 
@@ -43,7 +44,7 @@ breadth.
 
 - **Outcome.** _What the player can do when it is finished._
 - **Evidence.** _The manual sections, observations, or data-file facts it rests
-  on, with identifiers from `docs/RULES-AND-EVIDENCE.md`._
+  on, by their IDs in `spec/`._
 - **Acceptance — rules.** _Deterministic behavior that must hold._
 - **Acceptance — presentation.** _Resolution, scaling, timing, audio._
 - **Acceptance — original content.** _What is extracted, and how a missing or
@@ -52,9 +53,11 @@ breadth.
   transformations produce the versioned local pack, how complete staged output is
   verified and promoted transactionally, and how the runtime rejects missing,
   incomplete, stale, or foreign packs without reading the original installation._
-- **Automated tests.** _The tests that prove it, none of which may require
+- **Automated tests.** _The tests that prove it. Tests that compare against the
+  original read it from `GAME_DIR` and skip without it; the rest need no
   original content._
-- **Observed parity.** _What will be compared against the original, and how._
+- **Observed parity.** _The `PARITY.md` rows the slice should make `validated`,
+  and the experiments or captures their tests compare against._
 
 _Repeat this block per slice. Keep finished slices here with their status
 updated; the plan is the record of what was decided, not only of what is next._

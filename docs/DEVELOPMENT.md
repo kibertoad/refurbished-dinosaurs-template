@@ -36,6 +36,10 @@ The default gate skips tests tagged `Category=LongRunning`; pass
 `-IncludeLongRunningTests` to run them, `-TestFilter` to narrow a run, and
 `-MinimumExpectedTests` to fail when discovery drops below an expected count.
 
+Tests that compare the rebuild with the original read its files from the
+directory named by `GAME_DIR`, laid out as `docs/VALIDATION.md` describes, and
+skip when it is not set. Point it at your own copy to run them.
+
 Every compiled C# source file is limited to 1,000 lines by default. The limit can
 be lowered with the `MaximumSourceFileLines` MSBuild property for validation.
 Exceptional builds can disable it explicitly with
@@ -59,6 +63,9 @@ the template. `AGENTS.md` is the working agreement for the repository, including
 the rule that `docs/IMPLEMENTATION-PLAN.md` is written and approved before
 implementation starts.
 
-Detailed architecture, validation, reverse-engineering, format, and parity notes
-live in the other files in this directory. Shared guidance and libraries live in
+The original game is documented in `spec/`, following the
+[documentation standard](https://dinorefurb.com/documentation-standard/), and
+the rebuild's coverage of it in `PARITY.md` and `DEVIATIONS.md`. Architecture,
+validation, and reverse-engineering tool notes live in the other files in this
+directory. Shared guidance and libraries live in
 [Toad Discovery Center](https://github.com/kibertoad/toad-discovery-center).

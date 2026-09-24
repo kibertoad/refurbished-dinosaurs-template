@@ -10,6 +10,31 @@ depending on which `**Status:**` line comes first in a shared document.
 
 A project created from this template may delete this file.
 
+## Documentation standard and methodology, 2026-09-25
+
+The template now follows the dinorefurb.com
+[methodology](https://dinorefurb.com/methodology/) and version 1 of the
+[documentation standard](https://dinorefurb.com/documentation-standard/).
+
+- `spec/` holds the documentation of the original game: `README.md` (scope,
+  standard version, area list), `glossary.md`, `LICENSE` (CC BY 4.0 for the
+  Markdown, MIT for definitions, fixtures and patches), and an empty directory
+  per entry kind. `docs/SPEC-ENTRY-TEMPLATES.md` has a blank entry of each kind.
+- `PARITY.md` and `DEVIATIONS.md` at the root replace `docs/PARITY-MATRIX.md`
+  and `docs/FIDELITY.md`. `docs/RULES-AND-EVIDENCE.md`, `docs/UI-ATLAS.md` and
+  `docs/ORIGINAL-FORMATS.md` are gone, since rules, screens and formats are
+  spec entries. The source-media description moved to `docs/ARCHITECTURE.md`.
+- The `unknown`/`low`/`medium`/`high`/`verified` confidence scale is replaced by
+  the standard's statuses throughout `AGENTS.md` and `docs/GHIDRA.md`.
+- `AGENTS.md` adds the eligibility gate (released in 2004 or earlier, no
+  official remake on sale), the fidelity policy, spec-ID citations and
+  `PLACEHOLDER:` comments. Refusal gates are checked once and recorded, and are
+  not re-checked unless the owner asks.
+- `OriginalGameFiles` in the test project finds original files under
+  `GAME_DIR` in the standard's layout, checks their hashes, and skips tests
+  when they are absent.
+- `Test-TemplateInfrastructure.ps1` requires the spec skeleton and both ledgers.
+
 ## Research tools from the game repositories, 2026-09-24
 
 - `Restoration.Inspect citations` checks documented addresses against the owned
