@@ -52,7 +52,6 @@ id: SRC-<ALIAS>
 title: <title>
 superseded_by: []
 author: <who wrote it>
-publisher: <who published it, or null when the author did>
 date: "<year or date>"
 location: <URL or archive location>
 xxh3: null

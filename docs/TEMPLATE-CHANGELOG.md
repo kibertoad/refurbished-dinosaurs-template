@@ -40,9 +40,9 @@ The template now follows the dinorefurb.com
   templates gain `environment` on findings and a Shows column on screens, and
   `docs/VALIDATION.md` covers base saves in the captures, distribution tests
   from recorded generator states, and unscaled palette-true screen captures.
-- Build entries name the game's `developer` and `publisher` separately, and
-  source entries add `publisher` next to `author`, following the standard's
-  change in refurbished-dinosaurs `4a07fc9`.
+- Build entries name the game's `developer` and `publisher` separately,
+  following the standard's change in refurbished-dinosaurs `4a07fc9`. Source
+  entries keep `author` alone.
 - The implementation-plan approval gate is gone: `Bootstrap-Project.ps1` no
   longer reads a `**Status:**` line, and the plan, checklist, and guides no
   longer ask for approval.
