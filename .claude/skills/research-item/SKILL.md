@@ -23,8 +23,8 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    `Tried:` note. Take up an item that has a `Tried:` note only with something
    that attempt did not have: new evidence, a new tool, or a reading nobody
    has tried. If that second attempt ends in the same place, move the item to
-   the section of the evidence that would change the outcome (`Agent run` or
-   `Live session` for a run, `Source` for a document) with what was tried,
+   the section of the evidence that would change the outcome (`Emulated call`,
+   `Agent run` or `Live session` for a run, `Source` for a document) with what was tried,
    and to `Blocked` with `Waiting on:` only when that evidence is out of
    reach for now.
 3. **State the question and the competing readings.** Decide what evidence
@@ -57,6 +57,21 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    file exists, record the ID of every process the run starts in it, and if
    another agent holds it, do not wait). Never touch a process you did not
    start. Items under `Live session` go to `live-session`.
+   For an item under `Emulated call`, follow the protocol's
+   [Emulated calls](https://dinorefurb.com/work-protocol/#emulated-calls).
+   It needs no run lock. Write each reading under test as a procedure in
+   `tools/emu/`, set up only the state the function reads (through layout
+   fields that are `supported` or `established`), choose the special values,
+   the type edges, cases for every branch and seeded random cases, run them
+   all in the harness and in each reading, and compare exactly. The fixture
+   names arguments by the rule's Parameters and memory by field path or
+   glossary name, never by register or address, with
+   `starting_state: emulated-call`. The entry reaches `established` only if
+   the cases reached every branch it describes and the reading of its
+   callers and inputs is complete, and a rule with `# may run:` never does on
+   emulated calls alone. If Ghidra's p-code emulator disagrees on a replay,
+   move the item to `Blocked` with the defect under `Waiting on:` and change
+   nothing in the spec.
 5. **Record it** in `spec/` with the templates in `docs/SPEC-ENTRY-TEMPLATES.md`:
    one finding per observation, an experiment with a fixture for a controlled
    run. Then give each entry it concerns the status the evidence supports
@@ -85,7 +100,9 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    it did not settle the question (anything learned about the original is a
    finding first, and `Tried:` names it). Where a static reading settled the
    item without being complete, add a `Static` item for what it still has to
-   cover. Only where the entry depends on something the code does not decide,
+   cover, and an `Emulated call` item where the harness can reach the
+   functions the reading covers (every rule the code decides gets one, even
+   once established, since its fixture is what the row's tests replay). Only where the entry depends on something the code does not decide,
    and `docs/RUNTIME.md` allows a run, add an `Agent run` or `Live session`
    item for the experiment that would confirm it; where no run is possible,
    say in the entry's Open questions which observation of the original would
@@ -125,7 +142,7 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
 Status
 Goal: docs/goals/<name>.md, or none
 Batch: research, <entry> <old status> -> <new status>, ...
-Queue <AREA>: static N, agent run N, live session N, source N, blocked N
+Queue <AREA>: static N, emulated call N, agent run N, live session N, source N, blocked N
 Checks: documentation check <passed|failed>, fast gate <passed|failed|not run>
 Commit: <short sha> (<pushed|not pushed>)
 Next: <queue item ID, entry and question>

@@ -96,7 +96,15 @@ the published page differ, the page wins.
   after its own static attempt is under `Tried:`, or when it asks for the run
   that confirms a static reading. Runs take their place in the order of work
   (a run that blocks the current slice comes before static work that does
-  not), and within each step of it `Static` items come first.
+  not), and within each step of it `Static` items come first, then
+  `Emulated call` items.
+- An emulated call runs one function of the original in the Unicorn harness
+  in `tools/emu/`, with no window, timer or input, and needs no run lock. It
+  is an experiment with `starting_state: emulated-call`, names arguments and
+  memory by parameter, field path or glossary name, and establishes an entry
+  only when its cases reach every branch the entry describes and the reading
+  of the function's callers and inputs is complete. It never confirms what
+  depends on interrupts (`# may run:`), timing or the operating system.
 - Several agents work on different games on the same machine at once, under
   one account or several. Run an original only while holding the machine's
   run lock, whose path `docs/RUNTIME.md` gives; take it with an exclusive
@@ -134,8 +142,9 @@ the published page differ, the page wins.
   research session turns into a queue item and removes once it is answered. A research batch makes the parity
   and citation changes the documentation check requires of what it did to
   the spec, and changes no other code apart from `tools/`. A tooling batch
-  (extractor, Ghidra scripts, inventory export, live session measurements,
-  headless runner, fixture harness) needs no decision.
+  (extractor, Ghidra scripts, inventory export, the emulator harness in
+  `tools/emu/`, live session measurements, headless runner, fixture harness)
+  needs no decision.
 - Commit messages end with a `Spec:` trailer naming the entries created or
   changed, any commit that changes a row's status adds `Parity:`, and any
   that closes queue items adds `Queue:` with their IDs.

@@ -11,11 +11,13 @@ next new item takes, `Next ID: Q-COMBAT-013`, followed by these `##` sections
 in this order, each holding list items or `None.`:
 
 1. `Static`: a reading of the executable or data files settles it.
-2. `Agent run`: a run of the original `docs/RUNTIME.md` says an agent can make alone.
-3. `Live session`: a run that needs a person to run the original while an agent
+2. `Emulated call`: calling one function of the original in the emulator
+   harness in `tools/emu/` settles it.
+3. `Agent run`: a run of the original `docs/RUNTIME.md` says an agent can make alone.
+4. `Live session`: a run that needs a person to run the original while an agent
    measures it.
-4. `Source`: a document that has to be found or read.
-5. `Blocked`: stopped until something else changes; the item says what.
+5. `Source`: a document that has to be found or read.
+6. `Blocked`: stopped until something else changes; the item says what.
 
 One item:
 
@@ -43,7 +45,8 @@ an `Agent run` or `Live session` item is taken up only after its own static
 attempt is recorded under `Tried:`, or when it asks for the run that confirms
 a static reading. Runs do not wait for every `Static` item to be done: items
 are picked in the protocol's order of work, and within one step of it the
-`Static` items come first. When `docs/RUNTIME.md` changes, move the items it
+`Static` items come first, then `Emulated call`, then runs of the game. An
+`Emulated call` item starts no process of the game and needs no run lock. When `docs/RUNTIME.md` changes, move the items it
 affects between `Agent run` and `Live session` in the same commit.
 
 Close an item by recording the answer in `spec/` and deleting the item in the
@@ -52,15 +55,18 @@ found. An open reading of an entry, in its Open questions section, always has
 an item, and is cited by the item's ID. A complete static reading makes its
 entries `established` with no run. A reading that is not complete yet leaves
 them `supported`, and the same commit adds a `Static` item for what it still
-has to cover. Only an entry that depends on something the code does not
-decide (interrupts, uninitialised memory, timing, the operating system) gets
+has to cover, and an `Emulated call` item where the harness can reach the
+functions it covers. An emulated call establishes an entry only when its cases
+reach every branch the entry describes and the reading of the function's
+callers and inputs is complete. Only an entry that depends on something the
+code does not decide (interrupts, uninitialised memory, timing, the operating system) gets
 an `Agent run` or `Live session` item for the experiment that would confirm
 it, where `docs/RUNTIME.md` allows a run. An item with a
 `Tried:` note is taken up again only with something the first attempt did not
 have: new evidence, a new tool, or a reading nobody has tried. If that second
 attempt ends in the same place, move the item, with what was tried, to the
-section of the evidence that would change the outcome (`Agent run` or
-`Live session` for a run, `Source` for a document), and to `Blocked` only when
+section of the evidence that would change the outcome (`Emulated call`,
+`Agent run` or `Live session` for a run, `Source` for a document), and to `Blocked` only when
 that evidence is out of reach for now.
 
 A file that would pass 1,000 lines becomes a directory of the same name, with

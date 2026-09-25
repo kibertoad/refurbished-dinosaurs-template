@@ -45,7 +45,8 @@ under no goal. One research batch per report:
    - **It brings a screenshot or recording of the original** of a known
      build, with how the game got there: record a dynamic finding with the
      capture's hash, as `research-item` step 5 does, and check it against
-     the `Live session` and `Agent run` items it could settle.
+     the `Emulated call`, `Live session` and `Agent run` items it could
+     settle.
    - **A deviation that is on explains it**: change nothing.
    - **Not enough to tell**: add a `## Missing` section saying what would
      decide it, leave the file, and carry on.

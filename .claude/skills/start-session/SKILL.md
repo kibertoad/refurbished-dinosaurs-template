@@ -34,7 +34,7 @@ This skill is the procedure; where they differ, the protocol wins.
      the current slice; items others depend on (RNG, main loop, save format,
      state structures); items where one piece of evidence raises the most
      entries; items with the cheapest evidence. Within each step `Static`
-     items come first. An `Agent run` or `Live session` item needs its own
+     items come first, then `Emulated call`, then runs of the game. An `Agent run` or `Live session` item needs its own
      static attempt under `Tried:`, unless it asks for the run that confirms
      a static reading.
    - Implementation: first remove any code in `src/` that cites a finding or

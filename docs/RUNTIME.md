@@ -18,7 +18,8 @@ Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
 How it runs: _natively, under Wine, in DOSBox-X or another emulator, or in a
 virtual machine, with versions._
 
-Runtime tool: _the text-in, text-out tool that works with it, or none yet._
+Emulator harness: _the Unicorn version, whether `tools/emu/` loads this build,
+and the stubs it has._
 
 | Capability | Who | Tried | What would change it |
 |---|---|---|---|
@@ -28,5 +29,6 @@ Runtime tool: _the text-in, text-out tool that works with it, or none yet._
 | Load a patched save | | | |
 | Capture frames and sound | | | |
 | Play back a recording the original made | | | |
+| Call a single function in the emulator harness (no run lock) | | | |
 
 _Repeat the section for each build that will be run._

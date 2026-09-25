@@ -27,12 +27,15 @@ is done.
    - read its memory, set breakpoints and dump structures while it runs;
    - load a patched save;
    - capture frames and sound;
-   - play back a recording the original made.
+   - play back a recording the original made;
+   - call a single function of the executable in the emulator harness in
+     `tools/emu/` (this starts no process of the game and needs no lock).
 3. **Write `docs/RUNTIME.md`** from its headings: each answer names the tool and
    version tried and what happened, and each `none` or `person` says what
-   would change it. Name the text-in, text-out runtime tool if one works.
+   would change it. For the harness, record the Unicorn version, the builds
+   it loads and the stubs it has.
    Replace answers that are no longer true; do not append.
-4. **Move queue items** between `Agent run` and `Live session` where an answer
-   changed, in the same commit.
+4. **Move queue items** between `Emulated call`, `Agent run` and
+   `Live session` where an answer changed, in the same commit.
 5. **Stop every process you started and delete the lock.** Commit, then print
    the status block from `research-item` with `Batch: runtime access`.

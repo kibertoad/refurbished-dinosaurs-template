@@ -32,6 +32,12 @@ sets how restoration work is planned, tracked and handed on.
   `GAME_DIR`, never in the repository. Competing readings of an open question
   are kept in the entry's Open questions section, each with a queue item that
   cites it, and commits that close items carry a `Queue:` trailer.
+- Adds the `Emulated call` queue section, between `Static` and `Agent run`,
+  for calling one function of the original in a Unicorn harness in
+  `tools/emu/`. `research-item`, `plan-work`, `runtime-access`,
+  `start-session`, `triage-report`, `AGENTS.md` and `docs/RUNTIME.md` say
+  how such a call is made and what it can establish. `docs/RUNTIME.md` no
+  longer asks for a text-in, text-out runtime tool.
 - Follows the standard's new direct evidence and complete reading rules:
   circumstantial evidence never raises a status, and a complete reading of the
   code makes an entry `established` without a run, listed in the optional
