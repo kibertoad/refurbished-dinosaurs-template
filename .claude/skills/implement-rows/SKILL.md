@@ -1,6 +1,6 @@
 ---
 name: implement-rows
-description: Implement rebuild behaviour for parity rows of the current slice from the spec alone, with tests that cite spec IDs, as one batch. Use when writing or changing game code that reproduces the original's rules, formats or screens. Not for research, and not for code outside the parity matrix.
+description: Implement rebuild behaviour for parity rows of the current slice from the spec alone, with tests that cite spec IDs, as one batch. Use when writing or changing game code that reproduces the original's rules, formats or screens. Not for research, and not for features outside the parity matrix.
 ---
 
 # Implementation batch
@@ -9,9 +9,9 @@ The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#imple
 and the standard's [implementation side](https://dinorefurb.com/documentation-standard/#implementation-side).
 
 **Work from the spec only.** Do not open Ghidra, decompiler or disassembly
-output, debugger logs, captures or research notes in this batch. If this
-conversation already holds any of that, run the batch in a fresh session or a
-subagent given only the entry IDs and this skill. That keeps the clean room,
+output, debugger logs, captures, research notes, `queue/` or research goal
+files in this batch. If this conversation already holds any of that, run the
+batch in a fresh session or a subagent given only the entry IDs and this skill. That keeps the clean room,
 and it tests whether the spec says enough.
 
 1. **Pick rows**: parity rows in `parity/<AREA>.md` that the current slice of
@@ -20,12 +20,16 @@ and it tests whether the spec says enough.
 2. **Read the entries** the rows name, and every rule, format and glossary term
    they cite. Read the deviations listed on the rows.
 3. **Where the spec does not say enough** to write the code, stop at that
-   point: add an item to `queue/<AREA>.md` for the entry, saying what the
-   code needs to know. Then either leave the row `partial`, or write the code
-   with a `PLACEHOLDER: <spec ID>` comment; the row cannot be `complete`
-   while the comment exists. Never fill a gap with a plausible guess. Change
-   nothing under `spec/`: the research batch that takes up the item adds the
-   gap to the entry's Open questions if it cannot settle it.
+   point and write what the code needs to know as a question in the entry's
+   Open questions section. Where no entry describes the behaviour at all,
+   create an `unknown` entry holding only that question, with its parity row.
+   Then either leave the row `partial`, or write the code with a
+   `PLACEHOLDER: <spec ID>` comment; the row cannot be `complete` while the
+   comment exists. Start the row's Notes with `Spec gap:` and the question; the
+   next research session turns it into a queue item. Never fill a gap with a
+   plausible guess. Under `spec/` add only questions and such `unknown`
+   entries: never evidence, statuses or descriptions. Never open `queue/`: its
+   items hold what research tried.
 4. **Write the code** within the architecture boundaries in `AGENTS.md`
    (deterministic Core, bounded parsing in Resources, presentation in Game).
    Comments cite the spec IDs they implement. A departure from the spec needs

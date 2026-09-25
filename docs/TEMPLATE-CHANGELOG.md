@@ -11,33 +11,47 @@ A project created from this template may delete this file.
 ## Work protocol, 2026-09-25
 
 Follows the new [work protocol](https://dinorefurb.com/work-protocol/), which
-sets how restoration work is planned, tracked and handed on. It comes from
-comparing six restorations: plans and handovers that grew into logs of more
-than a thousand lines, research questions scattered through prose, code that
-ran ahead of any run of the original, and confidence scales invented per
-project.
+sets how restoration work is planned, tracked and handed on.
 
+- The stages are Intake, Runtime access, Survey, Slices and Audit.
+  `docs/RUNTIME.md` records what can be done with the original running and
+  whether an agent, only a person, or nobody can do it, and slices aim only at
+  the parity statuses that makes reachable.
+- Static analysis comes first, and runs of the original are the last resort.
+  Every run holds the machine-wide lock `~/.refurbished-dinosaurs/run.lock`,
+  since several agents work on different games on one machine at once.
+- A run that needs a person is a live session, requested in a file in
+  `docs/live-sessions/` that the owner answers by editing its Status line.
+  Work that needs no run carries on in the meantime.
 - `queue/` holds the open research questions, one file per spec area, grouped
-  by the evidence each one needs. `queue/README.md` gives the format.
+  by the evidence each one needs (Static, Agent run, Live session, Source,
+  Blocked). `queue/README.md` gives the format.
 - `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
-  every session. `docs/goals/` holds one file per running long-running goal,
-  and `docs/DECISIONS.md` the owner's decisions, whose oldest entries move to
-  numbered files in `docs/decisions/` before it passes 1,000 lines.
-- The function inventory the Survey takes goes in `coverage/<build ID>.tsv`,
-  addresses and sizes only, so executable coverage is computed from the
-  repository.
-- `docs/IMPLEMENTATION-PLAN.md` records the project's stage (Intake, Survey,
-  Harness, Slices, Audit), gives each slice an Exit item, and keeps only
-  owner questions; research questions move to `queue/`.
+  and committed every session. `docs/goals/` holds one file per running
+  long-running goal, and `docs/DECISIONS.md` the owner's decisions, whose
+  oldest entries move to numbered files in `docs/decisions/` before it passes
+  1,000 lines.
+- Function inventories go in `coverage/<build ID>/<manifest path>.tsv`, one
+  per file the analysis reads, with addresses, sizes and the researcher's own
+  names only. They are the one analysis export that is committed, and
+  `.gitignore` now lets the root `coverage/` through.
+- `docs/IMPLEMENTATION-PLAN.md` records the project's stage, gives each slice
+  an Exit item, and keeps only owner questions; research questions move to
+  `queue/`.
+- Batches are research, implementation or tooling. Implementation batches
+  work from the spec alone, never open `queue/`, and leave gaps as `Spec gap:`
+  notes on parity rows. Research batches make the parity and citation changes
+  the documentation check needs.
 - `AGENTS.md` gains a Planning and tracking work section, and the bootstrap
-  checklist gains the Survey and Harness stages.
+  checklist gains the Runtime access and Survey stages.
 - `.claude/skills/` carries the protocol's procedures as agent skills:
-  `start-session`, `research-item`, `implement-rows`, `maintainer-session`,
-  `end-session` and `plan-work`. They hold steps and link to the published
-  pages for the rules.
+  `runtime-access`, `plan-work`, `start-session`, `research-item`,
+  `implement-rows`, `live-session` and `end-session`. They hold steps and link
+  to the published pages for the rules.
 - `Test-TemplateInfrastructure.ps1` requires the new files and skills, fails on
-  a Markdown file over 1,000 lines in `queue/`, `docs/goals/`, the plan or the
-  decisions (including `docs/decisions/`), and on a handover over 200 lines.
+  a Markdown file over 1,000 lines in `queue/`, `docs/goals/`,
+  `docs/live-sessions/`, the plan or the decisions (including
+  `docs/decisions/`), and on a handover over 200 lines.
 
 ## Spec file size limit, 2026-09-25
 

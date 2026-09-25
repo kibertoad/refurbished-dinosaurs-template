@@ -21,7 +21,7 @@
 | Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |
 | Editions available for validation | _their `BLD-` IDs; `docs/SOURCE-EDITIONS.md` holds the detail_ |
 | Existing research relied on | _their `SRC-` IDs: manuals, community documentation, prior analysis_ |
-| Stage | _Intake, Survey, Harness, Slices or Audit, as the [work protocol](https://dinorefurb.com/work-protocol/#stages) defines them. Move on only when the previous stage's exit criteria hold._ |
+| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](https://dinorefurb.com/work-protocol/#stages) defines them. Move on only when the previous stage's exit criteria hold._ |
 
 ## Scope
 
@@ -33,9 +33,12 @@ non-goal is cheaper than a half-finished system._
 
 ## Slices
 
-Slices start once the Survey and Harness stages have ended. Organize the work
-as playable vertical slices, ordered so that each one leaves
-the game runnable. A workable default order is source identification and extraction,
+Slices start once the Runtime access and Survey stages have ended. Organize
+the work as playable vertical slices, ordered so that each one leaves the game
+runnable. Set each slice's targets to what `docs/RUNTIME.md` makes reachable:
+without runs of the original, rule and screen rows stop at `implemented`. The
+first slice gives the rebuild a headless runner that a test drives from a
+fixture. A workable default order is source identification and extraction,
 separate asset extraction plus assetless startup and diagnostics, native resolution and scaling,
 title-to-first-interaction flow, deterministic state and replay, and only then
 breadth.

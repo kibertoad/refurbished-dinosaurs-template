@@ -87,32 +87,57 @@ Work is planned, tracked and handed on under the
 [work protocol](https://dinorefurb.com/work-protocol/); where this section and
 the published page differ, the page wins.
 
-- The project moves through the stages Intake, Survey, Harness, Slices and
-  Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
+- The project moves through the stages Intake, Runtime access, Survey, Slices
+  and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
+  `docs/RUNTIME.md` records what can be done with the original running, and
+  whether an agent, only a person, or nobody can do it.
+- Static analysis comes first. Runs of the original are the last resort: an
+  `Agent run` or `Live session` item is taken up only when no `Static` item in
+  any area can be worked on and its own static attempt is under `Tried:`.
+- Several agents work on different games on the same machine at once. Run an
+  original only while holding `~/.refurbished-dinosaurs/run.lock`, which you
+  create and remove yourself; if another agent holds it, do not wait. Never
+  attach to, send input to or stop a process you did not start.
+- A run that needs a person is a live session, requested in a file in
+  `docs/live-sessions/` that the owner answers there. Never wait idle for one.
 - Open research questions live in `queue/<AREA>.md`, grouped by the evidence
-  they need. An item is closed by recording its answer in `spec/` and deleting
-  it in the same commit. An item is taken up again only with new evidence, a
-  new tool or a new reading, and moves to `Blocked` with what was tried when
-  that second attempt ends in the same place.
-- A batch is one commit, and is either research or implementation. An
-  implementation batch works from the spec alone and never opens analysis
-  output or changes `spec/`; a gap in the spec becomes a queue item. A
-  research batch that changes an entry's status updates its parity row.
+  they need, in the area of the first entry they name. An item is closed by
+  recording its answer in `spec/` and deleting it in the same commit. An item
+  is taken up again only with new evidence, a new tool or a new reading, and
+  moves to `Blocked` with what was tried when that second attempt ends in the
+  same place.
+- A batch is one commit, and is research, implementation or tooling, never
+  more than one. A session keeps to one side of the clean room. An
+  implementation batch works from the spec alone, never opens analysis output
+  or `queue/`, and under `spec/` only adds open questions and `unknown`
+  entries; a gap becomes a `Spec gap:` note on the parity row, which the next
+  research session turns into a queue item. A research batch makes the parity
+  and citation changes the documentation check requires of what it did to
+  the spec, and changes no other code apart from `tools/`. A tooling batch
+  (extractor, Ghidra scripts, inventory export, live session measurements,
+  headless runner, fixture harness) needs no decision.
 - Commit messages end with a `Spec:` trailer naming the entries created or
   changed, and any commit that changes a row's status adds `Parity:`.
 - `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
-  at the end of every session. `docs/goals/` holds one file per running goal.
+  at the end of every session, and names items and entries by ID without
+  saying what research found. `docs/goals/` holds one file per running goal.
   `docs/DECISIONS.md` records the owner's decisions and moves its oldest
-  entries to `docs/decisions/` before it passes 1,000 lines.
+  entries to `docs/decisions/` before it passes 1,000 lines. A session ends by
+  committing the handover with its work and pushing the branch.
 - Progress is what scripts compute: parity totals, entries by status,
-  executable and file coverage, queue sizes. Executable coverage is measured
-  against `coverage/<build ID>.tsv`, the function inventory exported from the
-  analysis database (addresses and sizes only, so it is committed). Never a hand-written percentage.
+  executable and file coverage, queue sizes. Never a hand-written percentage.
+  Executable coverage is measured against the function inventories,
+  `coverage/<build ID>/<manifest path>.tsv`, one for each file the analysis
+  reads. An inventory holds only each function's start address, its size, and
+  optionally a name the researcher gave it and why it is out of scope, never
+  code, bytes, strings, constants or names that came from the original, so it
+  is committed.
 
-The procedures are skills in `.claude/skills/`: `start-session`,
-`research-item`, `implement-rows`, `maintainer-session`, `end-session` and
-`plan-work`. For a `/goal`, write the goal file with `plan-work`, keep to its
-scope, and end every batch with the status block the skills print.
+The procedures are skills in `.claude/skills/`: `runtime-access`,
+`plan-work`, `start-session`, `research-item`, `implement-rows`,
+`live-session` and `end-session`. For a `/goal`, write the goal file with
+`plan-work`, keep to its scope, and end every batch with the status block the
+skills print.
 
 ## Rules that never bend
 
@@ -184,7 +209,9 @@ individual things a designer made, such as a unit, an item, a site, or a
 character (an enumeration of those is named `UNIT_TYPE_3`, not by the unit's
 name). The names the game gives its concepts and mechanics are terms the spec
 uses, and constants the code does arithmetic with are written down in full. Tool procedure stays in `docs/GHIDRA.md`. Never commit broad
-decompiler, instruction, or Version Tracking exports.
+decompiler, instruction, or Version Tracking exports. The function inventories
+in `coverage/` are the one export that is committed, and only with the columns
+the planning section above allows.
 
 ## Fidelity
 

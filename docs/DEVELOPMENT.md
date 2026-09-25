@@ -61,8 +61,10 @@ New repositories start with `tools/project-config.json` and
 and `./tools/Verify-Configuration.ps1` reports whatever is still left over from
 the template. `AGENTS.md` is the working agreement for the repository, and
 `docs/IMPLEMENTATION-PLAN.md` records the stage, the slices, the owner's open questions, and the risks.
-Open research questions are in `queue/`, and `docs/HANDOVER.md` says where the
-last session stopped.
+Open research questions are in `queue/`, what can be done with the original
+running is in `docs/RUNTIME.md`, live session requests are in
+`docs/live-sessions/`, and `docs/HANDOVER.md` says where the last session
+stopped.
 
 The original game is documented in `spec/`, following the
 [documentation standard](https://dinorefurb.com/documentation-standard/), and
