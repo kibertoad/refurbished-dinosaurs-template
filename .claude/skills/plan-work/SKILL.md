@@ -35,8 +35,9 @@ never code or spec entries apart from new `unknown` entries.
    under the section for the evidence it needs, in the area of the first entry
    it names, with an ID from that file's `Next ID:` line. A question a static
    reading can settle goes under `Static`; a run goes under `Agent run` or
-   `Live session` as `docs/RUNTIME.md` says, including the run that would
-   confirm a `supported` entry. Items duplicating one another are merged, and
+   `Live session` as `docs/RUNTIME.md` says. A `supported` entry gets a
+   `Static` item to complete its reading, or, only where it depends on
+   something the code does not decide, a run item to confirm it. Items duplicating one another are merged, and
    the merged item keeps one of their IDs.
 2. During Survey: every file the manifest lists as `data` without a format
    entry gets an `unknown` format entry and a queue item (CD audio tracks need

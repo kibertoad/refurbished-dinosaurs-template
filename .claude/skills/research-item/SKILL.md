@@ -51,7 +51,8 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    and a result that cannot be repeated is not evidence. Script it, start from
    a fixed state, and record enough to repeat it. Only for an item under
    `Agent run` whose own static attempt is under `Tried:` or that asks for the
-   run confirming a static reading, and only while holding the run lock (path
+   run confirming a static reading of an entry that depends on something the
+   code does not decide, and only while holding the run lock (path
    in `docs/RUNTIME.md`; take it with an exclusive create that fails if the
    file exists, record the ID of every process the run starts in it, and if
    another agent holds it, do not wait). Never touch a process you did not
@@ -60,22 +61,35 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    one finding per observation, an experiment with a fixture for a controlled
    run. Then give each entry it concerns the status the evidence supports
    for everything the entry says, and put what the evidence does not reach in
-   its Open questions. An experiment beside a static finding makes an entry
-   `established` only if it covers every branch of the procedure and, for a
-   random outcome, enough repetitions for its comparison, and a rule stays
-   below `established` while a glossary claim it relies on is `(unknown)`.
-   Evidence that contradicts an entry makes it `disputed`. A static reading
-   alone leaves an entry at `supported`. Never reproduce content.
+   its Open questions. Only direct evidence counts: a finding that locates the
+   code producing the behaviour. Circumstantial evidence (sizes that divide,
+   value patterns, names, the manual, similar games) is recorded as findings
+   and named in Open questions for or against a reading, never listed in
+   `evidence`, and leaves the entry `unknown` or `sourced`.
+   A complete reading makes an entry `established` with no run, and is the
+   usual way there: every branch, every place a format is read or written,
+   every caller and every write to the state it reads, every indirect call
+   resolved, the instructions checked wherever types, signedness or casts
+   decide a result, and nothing left to interrupts or threads (`# may run:`),
+   memory nothing wrote, timing, or the operating system. List its findings in
+   the entry's `complete_reading`. An entry that depends on any of those needs
+   an experiment or dynamic finding beside the static one, covering every
+   branch and, for a random outcome, enough repetitions for its comparison. A
+   rule stays below `established` while a glossary claim it relies on is
+   `(unknown)`. Evidence that contradicts an entry makes it `disputed`. Never
+   reproduce content.
 6. **Update the queue in the same change**: delete the settled item, split an
    item that turned out to be two questions, add every new question as a new
    item in the queue file of the area of the first entry it names, and add
    `Tried:` to an item you could not settle, saying what was examined and why
    it did not settle the question (anything learned about the original is a
    finding first, and `Tried:` names it). Where a static reading settled the
-   item and `docs/RUNTIME.md` allows a run, add an `Agent run` or
-   `Live session` item for the experiment that would confirm it; where no run
-   is possible, say in the entry's Open questions which observation of the
-   original would confirm it, so that a tester's capture can later.
+   item without being complete, add a `Static` item for what it still has to
+   cover. Only where the entry depends on something the code does not decide,
+   and `docs/RUNTIME.md` allows a run, add an `Agent run` or `Live session`
+   item for the experiment that would confirm it; where no run is possible,
+   say in the entry's Open questions which observation of the original would
+   confirm it, so that a tester's capture can later.
    Remove the `Spec gap (Q-...)` note of every item you closed.
 7. **Keep the check passing, and change nothing else outside `spec/`,
    `queue/` and `tools/`:**

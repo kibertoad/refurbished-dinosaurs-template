@@ -141,8 +141,11 @@ the published page differ, the page wins.
   that closes queue items adds `Queue:` with their IDs.
 - A claim moves from an `unknown` listing (or `sourced` from a document),
   through competing readings kept in its entry's Open questions, each with a
-  queue item, to a description at `supported`, then `established` when a run
-  or a tester's capture of the original agrees; contradicting evidence makes
+  queue item, to a description at `supported` once direct evidence (the code
+  that produces the behaviour) settles it, then `established` by a complete
+  reading of the code, or, only where it depends on something the code does
+  not decide, when a run or a tester's capture of the original agrees.
+  Circumstantial evidence never raises a status. Contradicting evidence makes
   it `disputed`, and a wrong claim is superseded, never deleted. The
   protocol's "The life of a claim" section has the details.
 - `docs/HANDOVER.md` is the current state of work outside any goal, at most
@@ -216,8 +219,9 @@ one roll is a guess.
 
 Use the standard's statuses and no other scale. Rules, formats, screens, and
 bugs are `unknown`, `sourced` (outside sources only), `supported` (one kind of
-evidence from the original), `established` (a reading of the files and a run of
-the original agree), `disputed`, or `superseded`. Findings and experiments are
+direct evidence from the original), `established` (a complete reading of the
+code, or a reading and a run of the original that agree where the code does
+not decide the outcome), `disputed`, or `superseded`. Findings and experiments are
 `recorded`, `reproduced`, or `superseded`. A part of an entry that is less
 certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.

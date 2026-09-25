@@ -49,9 +49,13 @@ affects between `Agent run` and `Live session` in the same commit.
 Close an item by recording the answer in `spec/` and deleting the item in the
 same commit, which names it in a `Queue:` trailer so that it can still be
 found. An open reading of an entry, in its Open questions section, always has
-an item, and is cited by the item's ID. A static reading leaves its entries at `supported`; where
-`docs/RUNTIME.md` allows a run, the same commit adds an `Agent run` or
-`Live session` item for the experiment that would confirm it. An item with a
+an item, and is cited by the item's ID. A complete static reading makes its
+entries `established` with no run. A reading that is not complete yet leaves
+them `supported`, and the same commit adds a `Static` item for what it still
+has to cover. Only an entry that depends on something the code does not
+decide (interrupts, uninitialised memory, timing, the operating system) gets
+an `Agent run` or `Live session` item for the experiment that would confirm
+it, where `docs/RUNTIME.md` allows a run. An item with a
 `Tried:` note is taken up again only with something the first attempt did not
 have: new evidence, a new tool, or a reading nobody has tried. If that second
 attempt ends in the same place, move the item, with what was tried, to the

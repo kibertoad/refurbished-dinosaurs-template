@@ -32,6 +32,12 @@ sets how restoration work is planned, tracked and handed on.
   `GAME_DIR`, never in the repository. Competing readings of an open question
   are kept in the entry's Open questions section, each with a queue item that
   cites it, and commits that close items carry a `Queue:` trailer.
+- Follows the standard's new direct evidence and complete reading rules:
+  circumstantial evidence never raises a status, and a complete reading of the
+  code makes an entry `established` without a run, listed in the optional
+  `complete_reading` field. Runs are queued only for entries that depend on
+  something the code does not decide. `AGENTS.md`, `research-item`,
+  `plan-work`, `queue/README.md` and `docs/SPEC-ENTRY-TEMPLATES.md` follow.
 - A run that needs a person is a live session, requested in a file in
   `docs/live-sessions/` that the owner answers by editing its Status line.
   Work that needs no run carries on in the meantime.
