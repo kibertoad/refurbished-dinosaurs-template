@@ -51,7 +51,8 @@ jobs:
           # Full history, so the check can find where a pull request forked from main and fail
           # when it deletes a spec ID, area or deviation that exists there.
           fetch-depth: 0
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@661f9445f4c0479bf4bf7d243117dceabc457408
+      # The toolkit publishes no tags, and its setup guide pins a commit on its main branch.
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@661f9445f4c0479bf4bf7d243117dceabc457408 # zizmor: ignore[stale-action-refs]
   installer:
     name: Windows installer
     needs: verify
