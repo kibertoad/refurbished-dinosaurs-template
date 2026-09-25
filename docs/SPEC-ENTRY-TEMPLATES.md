@@ -8,14 +8,17 @@ standard defines what each field and section holds; this page does not repeat
 it.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
-it is certain that there is nothing. Until the check script is published in
-[refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
-reviewers go through the standard's list of checks by hand.
+it is certain that there is nothing. The documentation standard check from
+[refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit)
+runs on every pull request and reports what an entry is missing, as
+`docs/VALIDATION.md` describes.
 
 Every Markdown file the standard defines, entries included, is at most 1,000
 lines. An entry that would pass the limit is split by what it describes, as
 the standard's [File size](https://dinorefurb.com/documentation-standard/#file-size)
-section says. `tools/Test-TemplateInfrastructure.ps1` checks the limit.
+section says. The documentation standard check and
+`tools/Test-TemplateInfrastructure.ps1` both check the limit. Build manifests,
+value files, Kaitai definitions, fixtures and save patches are not counted.
 
 ## Build
 
@@ -30,11 +33,7 @@ publisher_version: "<version>"
 distribution: <GOG, Steam, CD-ROM, ...>
 languages: [<ISO 639-1 codes>]
 int_width: <16 or 32>
-files:
-  - path: <path relative to the install directory, or CD:path>
-    format: <MZ, COM, NE, PE, LE, LX, ELF, cdda or data>
-    size: <bytes>
-    xxh3: <32 lower-case hex digits, as `xxhsum -H2` prints>
+manifest: BLD-<ALIAS>.files.yaml
 ---
 
 ## Obtaining
@@ -46,8 +45,22 @@ files:
 
 A build has one executable that runs the game's rules. An installation that
 ships two, such as a DOS and a Windows version over the same data files, is two
-builds, and both list the shared files. `Restoration.Inspect --source <dir>`
-prints each file's size and `xxh3`.
+builds, and both list the shared files.
+
+The build's files go in its manifest, `spec/builds/BLD-<ALIAS>.files.yaml`,
+whose only key is `files`. A path uses forward slashes and is relative to the
+install directory, or starts with `CD:` (`CD1:`, `CD2:` for more than one disc)
+for a file read from the disc and never installed. A packed executable adds
+`packer` and `unpacked`. `Restoration.Inspect --source <dir>` prints each
+file's size and `xxh3`.
+
+```yaml
+files:
+  - path: <path relative to the install directory, or CD:path>
+    format: <MZ, COM, NE, PE, LE, LX, ELF, cdda or data>
+    size: <bytes>
+    xxh3: <32 lower-case hex digits, as `xxhsum -H2` prints>
+```
 
 ## Source
 
@@ -173,6 +186,17 @@ A binary format with a status above `unknown` has a Kaitai definition next to
 it, named after the ID in lower case (`fmt_data_002.ksy`), and `definition`
 names it.
 
+An enumeration table that would take the entry past 1,000 lines goes in a
+value file beside it, named after the ID and the table
+(`spec/formats/FMT-DATA-009.unit_class.csv`). Its `###` heading stays in the
+entry, followed by a sentence naming the file. The file is CSV as RFC 4180
+defines it, in UTF-8, with the table's columns as its header row:
+
+```text
+Value,Name,Meaning,Status,Evidence
+0,<NAME>,<meaning>,<status>,<IDs>
+```
+
 ## Rule
 
 ````markdown
@@ -213,6 +237,18 @@ None known.
 
 ## Open questions
 ````
+
+A list of more than 64 values in a procedure is a `table` whose values come
+from a value file in `spec/rules/`, named after the ID and the table:
+`table sine: INT16[1024] from "RULE-MATH-003.sine.csv"`. The file has the
+single column `value` and one row per element, in index order, so it has as
+many rows as the type's count:
+
+```text
+value
+<first element>
+<second element>
+```
 
 ## Bug
 
@@ -309,7 +345,11 @@ None known.
 ## Glossary term
 
 One file per term in `spec/glossary/`, named after the term as the pseudocode
-spells it (`spec/glossary/turn_order.md`). Two terms never differ only in case.
+spells it (`spec/glossary/turn_order.md`), opening with the term as a `#`
+heading. A glossary file is not an entry, so it has no ID and no front matter,
+and it is renamed along with its term. Two terms never differ only in case, and
+no term is a name Windows reserves for a device (`con`, `prn`, `aux`, `nul`,
+`com1` to `com9`, `lpt1` to `lpt9`, in any case).
 The standard's [Where it lives](https://dinorefurb.com/documentation-standard/#where-it-lives)
 section lists what each kind of term also gives. Every claim about the original
 (an address, the order of a list, the order of handlers or of a queue, what an
@@ -351,8 +391,12 @@ Any explanation follows the list in plain paragraphs.
 ## Parity area file
 
 One file per area in `parity/` at the repository root, named after the area
-(`parity/COMBAT.md`), with the area's rows sorted by ID. Add the area's link to
-`PARITY.md` and update its totals.
+(`parity/COMBAT.md`), opening with the area as a `#` heading, followed by one
+table of the area's rows sorted by ID. An area whose file would pass 1,000
+lines becomes a directory with one file per kind, and then one file per block
+of 100 numbers (`parity/COMBAT/RULE/000.md`), each opening with its path under
+`parity/` as its heading (`# COMBAT/RULE/000`). The check says which files the
+rows belong in. It also writes the totals and the area links in `PARITY.md`.
 
 ````markdown
 # <AREA>

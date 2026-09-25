@@ -37,7 +37,7 @@ public sealed class AddressCitationTests
     {
         var results = CheckDocs(new()
         {
-            ["findings/FND-AI-001.md"] =
+            ["findings/synthetic-finding.md"] =
                 "location: 0x00401010..0x00401100\n" +
                 "Reads g_00402010 and the zero-filled table at 0x00402100.\n" +
                 "The loop in fn_00401040 exits at 0x00401080.\n",

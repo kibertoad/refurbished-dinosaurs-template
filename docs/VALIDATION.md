@@ -118,13 +118,37 @@ finding entries in `spec/findings/`; decompiler output is never committed.
 
 ## Spec checks
 
-The documentation standard's check script, which validates `spec/`,
-`parity/`, and `deviations/` and generates `spec/index/` and `PARITY.md`, will be published
-in [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit)
-and is not wired in yet. Until then, reviewers go through the standard's list of
-[checks](https://dinorefurb.com/documentation-standard/#checks) by hand, compile
-each `.ksy` file with the Kaitai Struct compiler, and give each save-patch write
-as a byte offset and value in the experiment's Setup section.
+The `Documentation standard` job in `.github/workflows/ci.yml` runs the
+`check-documentation` action from
+[refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
+pinned to a full commit SHA, on every pull request. It checks `spec/`, `parity/`
+and `deviations/` against the standard's list of
+[checks](https://dinorefurb.com/documentation-standard/#checks), compiles each
+`.ksy` file with the Kaitai Struct compiler, checks that every spec and
+deviation ID cited in `src/`, `tests/` and `tools/` exists and is not
+superseded, and fails when `spec/index/` or `PARITY.md` is stale. It fetches
+the full history so it can fail a pull request that deletes a spec ID, area or
+deviation that exists on `main`. The toolkit's
+[setup guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/documentation-standard-check.md)
+lists its inputs.
+
+The check writes `spec/index/` and `PARITY.md`; nobody edits them by hand. After
+changing the spec, `parity/` or `deviations/`, run the script from the same
+toolkit commit the workflow pins, with Node.js 20 or newer, and commit what it
+writes:
+
+```sh
+curl -fsSLo artifacts/check-documentation.mjs   https://raw.githubusercontent.com/kibertoad/refurbished-dinosaurs-toolkit/<sha>/tools/check-documentation.mjs
+node artifacts/check-documentation.mjs
+git add spec/index PARITY.md
+```
+
+`--check` reports problems without writing anything. `tools/Test-TemplateInfrastructure.ps1`
+fails if the workflow stops running the check or pins it to anything but a full
+commit SHA. The script does not check some items on the standard's list, such as
+the fixture schema and the hashes of saves and recordings; its guide lists them,
+and reviewers check those by hand. A save-patch write is given as a byte offset
+and value in the experiment's Setup section.
 
 ## Repository policy
 

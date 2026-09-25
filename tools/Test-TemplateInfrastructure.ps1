@@ -53,6 +53,11 @@ foreach ($required in @('signed_release:', 'release-signing', 'Invoke-ESigner.ps
     }
 }
 
+$ci = Get-Content -LiteralPath (Join-Path $root '.github/workflows/ci.yml') -Raw
+if ($ci -notmatch 'kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@[0-9a-f]{40}(\s|$)') {
+    $failures.Add('CI workflow does not run the documentation standard check pinned to a full commit SHA')
+}
+
 $launchers = @(Get-ChildItem -LiteralPath $root -File -Filter 'Start *.bat')
 if ($launchers.Count -ne 1) {
     $failures.Add("expected exactly one root Start launcher, found $($launchers.Count)")
