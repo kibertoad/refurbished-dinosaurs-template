@@ -14,34 +14,40 @@ files in this batch. If this conversation already holds any of that, run the
 batch in a fresh session or a subagent given only the entry IDs and this skill. That keeps the clean room,
 and it tests whether the spec says enough.
 
-1. **Pick rows**: parity rows in `parity/<AREA>.md` that the current slice of
+1. **Remove dead code first**: code in `src/` that cites a finding or an
+   experiment (`FND-`, `EXP-`) was written for an entry that turned out to
+   describe nothing. Remove it, with the tests that exercise it, as a batch
+   of its own.
+2. **Pick rows**: parity rows in `parity/<AREA>.md` that the current slice of
    `docs/IMPLEMENTATION-PLAN.md` names, whose Code is not `complete`. Prefer
    rows whose spec status is `supported` or `established`.
-2. **Read the entries** the rows name, and every rule, format and glossary term
+3. **Read the entries** the rows name, and every rule, format and glossary term
    they cite. Read the deviations listed on the rows.
-3. **Where the spec does not say enough** to write the code, stop at that
+4. **Where the spec does not say enough** to write the code, stop at that
    point and write what the code needs to know as a question in the entry's
    Open questions section. Where no entry describes the behaviour at all,
    create an `unknown` entry holding only that question, with its parity row.
    Then either leave the row `partial`, or write the code with a
    `PLACEHOLDER: <spec ID>` comment; the row cannot be `complete` while the
    comment exists. Start the row's Notes with `Spec gap:` and the question; the
-   next research session turns it into a queue item. Never fill a gap with a
+   next research session turns it into a queue item and adds the item's ID,
+   and removes the note once the spec answers it. A `partial` row with no note
+   is one the spec now answers: pick it up again. Never fill a gap with a
    plausible guess. Under `spec/` add only questions and such `unknown`
    entries: never evidence, statuses or descriptions. Never open `queue/`: its
    items hold what research tried.
-4. **Write the code** within the architecture boundaries in `AGENTS.md`
+5. **Write the code** within the architecture boundaries in `AGENTS.md`
    (deterministic Core, bounded parsing in Resources, presentation in Game).
    Comments cite the spec IDs they implement. A departure from the spec needs
    a deviation file first, with a Default of `off` unless its Justification
    argues otherwise.
-5. **Test it**: synthetic tests for the logic; where an experiment fixture
+6. **Test it**: synthetic tests for the logic; where an experiment fixture
    exists, a test that replays it and lists the row's ID. Tests that need the
    original find it through `GAME_DIR` and skip without it. Manual play is not
    a test.
-6. **Update the parity rows** (Code, Tests, Notes) and run the documentation
+7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.
-7. **Commit** with a message saying what behaviour now works, ending in `Spec:`
+8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
    (entries implemented) and `Parity:` (rows whose status changed) trailers.
-8. **Print the status block** from `research-item`, with `Batch: implementation`
+9. **Print the status block** from `research-item`, with `Batch: implementation`
    and the rows' old and new statuses, then continue or run `end-session`.

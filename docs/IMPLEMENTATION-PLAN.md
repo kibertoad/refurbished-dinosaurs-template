@@ -36,7 +36,8 @@ non-goal is cheaper than a half-finished system._
 Slices start once the Runtime access and Survey stages have ended. Organize
 the work as playable vertical slices, ordered so that each one leaves the game
 runnable. Set each slice's targets to what `docs/RUNTIME.md` makes reachable:
-without runs of the original, rule and screen rows stop at `implemented`. The
+without runs of the original, rule and screen rows, and format rows with no
+files (memory structures, messages), stop at `implemented`. The
 first slice gives the rebuild a headless runner that a test drives from a
 fixture. A workable default order is source identification and extraction,
 separate asset extraction plus assetless startup and diagnostics, native resolution and scaling,
@@ -67,7 +68,7 @@ breadth.
 - **Observed parity.** _The parity rows the slice should make `validated`,
   and the experiments or captures their tests compare against._
 - **Exit.** _Statements a script or reviewer can check: which parity rows reach
-  which status, and which queue items must be closed first._
+  which status, and which queue items, by ID, must be closed first._
 
 _Repeat this block per slice. Keep finished slices here with their status
 updated; the plan is the record of what was decided, not only of what is next._

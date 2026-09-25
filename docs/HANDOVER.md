@@ -1,10 +1,14 @@
 # Handover
 
-Where the work stands now. Rewrite this file at the end of every session; do
-not append to it. It is at most 200 lines. History is in git, open research
-questions are in `queue/`, and the plan is in `docs/IMPLEMENTATION-PLAN.md`.
-Name items and entries by ID; what research found or tried belongs in the spec
-and the queue, never here.
+Where the work outside any goal stands now. Rewrite this file at the end of
+every session that works under no goal; do not append to it. A session under a
+goal writes the same sections in its goal file's Handover instead, so two
+sessions running at once never write the same file. It is at most 200 lines.
+History is in git, open research questions are in `queue/`, the plan is in
+`docs/IMPLEMENTATION-PLAN.md`, the goals running are the files in
+`docs/goals/`, and the open live session requests are the files in
+`docs/live-sessions/`. Name items and entries by ID; what research found or
+tried belongs in the spec and the queue, never here.
 See the [work protocol](https://dinorefurb.com/work-protocol/#working-files).
 
 ## State
@@ -14,24 +18,17 @@ See the [work protocol](https://dinorefurb.com/work-protocol/#working-files).
   commits it is ahead of its remote, counting the one holding this file._
 - Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
 
-## Goals running
-
-None.
-
 ## Unfinished
 
-_Anything left half done, with where it stands and what finishes it. `None.`
-when the working tree is clean and every batch was committed._
+_Anything left half done and left out of the batch commits, with where it
+stands, what finishes it, and its `wip/` branch where the working tree does not
+outlive the session. `None.` when the working tree is clean and every batch was
+committed._
 
 ## Blockers
 
 None known.
 
-## Live session requests
-
-_Each open request in `docs/live-sessions/`, with its Status. `None.` when
-there are none._
-
 ## Next
 
-_At most five items, each pointing at a queue item, a parity row or a slice._
+_At most five items, each naming a queue item by its ID, a parity row or a slice._

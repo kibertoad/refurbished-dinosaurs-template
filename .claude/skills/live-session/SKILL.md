@@ -11,20 +11,22 @@ nobody needs to ask a question during the session. Never wait idle for one.
 
 ## Request
 
-1. Runs are the last resort. Request a session only when no item under
-   `Static` in any `queue/<AREA>.md` can be worked on, and each item it would
-   settle has a static attempt recorded under `Tried:`. The items must also
-   block a slice or be enough to fill a sitting.
-2. Collect those `Live session` items. Leave out any whose starting state
+1. Runs are the last resort for each question. Request a session only for
+   `Live session` items that have their own static attempt under `Tried:` or
+   ask for the run confirming a static reading, and only when they block a
+   slice or are enough to fill a sitting. Take only items your goal may take
+   up (every entry they name is in an area it claims).
+2. Collect those items by their IDs. Leave out any whose starting state
    cannot be reached yet (for example, a save patch whose fields are not yet
    `supported`), and say why.
 3. Write `docs/live-sessions/<name>.md` from `docs/live-sessions/README.md`:
-   `Status: requested`, the build (by `BLD-` ID) and the machine, the items,
-   the slices they block, the expected length, and the script (next section).
+   `Status: requested`, the build (by `BLD-` ID) and the machine, the item
+   IDs, the slices they block, the expected length, and the script (next section).
    Do not repeat a request the owner declined unless something the request did
    not have has changed.
-4. List it in the handover's live session requests, commit, and carry on with
-   work that needs no run. The owner answers by editing the Status line.
+4. Commit the request, and carry on with work that needs no run. The file is
+   the record that the request is open; the owner answers by editing the
+   Status line.
 
 ## Script
 
@@ -41,11 +43,12 @@ without a person, from the static readings.
 
 ## Run
 
-Once the Status is `accepted`, hold the run lock
-(`~/.refurbished-dinosaurs/run.lock`) for the whole session. Follow the
-script; at each signal take the measurement, confirm it, and tell the
-maintainer to carry on. Attach only to the process the maintainer started for
-the session. Remove the lock at the end.
+Once the Status is `accepted`, hold the run lock (path in `docs/RUNTIME.md`)
+for the whole session, and add the ID of the process the maintainer started
+to it. That process is the one you may attach to and read without having
+started it; never send it input or stop it. Follow the script; at each signal
+take the measurement, confirm it, and tell the maintainer to carry on. Delete
+the lock at the end, and set the request's Status to `held, YYYY-MM-DD`.
 
 ## Ingest
 
@@ -56,9 +59,9 @@ the session. Remove the lock at the end.
    say, as `research-item` step 5 describes, and make the parity changes of
    `research-item` step 7.
 3. Delete the settled items from the queue; add `Tried:` to any step that did
-   not settle its item, and new items for new questions. Delete the request
-   file in the same change, and put what the session showed about the tools
-   into `docs/RUNTIME.md`.
-4. Run the documentation check and commit, with a `Spec:` trailer, one commit
-   per area, adding `Parity:` for the rows whose status changed. Print the
-   status block from `research-item` for each.
+   not settle its item, and new items for new questions.
+4. Work one research batch per area: run the documentation check and commit,
+   with a `Spec:` trailer, adding `Parity:` for the rows whose status
+   changed, and print the status block from `research-item` for each. The
+   first batch puts what the session showed about the tools into
+   `docs/RUNTIME.md`, and the last one deletes the request file.

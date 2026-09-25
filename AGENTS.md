@@ -91,44 +91,55 @@ the published page differ, the page wins.
   and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
   `docs/RUNTIME.md` records what can be done with the original running, and
   whether an agent, only a person, or nobody can do it.
-- Static analysis comes first. Runs of the original are the last resort: an
-  `Agent run` or `Live session` item is taken up only when no `Static` item in
-  any area can be worked on and its own static attempt is under `Tried:`.
-- Several agents work on different games on the same machine at once. Run an
-  original only while holding `~/.refurbished-dinosaurs/run.lock`, which you
-  create and remove yourself; if another agent holds it, do not wait. Never
-  attach to, send input to or stop a process you did not start.
+- Static analysis comes first, and runs of the original are the last resort
+  for each question: an `Agent run` or `Live session` item is taken up only
+  after its own static attempt is under `Tried:`, or when it asks for the run
+  that confirms a static reading. Runs take their place in the order of work
+  (a run that blocks the current slice comes before static work that does
+  not), and within each step of it `Static` items come first.
+- Several agents work on different games on the same machine at once, under
+  one account or several. Run an original only while holding the machine's
+  run lock, whose path `docs/RUNTIME.md` gives; take it with an exclusive
+  create that fails if the file exists, and delete only a lock you created or
+  one the protocol calls abandoned. If another agent holds it, do not wait.
+  Outside a live session, never attach to, send input to or stop a process
+  you did not start.
 - A run that needs a person is a live session, requested in a file in
   `docs/live-sessions/` that the owner answers there. Never wait idle for one.
 - Open research questions live in `queue/<AREA>.md`, grouped by the evidence
-  they need, in the area of the first entry they name. An item is closed by
-  recording its answer in `spec/` and deleting it in the same commit. An item
-  is taken up again only with new evidence, a new tool or a new reading, and
-  moves to `Blocked` with what was tried when that second attempt ends in the
-  same place.
+  they need, in the area of the first entry they name, each with an ID
+  (`Q-COMBAT-012`) that everything outside the queue refers to it by. An item
+  is closed by recording its answer in `spec/` and deleting it in the same
+  commit. An item is taken up again only with new evidence, a new tool or a
+  new reading, and when that second attempt ends in the same place it moves
+  to the section of the evidence that would settle it, or to `Blocked` when
+  that evidence is out of reach.
 - A batch is one commit, and is research, implementation or tooling, never
   more than one. A session keeps to one side of the clean room. An
   implementation batch works from the spec alone, never opens analysis output
   or `queue/`, and under `spec/` only adds open questions and `unknown`
   entries; a gap becomes a `Spec gap:` note on the parity row, which the next
-  research session turns into a queue item. A research batch makes the parity
+  research session turns into a queue item and removes once it is answered. A research batch makes the parity
   and citation changes the documentation check requires of what it did to
   the spec, and changes no other code apart from `tools/`. A tooling batch
   (extractor, Ghidra scripts, inventory export, live session measurements,
   headless runner, fixture harness) needs no decision.
 - Commit messages end with a `Spec:` trailer naming the entries created or
   changed, and any commit that changes a row's status adds `Parity:`.
-- `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
-  at the end of every session, and names items and entries by ID without
-  saying what research found. `docs/goals/` holds one file per running goal.
-  `docs/DECISIONS.md` records the owner's decisions and moves its oldest
-  entries to `docs/decisions/` before it passes 1,000 lines. A session ends by
-  committing the handover with its work and pushing the branch.
+- `docs/HANDOVER.md` is the current state of work outside any goal, at most
+  200 lines, rewritten at the end of every session that works under no goal,
+  and names items and entries by ID without saying what research found.
+  `docs/goals/` holds one file per running goal, which claims its areas and
+  has a handover of its own for sessions under it. `docs/DECISIONS.md`
+  records the owner's decisions and moves its oldest entries to
+  `docs/decisions/` before it passes 1,000 lines. A session ends by
+  committing its handover on its own and pushing the branch; half-done work
+  never goes into a batch commit.
 - Progress is what scripts compute: parity totals, entries by status,
   executable and file coverage, queue sizes. Never a hand-written percentage.
   Executable coverage is measured against the function inventories,
-  `coverage/<build ID>/<manifest path>.tsv`, one for each file the analysis
-  reads. An inventory holds only each function's start address, its size, and
+  `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an `@CD`
+  directory), one for each file the analysis reads. An inventory holds only each function's start address, its size, and
   optionally a name the researcher gave it and why it is out of scope, never
   code, bytes, strings, constants or names that came from the original, so it
   is committed.

@@ -17,22 +17,29 @@ sets how restoration work is planned, tracked and handed on.
   `docs/RUNTIME.md` records what can be done with the original running and
   whether an agent, only a person, or nobody can do it, and slices aim only at
   the parity statuses that makes reachable.
-- Static analysis comes first, and runs of the original are the last resort.
-  Every run holds the machine-wide lock `~/.refurbished-dinosaurs/run.lock`,
-  since several agents work on different games on one machine at once.
+- Static analysis comes first, and runs of the original are the last resort
+  for each question: a run item needs its own static attempt first, or asks
+  for the run that confirms a static reading, and then takes its place in the
+  order of work. Every run holds the machine-wide lock, taken with an
+  exclusive create at `C:\ProgramData\refurbished-dinosaurs\run.lock` on
+  Windows or `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere (or the path
+  in `REFURBISHED_DINOSAURS_RUN_LOCK`), since several agents work on different
+  games on one machine at once, under one account or several.
 - A run that needs a person is a live session, requested in a file in
   `docs/live-sessions/` that the owner answers by editing its Status line.
   Work that needs no run carries on in the meantime.
 - `queue/` holds the open research questions, one file per spec area, grouped
   by the evidence each one needs (Static, Agent run, Live session, Source,
-  Blocked). `queue/README.md` gives the format.
-- `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
-  and committed every session. `docs/goals/` holds one file per running
-  long-running goal, and `docs/DECISIONS.md` the owner's decisions, whose
+  Blocked), each with an ID such as `Q-COMBAT-012`. `queue/README.md` gives
+  the format.
+- `docs/HANDOVER.md` is the current state of work outside any goal, at most
+  200 lines, rewritten every session and committed on its own. `docs/goals/`
+  holds one file per running long-running goal, which claims its areas and
+  carries its own handover, and `docs/DECISIONS.md` the owner's decisions, whose
   oldest entries move to numbered files in `docs/decisions/` before it passes
   1,000 lines.
-- Function inventories go in `coverage/<build ID>/<manifest path>.tsv`, one
-  per file the analysis reads, with addresses, sizes and the researcher's own
+- Function inventories go in `coverage/<build ID>/<manifest path>.tsv`, with a
+  `CD:` prefix written as an `@CD` directory, one per file the analysis reads, with addresses, sizes and the researcher's own
   names only. They are the one analysis export that is committed, and
   `.gitignore` now lets the root `coverage/` through.
 - `docs/IMPLEMENTATION-PLAN.md` records the project's stage, gives each slice

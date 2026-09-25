@@ -8,7 +8,10 @@ changes it. Findings from runs go in `spec/`, never here.
 
 Static analysis is the main source of evidence. Runs are the last resort, and
 every run of the original, including the checks behind this file, holds the
-machine's run lock, `~/.refurbished-dinosaurs/run.lock`.
+machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
+Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
+`REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
+[Running the original](https://dinorefurb.com/work-protocol/#running-the-original).
 
 ## BLD-_alias_
 

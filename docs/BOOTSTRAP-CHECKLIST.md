@@ -30,7 +30,8 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       the build entry's Other files, give the format of every file listed as
       `data` an entry (`unknown` where nothing is known; CD audio tracks need
       none), export a function inventory of each file the analysis reads to
-      `coverage/<build ID>/<manifest path>.tsv`, add a screen entry for every
+      `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an
+      `@CD` directory), add a screen entry for every
       screen the manual mentions, and seed a `queue/<AREA>.md` for every
       area.
 

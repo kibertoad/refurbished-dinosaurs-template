@@ -13,9 +13,11 @@ is done.
 
 1. **Take the run lock** as the protocol's
    [Running the original](https://dinorefurb.com/work-protocol/#running-the-original)
-   says: create `~/.refurbished-dinosaurs/run.lock` naming this repository,
-   the session and the time. If it already exists, do not wait: do static work
-   and try again in a later session.
+   says: create the lock file at the path `docs/RUNTIME.md` gives, with an
+   exclusive create that fails if it exists (`[IO.File]::Open($path,
+   'CreateNew')` in PowerShell), naming this repository, the session and the
+   time, and add the ID of each process you start to it. If it already
+   exists, do not wait: do static work and try again in a later session.
 2. **For each build that will be run**, record how it runs (natively, under
    Wine, in DOSBox-X or another emulator, in a virtual machine), then try each
    capability and answer it `agent`, `person` (only while a person runs the
@@ -32,5 +34,5 @@ is done.
    Replace answers that are no longer true; do not append.
 4. **Move queue items** between `Agent run` and `Live session` where an answer
    changed, in the same commit.
-5. **Stop every process you started and remove the lock.** Commit, then print
+5. **Stop every process you started and delete the lock.** Commit, then print
    the status block from `research-item` with `Batch: runtime access`.
