@@ -104,8 +104,8 @@ Configuration cannot decide these. Each one is also an item in
   [documentation standard](https://dinorefurb.com/documentation-standard/)
   sets. It starts with a scope and area list to fill in and empty directories
   for each kind of entry; `docs/SPEC-ENTRY-TEMPLATES.md` has blank entries.
-- `PARITY.md` and `DEVIATIONS.md`: how much of the spec the rebuild does, and
-  where it departs from it on purpose.
+- `PARITY.md` with `parity/`, and `deviations/`: how much of the spec the
+  rebuild does, and where it departs from it on purpose.
 - `docs/*`: the source-edition, tool, and architecture documents, which start
   as instructions for what to record rather than as content.
 

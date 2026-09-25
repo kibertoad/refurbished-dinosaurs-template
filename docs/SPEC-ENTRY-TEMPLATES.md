@@ -12,6 +12,11 @@ it is certain that there is nothing. Until the check script is published in
 [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
 reviewers go through the standard's list of checks by hand.
 
+Every Markdown file the standard defines, entries included, is at most 1,000
+lines. An entry that would pass the limit is split by what it describes, as
+the standard's [File size](https://dinorefurb.com/documentation-standard/#file-size)
+section says. `tools/Test-TemplateInfrastructure.ps1` checks the limit.
+
 ## Build
 
 ````markdown
@@ -299,4 +304,59 @@ related: []
 None known.
 
 ## Open questions
+````
+
+## Glossary term
+
+One file per term in `spec/glossary/`, named after the term as the pseudocode
+spells it (`spec/glossary/turn_order.md`). Two terms never differ only in case.
+The standard's [Where it lives](https://dinorefurb.com/documentation-standard/#where-it-lives)
+section lists what each kind of term also gives. Every claim about the original
+(an address, the order of a list, the order of handlers or of a queue, what an
+outside value is read from) is followed by the IDs of its findings or
+experiments in brackets, or by `(unknown)`.
+
+````markdown
+# <term>
+
+<What the term means, and the name the game shows the player where there is
+one. Then what the standard asks of this kind of term.>
+````
+
+## Deviation
+
+One file per deviation in `deviations/` at the repository root, named after its
+ID (`deviations/DEV-COMBAT-002.md`). Default is `off`, `on` or `mandatory`
+(Setting `None`). Keep the Justification item, which argues that the rebuild's
+behavior is strictly better than the original's, for a `mandatory` deviation
+and for one that is `on` without being the fix of an unintended bug players do
+not rely on, as the
+[deviation log](https://dinorefurb.com/documentation-standard/#deviation-log)
+section sets out. Delete it otherwise. IDs are never reused or renumbered, and a dropped deviation keeps
+its file.
+
+````markdown
+# DEV-<AREA>-<NNN>
+
+- Departs from: <rule, format, screen or bug IDs>
+- Reason: <what the original does and why the rebuild differs>
+- Setting: <setting name, or None>
+- Default: <off, on or mandatory>
+- Justification: <why the rebuild's behaviour is strictly better>
+- Dropped: no
+````
+
+Any explanation follows the list in plain paragraphs.
+
+## Parity area file
+
+One file per area in `parity/` at the repository root, named after the area
+(`parity/COMBAT.md`), with the area's rows sorted by ID. Add the area's link to
+`PARITY.md` and update its totals.
+
+````markdown
+# <AREA>
+
+| Spec ID | Title | Spec status | Code | Tests | Deviations | Status | Notes |
+|---|---|---|---|---|---|---|---|
 ````

@@ -35,7 +35,7 @@ content locally from the copy selected by the player.
 
 How closely the rebuild matches the original is tracked row by row in
 [PARITY.md](PARITY.md), and every deliberate difference is listed in
-[DEVIATIONS.md](DEVIATIONS.md). The original game itself is documented in
+[deviations/](deviations/). The original game itself is documented in
 [spec/](spec/README.md).
 
 ## Controls

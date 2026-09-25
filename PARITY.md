@@ -2,8 +2,10 @@
 
 How much of the spec in `spec/` the rebuild does, in the format the
 [documentation standard](https://dinorefurb.com/documentation-standard/#parity-matrix)
-sets out: one row per rule, format and screen entry that is not superseded,
-under one heading per area in the order of the area list in `spec/README.md`.
+sets out. The rows are in `parity/`, one file per area, and this file holds the
+totals and a link to each area's file in the order of the area list in
+`spec/README.md`. The standard's check script writes this file. Until it is
+wired in, update the totals by hand whenever a row changes.
 
 | Status | Rows |
 |---|---|
@@ -20,3 +22,7 @@ under one heading per area in the order of the area list in `spec/README.md`.
 | missing | 0 |
 | partial | 0 |
 | complete | 0 |
+
+## Areas
+
+None yet.

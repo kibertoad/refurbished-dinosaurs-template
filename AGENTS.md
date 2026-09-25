@@ -78,7 +78,7 @@ end-to-end slice — identify, extract, start, show something real, quit cleanly
 over broad but unplayable systems.
 
 **6. Verify and hand over.** Run the commands below, update the README status
-table and `PARITY.md` to match what is actually true, and tick off
+table and the parity files to match what is actually true, and tick off
 `docs/BOOTSTRAP-CHECKLIST.md` as decisions are captured elsewhere.
 
 ## Rules that never bend
@@ -166,7 +166,7 @@ pixel except where a documented interface change draws something new. When a
 bug cannot be told from a design decision, the original behavior stays and any
 fix becomes a setting.
 
-Every departure from the spec is a `DEV-AREA-NNN` entry in `DEVIATIONS.md`,
+Every departure from the spec is a `DEV-AREA-NNN` file in `deviations/`,
 with a Default of `off`, `on` or `mandatory`. A setting starts `off`, with the
 original's behavior, unless the entry's Justification argues that the rebuild's
 behavior is strictly better: then it starts `on`, and a player who wants the
@@ -184,8 +184,9 @@ project.
 Code comments and tests cite the spec IDs they implement or check, so a search
 for an ID finds everything that depends on it. A placeholder in the code, such
 as a guessed formula, carries a `PLACEHOLDER: <spec ID>` comment, and the
-`PARITY.md` row for that ID cannot be `complete` while it does. `PARITY.md` has
-one row per rule, format, and screen entry that is not superseded, so behavior
+parity row for that ID cannot be `complete` while it does. The parity matrix
+(`PARITY.md` for the totals, `parity/` for the rows) has one row per rule,
+format, and screen entry that is not superseded, so behavior
 without a spec entry gets an `unknown` entry before any code. Manual play never
 counts as a test.
 
@@ -237,7 +238,7 @@ to fail when discovery drops below an expected count.
 A change is finished when the solution builds, `./tools/Invoke-Validation.ps1` passes, new
 behavior has tests, the spec entries it relies on exist with the status their
 evidence supports, the documents that assert status (`README.md`, `PARITY.md`,
-`DEVIATIONS.md`) match reality, and the plan's open questions have been updated
+`parity/`, `deviations/`) match reality, and the plan's open questions have been updated
 with whatever the work settled or newly raised.
 
 Commits describe the change and its evidence, not the tooling that produced it.

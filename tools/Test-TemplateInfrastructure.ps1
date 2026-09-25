@@ -23,10 +23,27 @@ foreach ($relative in @(
     # The documentation standard's layout: the spec, its licences, and the implementation's two ledgers.
     'spec/README.md',
     'spec/LICENSE',
-    'spec/glossary.md',
+    'spec/glossary/.gitkeep',
     'PARITY.md',
-    'DEVIATIONS.md'
+    'parity/.gitkeep',
+    'deviations/.gitkeep'
 )) { Assert-RequiredFile $relative }
+
+# The documentation standard limits every Markdown file it defines to 1,000 lines.
+$standardMarkdown = @(Get-Item -LiteralPath (Join-Path $root 'PARITY.md') -ErrorAction SilentlyContinue)
+foreach ($directory in @('spec', 'parity', 'deviations')) {
+    $path = Join-Path $root $directory
+    if (Test-Path -LiteralPath $path) {
+        $standardMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')
+    }
+}
+foreach ($file in $standardMarkdown) {
+    $lineCount = @(Get-Content -LiteralPath $file.FullName).Count
+    if ($lineCount -gt 1000) {
+        $relative = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
+        $failures.Add("$relative has $lineCount lines; the documentation standard allows 1,000")
+    }
+}
 
 $release = Get-Content -LiteralPath (Join-Path $root '.github/workflows/release.yml') -Raw
 foreach ($required in @('signed_release:', 'release-signing', 'Invoke-ESigner.ps1',

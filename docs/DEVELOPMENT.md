@@ -64,7 +64,7 @@ the template. `AGENTS.md` is the working agreement for the repository, and
 
 The original game is documented in `spec/`, following the
 [documentation standard](https://dinorefurb.com/documentation-standard/), and
-the rebuild's coverage of it in `PARITY.md` and `DEVIATIONS.md`. Architecture,
+the rebuild's coverage of it in `PARITY.md`, `parity/` and `deviations/`. Architecture,
 validation, and reverse-engineering tool notes live in the other files in this
 directory. Shared guidance and libraries live in
 [Toad Discovery Center](https://github.com/kibertoad/toad-discovery-center).

@@ -17,7 +17,7 @@ not imply a pass at the next:
 4. **Presentation parity** - the same state produces the screen a capture of the
    original shows, pixel for pixel, and starts the same sounds on the same tick.
 
-`PARITY.md` records which rows have tests at these levels. A test counts there
+The parity matrix records which rows have tests at these levels. A test counts there
 only if it compares the rebuild with evidence from the original. Decoder tests on
 synthetic files, and tests that compare the rebuild with an earlier version of
 itself, are still required but are left out of that column. Manual play never
@@ -51,7 +51,7 @@ Pull requests, including those from forks, run without a copy, so these tests
 skip there. A configured project adds a main-branch CI job on a self-hosted
 runner, or with storage only the maintainers can read, that sets `GAME_DIR` to a
 maintainer-owned copy and fails if any test listed for a `validated` row in
-`PARITY.md` skipped. The copy never goes in the repository or a published build
+`parity/` skipped. The copy never goes in the repository or a published build
 artifact.
 
 ## Local automated checks
@@ -119,7 +119,7 @@ finding entries in `spec/findings/`; decompiler output is never committed.
 ## Spec checks
 
 The documentation standard's check script, which validates `spec/`,
-`PARITY.md`, and `DEVIATIONS.md` and generates `spec/index/`, will be published
+`parity/`, and `deviations/` and generates `spec/index/` and `PARITY.md`, will be published
 in [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit)
 and is not wired in yet. Until then, reviewers go through the standard's list of
 [checks](https://dinorefurb.com/documentation-standard/#checks) by hand, compile

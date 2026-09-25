@@ -53,7 +53,7 @@ breadth.
 - **Automated tests.** _The tests that prove it. Tests that compare against the
   original read it from `GAME_DIR` and skip without it; the rest need no
   original content._
-- **Observed parity.** _The `PARITY.md` rows the slice should make `validated`,
+- **Observed parity.** _The parity rows the slice should make `validated`,
   and the experiments or captures their tests compare against._
 
 _Repeat this block per slice. Keep finished slices here with their status
