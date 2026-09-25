@@ -137,7 +137,14 @@ the published page differ, the page wins.
   (extractor, Ghidra scripts, inventory export, live session measurements,
   headless runner, fixture harness) needs no decision.
 - Commit messages end with a `Spec:` trailer naming the entries created or
-  changed, and any commit that changes a row's status adds `Parity:`.
+  changed, any commit that changes a row's status adds `Parity:`, and any
+  that closes queue items adds `Queue:` with their IDs.
+- A claim moves from an `unknown` listing (or `sourced` from a document),
+  through competing readings kept in its entry's Open questions, each with a
+  queue item, to a description at `supported`, then `established` when a run
+  or a tester's capture of the original agrees; contradicting evidence makes
+  it `disputed`, and a wrong claim is superseded, never deleted. The
+  protocol's "The life of a claim" section has the details.
 - `docs/HANDOVER.md` is the current state of work outside any goal, at most
   200 lines, rewritten at the end of every session that works under no goal,
   and names items and entries by ID without saying what research found.

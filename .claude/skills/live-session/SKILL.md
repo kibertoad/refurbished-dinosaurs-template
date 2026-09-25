@@ -62,6 +62,6 @@ the lock at the end, and set the request's Status to `held, YYYY-MM-DD`.
    not settle its item, and new items for new questions.
 4. Work one research batch per area: run the documentation check and commit,
    with a `Spec:` trailer, adding `Parity:` for the rows whose status
-   changed, and print the status block from `research-item` for each. The
+   changed and `Queue:` for the items it closed, and print the status block from `research-item` for each. The
    first batch puts what the session showed about the tools into
    `docs/RUNTIME.md`, and the last one deletes the request file.

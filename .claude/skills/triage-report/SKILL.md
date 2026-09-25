@@ -50,7 +50,7 @@ under no goal. One research batch per report:
    - **Not enough to tell**: add a `## Missing` section saying what would
      decide it, leave the file, and carry on.
 3. Delete the report file unless it is waiting on what it is missing. Run the
-   documentation check, and commit with `Spec:`, `Parity:` and
-   `Report: R-NNN` trailers.
+   documentation check, and commit with `Spec:`, `Parity:`, `Queue:` (items
+   it closed) and `Report: R-NNN` trailers.
 4. Tell the reporter what happened, naming the IDs, and print the status
    block from `research-item` with `Batch: report R-NNN`.

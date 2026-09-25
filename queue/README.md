@@ -47,7 +47,9 @@ are picked in the protocol's order of work, and within one step of it the
 affects between `Agent run` and `Live session` in the same commit.
 
 Close an item by recording the answer in `spec/` and deleting the item in the
-same commit. A static reading leaves its entries at `supported`; where
+same commit, which names it in a `Queue:` trailer so that it can still be
+found. An open reading of an entry, in its Open questions section, always has
+an item, and is cited by the item's ID. A static reading leaves its entries at `supported`; where
 `docs/RUNTIME.md` allows a run, the same commit adds an `Agent run` or
 `Live session` item for the experiment that would confirm it. An item with a
 `Tried:` note is taken up again only with something the first attempt did not

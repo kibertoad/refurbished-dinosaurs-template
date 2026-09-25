@@ -30,7 +30,8 @@ sets how restoration work is planned, tracked and handed on.
   `triage-report` skill, into a `Defect (R-...)` note on a parity row, a queue
   item or a finding. Screenshots stay in the local reference store under
   `GAME_DIR`, never in the repository. Competing readings of an open question
-  are kept in the entry's Open questions section.
+  are kept in the entry's Open questions section, each with a queue item that
+  cites it, and commits that close items carry a `Queue:` trailer.
 - A run that needs a person is a live session, requested in a file in
   `docs/live-sessions/` that the owner answers by editing its Status line.
   Work that needs no run carries on in the meantime.

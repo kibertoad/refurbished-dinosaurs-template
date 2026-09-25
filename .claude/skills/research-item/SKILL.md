@@ -33,8 +33,13 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    it claims, the findings and experiments for and against it by ID, and the
    evidence that would rule it out (the same as the queue item's Settles
    it). A reading the evidence rules out moves to the Alternatives section of
-   the finding that ruled it out. Never leave a reading only in the session's
-   memory, and never let one reach code except as what an entry says.
+   the finding that ruled it out, and the one that survives becomes the
+   entry's description at the status its evidence supports. Every open
+   reading has a queue item, and outside the spec it is cited by that item's
+   ID; readings get no IDs of their own. An entry whose readings are all
+   open stays `unknown` (or `sourced`). Never leave a reading only in the
+   session's memory, and never let one reach code except as what an entry
+   says.
 4. **Gather evidence statically**: data files, then a static reading
    (procedure in `docs/GHIDRA.md`). Settle statically whatever a static
    reading can settle, even where a run could too. Keep neutral names
@@ -97,7 +102,8 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    files by taking either side and running the check again, never by hand.
 9. **Commit** with a message saying what was found and on what evidence, ending
    in a `Spec:` trailer listing the entries created or changed, and a
-   `Parity:` trailer listing the rows whose status changed, if any.
+   `Parity:` trailer listing the rows whose status changed, if any, and a
+   `Queue:` trailer listing the IDs of the items it closed.
 10. **Print the status block** (format below), then continue with the next item
     if a goal is running, or `end-session` if not.
 
