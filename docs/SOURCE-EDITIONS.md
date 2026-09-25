@@ -13,8 +13,9 @@ question again unless the repository owner asks for it.
 
 ## Editions
 
-Each original release is a build entry, `spec/builds/BLD-<alias>.md`, which
-lists every file the spec uses with its size and xxh3. The patched analysis
+Each original release is a build entry, `spec/builds/BLD-<alias>.md`, whose
+manifest, `spec/builds/BLD-<alias>.files.yaml`, lists every file the spec uses
+with its size and xxh3. The patched analysis
 copy is the first build, and every other supported release gets its own entry.
 A storefront may distribute more than one build, and identical builds may appear
 through more than one storefront; hashes, not branding, decide support.
@@ -26,8 +27,9 @@ equivalent.
 ## Extractor manifests
 
 Add one JSON document below `src/Restoration.Extractor/source-manifests` per
-supported build, covering the same files and sizes as the build entry.
-Manifests fingerprint with SHA-256 and build entries with xxh3;
+supported build, covering the same files and sizes as the build's
+`.files.yaml` manifest. Extractor manifests fingerprint with SHA-256 and build
+manifests with xxh3;
 `Restoration.Inspect --source <dir>` prints both for every file. The Extractor tries
 the manifests deterministically, refuses files it does not recognise, and
 reports why each manifest failed. Preserve manual source selection even after

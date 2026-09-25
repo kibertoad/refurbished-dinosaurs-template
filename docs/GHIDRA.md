@@ -154,7 +154,7 @@ a different edition, fails the check before anyone builds on it.
 dotnet run --project tools/Restoration.Inspect -- citations `
   --executable analysis/original/<game>.exe `
   --docs spec `
-  --xxh3 <xxh3 from the build entry> `
+  --xxh3 <xxh3 from the build manifest> `
   --build BLD-<alias> `
   --instructions <temp>/<edition>.instructions.tsv `
   --report docs/address-citations.csv

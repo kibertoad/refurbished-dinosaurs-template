@@ -34,7 +34,7 @@ try
         {
             xxh3 = SpecHash.Xxh3(stream);
         }
-        // sha256 is what source manifests use; xxh3 is the hash spec build entries give.
+        // sha256 is what source manifests use; xxh3 is the hash spec build manifests give.
         files.Add(new { path = entry.Path, size = entry.Size, sha256, xxh3 });
     }
     Console.WriteLine(JsonSerializer.Serialize(new

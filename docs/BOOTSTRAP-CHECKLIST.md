@@ -62,7 +62,7 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Add deterministic commands, events, seed control, snapshots, and replay to
       Core.
 - [ ] Record rules, formats, screens, bugs, findings, and experiments in
-      `spec/` as the answers arrive, and keep `PARITY.md` and `DEVIATIONS.md`
+      `spec/` as the answers arrive, and keep the parity matrix and `deviations/`
       in step with the code.
 - [ ] Set up a main-branch CI job with a maintainer-owned copy of the game in
       `GAME_DIR`, which fails if a test listed for a `validated` row skips.

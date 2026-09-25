@@ -8,6 +8,31 @@ not here.
 
 A project created from this template may delete this file.
 
+## Spec file size limit, 2026-09-25
+
+Follows the documentation standard's new
+[File size](https://dinorefurb.com/documentation-standard/#file-size) section,
+which limits every Markdown file it defines to 1,000 lines and splits the files
+that grew with the whole project.
+
+- `spec/glossary.md` is replaced by `spec/glossary/`, one file per term.
+- `DEVIATIONS.md` is replaced by `deviations/`, one file per deviation.
+- The parity rows move to `parity/`, one file per area. `PARITY.md` keeps the
+  totals and a list of area files, and the check writes it.
+- A build entry names a `BLD-*.files.yaml` manifest instead of listing its
+  files. A list of more than 64 values, and an enumeration table that would
+  take its format past the limit, go in a CSV value file.
+- `docs/SPEC-ENTRY-TEMPLATES.md` adds templates for a glossary term, a
+  deviation, a parity area file, a build manifest and value files.
+- CI runs the documentation standard check from refurbished-dinosaurs-toolkit
+  in a new `Documentation standard` job, pinned to a commit SHA, and
+  `spec/index/` and `PARITY.md` are what that check writes.
+- `Test-TemplateInfrastructure.ps1` requires the new directories, fails on a
+  Markdown file over 1,000 lines in `spec/`, `parity/`, `deviations/` or
+  `PARITY.md`, and fails if CI stops running the check.
+- A synthetic test no longer names its fixture after a finding ID that does not
+  exist, since the check requires every cited ID to resolve.
+
 ## Mandatory deviations and justified defaults, 2026-09-25
 
 A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces

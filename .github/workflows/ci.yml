@@ -40,6 +40,19 @@ jobs:
       - name: Prove original content is absent
         shell: pwsh
         run: if (Test-Path artifacts/assetless-game/UserContent) { throw 'Assetless package contains UserContent.' }
+  documentation:
+    name: Documentation standard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history, so the check can find where a pull request forked from main and fail
+          # when it deletes a spec ID, area or deviation that exists there.
+          fetch-depth: 0
+      # The toolkit publishes no tags, and its setup guide pins a commit on its main branch.
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@cfc80a717dc74cba0026fb057fcd54d559fc8c37 # zizmor: ignore[stale-action-refs]
   installer:
     name: Windows installer
     needs: verify

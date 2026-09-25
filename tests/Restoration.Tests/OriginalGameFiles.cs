@@ -8,7 +8,7 @@ namespace Restoration.Tests;
 /// <summary>
 /// Files from a maintainer's copy of the original game, for tests that compare the rebuild with
 /// it. They live under the directory named by <c>GAME_DIR</c>: one directory per build, named by
-/// its build ID, laid out as the build entry's paths give them, with a file from a disc under a
+/// its build ID, laid out as the build manifest's paths give them, with a file from a disc under a
 /// directory named after the disc (<c>CD:</c>, <c>CD2:</c>). Captures, dumps and recordings that
 /// cannot be committed, and the saves experiments start from, sit in <c>GAME_DIR/captures/</c>,
 /// named by their xxh3 (<see cref="SpecHash"/>). A test whose file is absent is skipped, and a
@@ -29,7 +29,7 @@ public static partial class OriginalGameFiles
 
     /// <summary>
     /// The full path of <paramref name="path"/> in <paramref name="build"/>, after checking it
-    /// against <paramref name="xxh3"/> from the build entry. Skips the test when it is absent.
+    /// against <paramref name="xxh3"/> from the build manifest. Skips the test when it is absent.
     /// </summary>
     public static string Require(string build, string path, string xxh3) =>
         Resolve(Environment.GetEnvironmentVariable(EnvironmentVariable), build, path, xxh3)

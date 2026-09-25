@@ -17,7 +17,7 @@ not imply a pass at the next:
 4. **Presentation parity** - the same state produces the screen a capture of the
    original shows, pixel for pixel, and starts the same sounds on the same tick.
 
-`PARITY.md` records which rows have tests at these levels. A test counts there
+The parity matrix records which rows have tests at these levels. A test counts there
 only if it compares the rebuild with evidence from the original. Decoder tests on
 synthetic files, and tests that compare the rebuild with an earlier version of
 itself, are still required but are left out of that column. Manual play never
@@ -27,7 +27,7 @@ counts.
 
 Tests that need the original's files find them under the directory named by the
 `GAME_DIR` environment variable, which holds one directory per build, named by
-its build ID, with the files laid out as the build entry's paths give them:
+its build ID, with the files laid out as the build manifest's paths give them:
 `GAME_DIR/BLD-GOG-EN-1.1/GAME.EXE`, with a file from a disc under a directory
 named after the disc (`CD`, `CD2`). `GAME_DIR/captures/` holds the dumps,
 captures, recordings, and saves that cannot be committed, each named by its
@@ -51,7 +51,7 @@ Pull requests, including those from forks, run without a copy, so these tests
 skip there. A configured project adds a main-branch CI job on a self-hosted
 runner, or with storage only the maintainers can read, that sets `GAME_DIR` to a
 maintainer-owned copy and fails if any test listed for a `validated` row in
-`PARITY.md` skipped. The copy never goes in the repository or a published build
+`parity/` skipped. The copy never goes in the repository or a published build
 artifact.
 
 ## Local automated checks
@@ -118,13 +118,37 @@ finding entries in `spec/findings/`; decompiler output is never committed.
 
 ## Spec checks
 
-The documentation standard's check script, which validates `spec/`,
-`PARITY.md`, and `DEVIATIONS.md` and generates `spec/index/`, will be published
-in [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit)
-and is not wired in yet. Until then, reviewers go through the standard's list of
-[checks](https://dinorefurb.com/documentation-standard/#checks) by hand, compile
-each `.ksy` file with the Kaitai Struct compiler, and give each save-patch write
-as a byte offset and value in the experiment's Setup section.
+The `Documentation standard` job in `.github/workflows/ci.yml` runs the
+`check-documentation` action from
+[refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
+pinned to a full commit SHA, on every pull request. It checks `spec/`, `parity/`
+and `deviations/` against the standard's list of
+[checks](https://dinorefurb.com/documentation-standard/#checks), compiles each
+`.ksy` file with the Kaitai Struct compiler, checks that every spec and
+deviation ID cited in `src/`, `tests/` and `tools/` exists and is not
+superseded, and fails when `spec/index/` or `PARITY.md` is stale. It fetches
+the full history so it can fail a pull request that deletes a spec ID, area or
+deviation that exists on `main`. The toolkit's
+[setup guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/documentation-standard-check.md)
+lists its inputs.
+
+The check writes `spec/index/` and `PARITY.md`; nobody edits them by hand. After
+changing the spec, `parity/` or `deviations/`, run the script from the same
+toolkit commit the workflow pins, with Node.js 20 or newer, and commit what it
+writes:
+
+```sh
+curl -fsSL --create-dirs -o artifacts/check-documentation.mjs https://raw.githubusercontent.com/kibertoad/refurbished-dinosaurs-toolkit/<sha>/tools/check-documentation.mjs
+node artifacts/check-documentation.mjs
+git add spec/index PARITY.md
+```
+
+`--check` reports problems without writing anything. `tools/Test-TemplateInfrastructure.ps1`
+fails if the workflow stops running the check or pins it to anything but a full
+commit SHA. The script does not check some items on the standard's list, such as
+the fixture schema and the hashes of saves and recordings; its guide lists them,
+and reviewers check those by hand. A save-patch write is given as a byte offset
+and value in the experiment's Setup section.
 
 ## Repository policy
 

@@ -20,13 +20,35 @@ foreach ($relative in @(
     'tools/Invoke-ESigner.ps1',
     'tools/Invoke-GpgSigner.ps1',
     "src/$projectName.Extractor/packages.lock.json",
-    # The documentation standard's layout: the spec, its licences, and the implementation's two ledgers.
+    # The documentation standard's layout: the spec, its licences, and the parity totals.
     'spec/README.md',
     'spec/LICENSE',
-    'spec/glossary.md',
-    'PARITY.md',
-    'DEVIATIONS.md'
+    'PARITY.md'
 )) { Assert-RequiredFile $relative }
+
+# The .gitkeep in each of these may go once the directory holds its first file, so only the
+# directory is required.
+foreach ($relative in @('spec/glossary', 'parity', 'deviations')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Container)) {
+        $failures.Add("missing required infrastructure directory: $relative")
+    }
+}
+
+# The documentation standard limits every Markdown file it defines to 1,000 lines.
+$standardMarkdown = @(Get-Item -LiteralPath (Join-Path $root 'PARITY.md') -ErrorAction SilentlyContinue)
+foreach ($directory in @('spec', 'parity', 'deviations')) {
+    $path = Join-Path $root $directory
+    if (Test-Path -LiteralPath $path) {
+        $standardMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')
+    }
+}
+foreach ($file in $standardMarkdown) {
+    $lineCount = [IO.File]::ReadAllLines($file.FullName).Length
+    if ($lineCount -gt 1000) {
+        $relative = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
+        $failures.Add("$relative has $lineCount lines; the documentation standard allows 1,000")
+    }
+}
 
 $release = Get-Content -LiteralPath (Join-Path $root '.github/workflows/release.yml') -Raw
 foreach ($required in @('signed_release:', 'release-signing', 'Invoke-ESigner.ps1',
@@ -34,6 +56,12 @@ foreach ($required in @('signed_release:', 'release-signing', 'Invoke-ESigner.ps
     if ($release.IndexOf($required, [StringComparison]::Ordinal) -lt 0) {
         $failures.Add("release workflow is missing '$required'")
     }
+}
+
+$ci = Get-Content -LiteralPath (Join-Path $root '.github/workflows/ci.yml') -Raw
+# Anchored to a uses: key, so a commented-out step does not count.
+if ($ci -notmatch '(?m)^\s*(-\s+)?uses:\s*kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@[0-9a-f]{40}(\s|$)') {
+    $failures.Add('CI workflow does not run the documentation standard check pinned to a full commit SHA')
 }
 
 $launchers = @(Get-ChildItem -LiteralPath $root -File -Filter 'Start *.bat')

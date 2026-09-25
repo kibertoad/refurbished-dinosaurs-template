@@ -33,7 +33,7 @@ public static class CitationCommand
                 Console.Error.WriteLine($"[citations_failed] {executable} has SHA-256 {sha256}, expected {expected}.");
                 return 1;
             }
-            // The build entry in spec/builds gives the executable's xxh3.
+            // The build manifest in spec/builds gives the executable's xxh3.
             var xxh3 = SpecHash.Xxh3(bytes);
             var expectedXxh3 = Option(args, "--xxh3")?.Trim().ToLowerInvariant();
             if (expectedXxh3 is not null && expectedXxh3 != xxh3)
