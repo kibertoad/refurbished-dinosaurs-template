@@ -8,6 +8,17 @@ not here.
 
 A project created from this template may delete this file.
 
+## Mandatory deviations and justified defaults, 2026-09-25
+
+A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
+`always on` and means the deviation has no setting. A deviation that is
+`mandatory`, or `on` without being the fix of an unintended bug players do not
+rely on, carries a `Justification` item arguing that the rebuild's behavior is
+strictly better than the original's, as the
+[documentation standard](https://dinorefurb.com/documentation-standard/#deviation-log)
+now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
+a test that reaches a mandatory deviation cites its ID and allows for it.
+
 ## Documentation standard and methodology, 2026-09-25
 
 The template now follows the dinorefurb.com
