@@ -104,6 +104,18 @@ the published page differ, the page wins.
   one the protocol calls abandoned. If another agent holds it, do not wait.
   Outside a live session, never attach to, send input to or stop a process
   you did not start.
+- Evidence from runs comes mostly from people. Runs an agent drives are the
+  most fragile evidence there is, so they are scripted, start from a fixed
+  state and are kept to questions nothing else answers.
+- People test the rebuild when they happen to and report in words and
+  screenshots. Never wait for a report or plan around one. Record one at once
+  in `docs/reports/` with the `triage-report` skill; a research session
+  triages it into a `Defect (R-...)` parity note, a queue item or a finding.
+  Screenshots are never committed: the rebuild's go in `GAME_DIR/reports/`,
+  the original's in `GAME_DIR/captures/`, the durable local reference store.
+- Competing readings of an open question are written in the entry's Open
+  questions section with the evidence for and against each, never kept only
+  in a session, and never implemented until an entry says them.
 - A run that needs a person is a live session, requested in a file in
   `docs/live-sessions/` that the owner answers there. Never wait idle for one.
 - Open research questions live in `queue/<AREA>.md`, grouped by the evidence
@@ -146,7 +158,7 @@ the published page differ, the page wins.
 
 The procedures are skills in `.claude/skills/`: `runtime-access`,
 `plan-work`, `start-session`, `research-item`, `implement-rows`,
-`live-session` and `end-session`. For a `/goal`, write the goal file with
+`triage-report`, `live-session` and `end-session`. For a `/goal`, write the goal file with
 `plan-work`, keep to its scope, and end every batch with the status block the
 skills print.
 

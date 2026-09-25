@@ -31,10 +31,12 @@ foreach ($relative in @(
     'docs/goals/README.md',
     'docs/RUNTIME.md',
     'docs/live-sessions/README.md',
+    'docs/reports/README.md',
     '.claude/skills/runtime-access/SKILL.md',
     '.claude/skills/start-session/SKILL.md',
     '.claude/skills/research-item/SKILL.md',
     '.claude/skills/implement-rows/SKILL.md',
+    '.claude/skills/triage-report/SKILL.md',
     '.claude/skills/live-session/SKILL.md',
     '.claude/skills/end-session/SKILL.md',
     '.claude/skills/plan-work/SKILL.md'
@@ -67,7 +69,7 @@ foreach ($file in $standardMarkdown) {
 # The work protocol applies the same limit to its own files, and keeps the handover to the
 # current state in at most 200 lines.
 $protocolMarkdown = @()
-foreach ($directory in @('queue', 'docs/goals', 'docs/decisions', 'docs/live-sessions')) {
+foreach ($directory in @('queue', 'docs/goals', 'docs/decisions', 'docs/live-sessions', 'docs/reports')) {
     $path = Join-Path $root $directory
     if (Test-Path -LiteralPath $path) {
         $protocolMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')

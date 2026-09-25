@@ -25,6 +25,12 @@ sets how restoration work is planned, tracked and handed on.
   Windows or `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere (or the path
   in `REFURBISHED_DINOSAURS_RUN_LOCK`), since several agents work on different
   games on one machine at once, under one account or several.
+- People test the rebuild when they happen to. `docs/reports/` holds their
+  reports until a research session triages each one, with the new
+  `triage-report` skill, into a `Defect (R-...)` note on a parity row, a queue
+  item or a finding. Screenshots stay in the local reference store under
+  `GAME_DIR`, never in the repository. Competing readings of an open question
+  are kept in the entry's Open questions section.
 - A run that needs a person is a live session, requested in a file in
   `docs/live-sessions/` that the owner answers by editing its Status line.
   Work that needs no run carries on in the meantime.
@@ -53,11 +59,11 @@ sets how restoration work is planned, tracked and handed on.
   checklist gains the Runtime access and Survey stages.
 - `.claude/skills/` carries the protocol's procedures as agent skills:
   `runtime-access`, `plan-work`, `start-session`, `research-item`,
-  `implement-rows`, `live-session` and `end-session`. They hold steps and link
+  `implement-rows`, `triage-report`, `live-session` and `end-session`. They hold steps and link
   to the published pages for the rules.
 - `Test-TemplateInfrastructure.ps1` requires the new files and skills, fails on
   a Markdown file over 1,000 lines in `queue/`, `docs/goals/`,
-  `docs/live-sessions/`, the plan or the decisions (including
+  `docs/live-sessions/`, `docs/reports/`, the plan or the decisions (including
   `docs/decisions/`), and on a handover over 200 lines.
 
 ## Spec file size limit, 2026-09-25

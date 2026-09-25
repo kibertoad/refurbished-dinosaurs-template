@@ -27,15 +27,24 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    `Live session` for a run, `Source` for a document) with what was tried,
    and to `Blocked` with `Waiting on:` only when that evidence is out of
    reach for now.
-3. **State the question and the competing readings** in your working notes
-   (not in the repository). Decide what evidence would rule each reading out.
+3. **State the question and the competing readings.** Decide what evidence
+   would rule each reading out. Readings still open when the batch ends go in
+   the Open questions section of the entry they concern, one per reading: what
+   it claims, the findings and experiments for and against it by ID, and the
+   evidence that would rule it out (the same as the queue item's Settles
+   it). A reading the evidence rules out moves to the Alternatives section of
+   the finding that ruled it out. Never leave a reading only in the session's
+   memory, and never let one reach code except as what an entry says.
 4. **Gather evidence statically**: data files, then a static reading
    (procedure in `docs/GHIDRA.md`). Settle statically whatever a static
    reading can settle, even where a run could too. Keep neutral names
    (`fn_00478CD0`) until evidence shows what a thing does. Keep decompiler
    output, listings and dumps in ignored local storage, and read bounded
    instruction context when signedness or control flow matters. A run of the
-   original is the last resort for each question: only for an item under
+   original that you drive is the last resort for each question, because such
+   runs are fragile (focus, timing, emulator automation, unexpected dialogs)
+   and a result that cannot be repeated is not evidence. Script it, start from
+   a fixed state, and record enough to repeat it. Only for an item under
    `Agent run` whose own static attempt is under `Tried:` or that asks for the
    run confirming a static reading, and only while holding the run lock (path
    in `docs/RUNTIME.md`; take it with an exclusive create that fails if the
@@ -60,7 +69,8 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    finding first, and `Tried:` names it). Where a static reading settled the
    item and `docs/RUNTIME.md` allows a run, add an `Agent run` or
    `Live session` item for the experiment that would confirm it; where no run
-   is possible, say in the entry's Open questions that a run is what it lacks.
+   is possible, say in the entry's Open questions which observation of the
+   original would confirm it, so that a tester's capture can later.
    Remove the `Spec gap (Q-...)` note of every item you closed.
 7. **Keep the check passing, and change nothing else outside `spec/`,
    `queue/` and `tools/`:**

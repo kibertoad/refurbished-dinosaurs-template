@@ -26,8 +26,10 @@ This skill is the procedure; where they differ, the protocol wins.
 5. Read the plan's stage and current slice in `docs/IMPLEMENTATION-PLAN.md`,
    and check `docs/live-sessions/` for a request the owner has accepted.
 6. Pick the next work:
-   - Research: first turn every `Spec gap:` note in `parity/` that has no
-     queue item ID yet into a queue item (`research-item` step 1). Then, from
+   - Research: first triage the open reports in `docs/reports/` that the
+     goal may take (`triage-report`). Then turn every `Spec gap:` note in
+     `parity/` that has no queue item ID yet into a queue item
+     (`research-item` step 1). Then, from
      every section of the queue alike: what the goal names; items that block
      the current slice; items others depend on (RNG, main loop, save format,
      state structures); items where one piece of evidence raises the most
@@ -37,8 +39,10 @@ This skill is the procedure; where they differ, the protocol wins.
      a static reading.
    - Implementation: first remove any code in `src/` that cites a finding or
      an experiment (`FND-`, `EXP-`), with the tests that exercise it: its
-     entry was superseded because the mechanic does not exist. Then parity
-     rows of the current slice from the goal or the plan, whose spec status is
-     at least `supported`. Do not open `queue/`.
+     entry was superseded because the mechanic does not exist. Then rows
+     whose Notes start with `Defect (R-...)`, adding a test that fails without
+     the fix and removing the note. Then parity rows of the current slice
+     from the goal or the plan, whose spec status is at least `supported`. Do
+     not open `queue/` or `docs/reports/`.
 7. Say in two or three lines what you picked and why, then hand over to
    `research-item`, `implement-rows` or `live-session`.

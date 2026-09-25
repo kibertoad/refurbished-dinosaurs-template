@@ -9,16 +9,18 @@ The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#imple
 and the standard's [implementation side](https://dinorefurb.com/documentation-standard/#implementation-side).
 
 **Work from the spec only.** Do not open Ghidra, decompiler or disassembly
-output, debugger logs, captures, research notes, `queue/` or research goal
-files in this batch. If this conversation already holds any of that, run the
-batch in a fresh session or a subagent given only the entry IDs and this skill. That keeps the clean room,
-and it tests whether the spec says enough.
+output, debugger logs, captures, screenshots of the original, research notes,
+`queue/`, `docs/reports/` or research goal files in this batch. If this conversation already holds any of that, run the
+batch in a fresh session or a subagent given only the entry IDs and this
+skill. That keeps the clean room, and it tests whether the spec says enough.
 
 1. **Remove dead code first**: code in `src/` that cites a finding or an
    experiment (`FND-`, `EXP-`) was written for an entry that turned out to
    describe nothing. Remove it, with the tests that exercise it, as a batch
    of its own.
-2. **Pick rows**: parity rows in `parity/<AREA>.md` that the current slice of
+2. **Pick rows**: rows whose Notes start with `Defect (R-...)` first (fix
+   the rebuild to what the entry says, add a test that fails without the fix,
+   and remove the note), then parity rows in `parity/<AREA>.md` that the current slice of
    `docs/IMPLEMENTATION-PLAN.md` names, whose Code is not `complete`. Prefer
    rows whose spec status is `supported` or `established`.
 3. **Read the entries** the rows name, and every rule, format and glossary term
