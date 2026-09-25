@@ -27,7 +27,7 @@ counts.
 
 Tests that need the original's files find them under the directory named by the
 `GAME_DIR` environment variable, which holds one directory per build, named by
-its build ID, with the files laid out as the build entry's paths give them:
+its build ID, with the files laid out as the build manifest's paths give them:
 `GAME_DIR/BLD-GOG-EN-1.1/GAME.EXE`, with a file from a disc under a directory
 named after the disc (`CD`, `CD2`). `GAME_DIR/captures/` holds the dumps,
 captures, recordings, and saves that cannot be committed, each named by its
@@ -138,7 +138,7 @@ toolkit commit the workflow pins, with Node.js 20 or newer, and commit what it
 writes:
 
 ```sh
-curl -fsSLo artifacts/check-documentation.mjs   https://raw.githubusercontent.com/kibertoad/refurbished-dinosaurs-toolkit/<sha>/tools/check-documentation.mjs
+curl -fsSL --create-dirs -o artifacts/check-documentation.mjs https://raw.githubusercontent.com/kibertoad/refurbished-dinosaurs-toolkit/<sha>/tools/check-documentation.mjs
 node artifacts/check-documentation.mjs
 git add spec/index PARITY.md
 ```
