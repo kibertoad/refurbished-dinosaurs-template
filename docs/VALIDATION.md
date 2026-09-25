@@ -38,6 +38,9 @@ specifies (`xxhsum -H2`); `SpecHash` in `Restoration.Inspect` computes it, and
 `OriginalGameFiles` in the test project resolves both kinds of path, checks
 each file's hash before a test reads it, and skips the test when the file is
 absent. Listed tests run with every deviation that has a setting switched off.
+A `mandatory` deviation cannot be switched off, so a listed test that reaches
+the behavior it changes cites the deviation's ID and leaves that case out or
+compares with the original's result as the deviation changes it.
 
 A test that compares a distribution with the original runs the rebuild from the
 generator states the experiment fixture recorded, or from its `seeds` where the

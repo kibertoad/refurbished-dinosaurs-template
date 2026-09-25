@@ -166,10 +166,18 @@ pixel except where a documented interface change draws something new. When a
 bug cannot be told from a design decision, the original behavior stays and any
 fix becomes a setting.
 
-Every departure from the spec is a `DEV-AREA-NNN` entry in `DEVIATIONS.md`. One
-that changes game state or anything a test compares with the original has a
-setting, and the validation suite runs with every such setting switched off.
-Rebalancing and new features belong in a separate mode or project.
+Every departure from the spec is a `DEV-AREA-NNN` entry in `DEVIATIONS.md`,
+with a Default of `off`, `on` or `mandatory`. A setting starts `off`, with the
+original's behavior, unless the entry's Justification argues that the rebuild's
+behavior is strictly better: then it starts `on`, and a player who wants the
+original switches it off. A deviation with no setting is `mandatory`, and its
+Justification also says why the original's behavior is not worth a setting. The
+fix of an unintended bug that players do not rely on is `on` without one. A
+quirk that may be deliberate or that players rely on is never strictly better,
+so its deviation starts `off`. The validation suite runs with every setting
+switched off, and a test that reaches a mandatory deviation cites its ID and
+allows for it. Rebalancing and new features belong in a separate mode or
+project.
 
 ## Citing the spec
 
