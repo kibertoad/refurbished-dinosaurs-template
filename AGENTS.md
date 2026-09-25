@@ -50,7 +50,7 @@ investigation unless the owner asks for it.
 
 **1. Write the implementation plan.** Fill in `docs/IMPLEMENTATION-PLAN.md`: the
 game profile, the scope and non-goals, the ordered vertical slices with
-acceptance criteria, the risks, and the open questions.
+acceptance criteria, the risks, and the questions only the owner can answer.
 
 **2. Configure the project identity.** Fill in `tools/project-config.json` and
 run `./tools/Bootstrap-Project.ps1`; it enforces the plan and latest-version
@@ -80,6 +80,34 @@ over broad but unplayable systems.
 **6. Verify and hand over.** Run the commands below, update the README status
 table and the parity files to match what is actually true, and tick off
 `docs/BOOTSTRAP-CHECKLIST.md` as decisions are captured elsewhere.
+
+## Planning and tracking work
+
+Work is planned, tracked and handed on under the
+[work protocol](https://dinorefurb.com/work-protocol/); where this section and
+the published page differ, the page wins.
+
+- The project moves through the stages Intake, Survey, Harness, Slices and
+  Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
+- Open research questions live in `queue/<AREA>.md`, grouped by the evidence
+  they need. An item is closed by recording its answer in `spec/` and deleting
+  it in the same commit. An item tried twice without new evidence moves to
+  `Blocked` with what was tried.
+- A batch is one commit, and is either research or implementation. An
+  implementation batch works from the spec alone and never opens analysis
+  output; a gap in the spec becomes an Open question and a queue item.
+- Commit messages end with a `Spec:` trailer naming the entries created or
+  changed, and implementation commits add `Parity:` for the rows moved.
+- `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
+  at the end of every session. `docs/goals/` holds one file per running goal.
+  `docs/DECISIONS.md` records the owner's decisions.
+- Progress is what scripts compute: parity totals, entries by status,
+  executable and file coverage, queue sizes. Never a hand-written percentage.
+
+The procedures are skills in `.claude/skills/`: `start-session`,
+`research-item`, `implement-rows`, `maintainer-session`, `end-session` and
+`plan-work`. For a `/goal`, write the goal file with `plan-work`, keep to its
+scope, and end every batch with the status block the skills print.
 
 ## Rules that never bend
 
@@ -238,7 +266,7 @@ to fail when discovery drops below an expected count.
 A change is finished when the solution builds, `./tools/Invoke-Validation.ps1` passes, new
 behavior has tests, the spec entries it relies on exist with the status their
 evidence supports, the documents that assert status (`README.md`, `PARITY.md`,
-`parity/`, `deviations/`) match reality, and the plan's open questions have been updated
+`parity/`, `deviations/`) match reality, and `queue/` has been updated
 with whatever the work settled or newly raised.
 
 Commits describe the change and its evidence, not the tooling that produced it.

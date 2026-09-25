@@ -8,6 +8,33 @@ not here.
 
 A project created from this template may delete this file.
 
+## Work protocol, 2026-09-25
+
+Follows the new [work protocol](https://dinorefurb.com/work-protocol/), which
+sets how restoration work is planned, tracked and handed on. It comes from
+comparing six restorations: plans and handovers that grew into logs of more
+than a thousand lines, research questions scattered through prose, code that
+ran ahead of any run of the original, and confidence scales invented per
+project.
+
+- `queue/` holds the open research questions, one file per spec area, grouped
+  by the evidence each one needs. `queue/README.md` gives the format.
+- `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
+  every session. `docs/goals/` holds one file per running long-running goal,
+  and `docs/DECISIONS.md` the owner's decisions.
+- `docs/IMPLEMENTATION-PLAN.md` records the project's stage (Intake, Survey,
+  Harness, Slices, Audit), gives each slice an Exit item, and keeps only
+  owner questions; research questions move to `queue/`.
+- `AGENTS.md` gains a Planning and tracking work section, and the bootstrap
+  checklist gains the Survey and Harness stages.
+- `.claude/skills/` carries the protocol's procedures as agent skills:
+  `start-session`, `research-item`, `implement-rows`, `maintainer-session`,
+  `end-session` and `plan-work`. They hold steps and link to the published
+  pages for the rules.
+- `Test-TemplateInfrastructure.ps1` requires the new files and skills, fails on
+  a Markdown file over 1,000 lines in `queue/`, `docs/goals/`, the plan or the
+  decisions, and on a handover over 200 lines.
+
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new

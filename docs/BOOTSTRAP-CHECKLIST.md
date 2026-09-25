@@ -23,6 +23,13 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       scope and area list in `spec/README.md`, and add a source entry for each
       manual, FAQ, or earlier tool the work relies on.
 - [ ] Fill in `docs/IMPLEMENTATION-PLAN.md`.
+- [ ] Survey: give every file in the build manifest a format entry (`unknown`
+      where nothing is known), take a function inventory of the executable,
+      add a screen entry for every screen the manual mentions, and seed a
+      `queue/<AREA>.md` for every area.
+- [ ] Harness: specify the random number generator, understand the save
+      format well enough to patch it, choose the tool that observes the
+      original running, and replay one recorded experiment in a test.
 
 ## Configure
 
