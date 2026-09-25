@@ -7,6 +7,12 @@ after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
 it.
 
+Rules, formats, screens and bugs may also have `complete_reading`, a list of
+the static findings that together read all of the entry, which makes it
+`established` without a run (see the standard's
+[Complete readings](https://dinorefurb.com/documentation-standard/#complete-readings)).
+Leave it out until such a reading exists.
+
 A section with nothing to say is kept and says `None known.`, or `None.` where
 it is certain that there is nothing. The documentation standard check from
 [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit)

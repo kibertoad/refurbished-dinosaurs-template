@@ -2,6 +2,12 @@
 
 > Fill this document in before writing implementation code. Replace the italic
 > guidance with real content and delete nothing structural.
+>
+> This file says what the project intends and what is true now, following the
+> [work protocol](https://dinorefurb.com/work-protocol/). It holds no dated
+> checkpoints, no status narration and no research questions: git keeps the
+> history, `queue/` holds the research questions, and `docs/HANDOVER.md` says
+> where the last session stopped.
 
 ## Game profile
 
@@ -15,6 +21,7 @@
 | Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |
 | Editions available for validation | _their `BLD-` IDs; `docs/SOURCE-EDITIONS.md` holds the detail_ |
 | Existing research relied on | _their `SRC-` IDs: manuals, community documentation, prior analysis_ |
+| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](https://dinorefurb.com/work-protocol/#stages) defines them. Move on only when the previous stage's exit criteria hold._ |
 
 ## Scope
 
@@ -26,8 +33,13 @@ non-goal is cheaper than a half-finished system._
 
 ## Slices
 
-Organize the work as playable vertical slices, ordered so that each one leaves
-the game runnable. A workable default order is source identification and extraction,
+Slices start once the Runtime access and Survey stages have ended. Organize
+the work as playable vertical slices, ordered so that each one leaves the game
+runnable. Set each slice's targets to what `docs/RUNTIME.md` makes reachable:
+without runs of the original, rule and screen rows, and format rows with no
+files (memory structures, messages), stop at `implemented`. The
+first slice gives the rebuild a headless runner that a test drives from a
+fixture. A workable default order is source identification and extraction,
 separate asset extraction plus assetless startup and diagnostics, native resolution and scaling,
 title-to-first-interaction flow, deterministic state and replay, and only then
 breadth.
@@ -55,14 +67,18 @@ breadth.
   original content._
 - **Observed parity.** _The parity rows the slice should make `validated`,
   and the experiments or captures their tests compare against._
+- **Exit.** _Statements a script or reviewer can check: which parity rows reach
+  which status, and which queue items, by ID, must be closed first._
 
 _Repeat this block per slice. Keep finished slices here with their status
 updated; the plan is the record of what was decided, not only of what is next._
 
-## Open questions
+## Owner questions
 
-Track every uncertainty here until it is settled by evidence. A question is
-closed by a document update, not by a plausible assumption in code.
+Questions only the repository owner can answer: editions, scope, product
+decisions. Research questions about the original go in `queue/`, never here.
+A question is closed by a document update (usually `docs/DECISIONS.md`), not
+by a plausible assumption in code.
 
 | ID | Question | Blocks | Owner | Status |
 |---|---|---|---|---|

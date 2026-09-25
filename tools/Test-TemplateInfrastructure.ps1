@@ -23,7 +23,23 @@ foreach ($relative in @(
     # The documentation standard's layout: the spec, its licences, and the parity totals.
     'spec/README.md',
     'spec/LICENSE',
-    'PARITY.md'
+    'PARITY.md',
+    # The work protocol's working files and the skills that carry out its procedures.
+    'queue/README.md',
+    'docs/HANDOVER.md',
+    'docs/DECISIONS.md',
+    'docs/goals/README.md',
+    'docs/RUNTIME.md',
+    'docs/live-sessions/README.md',
+    'docs/reports/README.md',
+    '.claude/skills/runtime-access/SKILL.md',
+    '.claude/skills/start-session/SKILL.md',
+    '.claude/skills/research-item/SKILL.md',
+    '.claude/skills/implement-rows/SKILL.md',
+    '.claude/skills/triage-report/SKILL.md',
+    '.claude/skills/live-session/SKILL.md',
+    '.claude/skills/end-session/SKILL.md',
+    '.claude/skills/plan-work/SKILL.md'
 )) { Assert-RequiredFile $relative }
 
 # The .gitkeep in each of these may go once the directory holds its first file, so only the
@@ -47,6 +63,32 @@ foreach ($file in $standardMarkdown) {
     if ($lineCount -gt 1000) {
         $relative = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
         $failures.Add("$relative has $lineCount lines; the documentation standard allows 1,000")
+    }
+}
+
+# The work protocol applies the same limit to its own files, and keeps the handover to the
+# current state in at most 200 lines.
+$protocolMarkdown = @()
+foreach ($directory in @('queue', 'docs/goals', 'docs/decisions', 'docs/live-sessions', 'docs/reports')) {
+    $path = Join-Path $root $directory
+    if (Test-Path -LiteralPath $path) {
+        $protocolMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')
+    }
+}
+$protocolMarkdown += @(Get-Item -LiteralPath (Join-Path $root 'docs/IMPLEMENTATION-PLAN.md') -ErrorAction SilentlyContinue)
+$protocolMarkdown += @(Get-Item -LiteralPath (Join-Path $root 'docs/DECISIONS.md') -ErrorAction SilentlyContinue)
+foreach ($file in $protocolMarkdown) {
+    $lineCount = [IO.File]::ReadAllLines($file.FullName).Length
+    if ($lineCount -gt 1000) {
+        $relative = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
+        $failures.Add("$relative has $lineCount lines; the work protocol allows 1,000")
+    }
+}
+$handover = Join-Path $root 'docs/HANDOVER.md'
+if (Test-Path -LiteralPath $handover) {
+    $lineCount = [IO.File]::ReadAllLines($handover).Length
+    if ($lineCount -gt 200) {
+        $failures.Add("docs/HANDOVER.md has $lineCount lines; the work protocol allows 200 for the current state")
     }
 }
 

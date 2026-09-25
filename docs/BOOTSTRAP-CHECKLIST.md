@@ -23,6 +23,17 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       scope and area list in `spec/README.md`, and add a source entry for each
       manual, FAQ, or earlier tool the work relies on.
 - [ ] Fill in `docs/IMPLEMENTATION-PLAN.md`.
+- [ ] Runtime access: fill in `docs/RUNTIME.md` with the `runtime-access`
+      skill, answering every capability for the analysis build from an
+      attempt.
+- [ ] Survey: list in the manifest every file the game uses and the rest under
+      the build entry's Other files, give the format of every file listed as
+      `data` an entry (`unknown` where nothing is known; CD audio tracks need
+      none), export a function inventory of each file the analysis reads to
+      `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an
+      `@CD` directory), add a screen entry for every
+      screen the manual mentions, and seed a `queue/<AREA>.md` for every
+      area.
 
 ## Configure
 

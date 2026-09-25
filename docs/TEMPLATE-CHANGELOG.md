@@ -8,6 +8,77 @@ not here.
 
 A project created from this template may delete this file.
 
+## Work protocol, 2026-09-25
+
+Follows the new [work protocol](https://dinorefurb.com/work-protocol/), which
+sets how restoration work is planned, tracked and handed on.
+
+- The stages are Intake, Runtime access, Survey, Slices and Audit.
+  `docs/RUNTIME.md` records what can be done with the original running and
+  whether an agent, only a person, or nobody can do it, and slices aim only at
+  the parity statuses that makes reachable.
+- Static analysis comes first, and runs of the original are the last resort
+  for each question: a run item needs its own static attempt first, or asks
+  for the run that confirms a static reading, and then takes its place in the
+  order of work. Every run holds the machine-wide lock, taken with an
+  exclusive create at `C:\ProgramData\refurbished-dinosaurs\run.lock` on
+  Windows or `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere (or the path
+  in `REFURBISHED_DINOSAURS_RUN_LOCK`), since several agents work on different
+  games on one machine at once, under one account or several.
+- People test the rebuild when they happen to. `docs/reports/` holds their
+  reports until a research session triages each one, with the new
+  `triage-report` skill, into a `Defect (R-...)` note on a parity row, a queue
+  item or a finding. Screenshots stay in the local reference store under
+  `GAME_DIR`, never in the repository. Competing readings of an open question
+  are kept in the entry's Open questions section, each with a queue item that
+  cites it, and commits that close items carry a `Queue:` trailer.
+- Adds the `Emulated call` queue section, between `Static` and `Agent run`,
+  for calling one function of the original in a Unicorn harness in
+  `tools/emu/`. `research-item`, `plan-work`, `runtime-access`,
+  `start-session`, `triage-report`, `AGENTS.md` and `docs/RUNTIME.md` say
+  how such a call is made and what it can establish. `docs/RUNTIME.md` no
+  longer asks for a text-in, text-out runtime tool.
+- Follows the standard's new direct evidence and complete reading rules:
+  circumstantial evidence never raises a status, and a complete reading of the
+  code makes an entry `established` without a run, listed in the optional
+  `complete_reading` field. Runs are queued only for entries that depend on
+  something the code does not decide. `AGENTS.md`, `research-item`,
+  `plan-work`, `queue/README.md` and `docs/SPEC-ENTRY-TEMPLATES.md` follow.
+- A run that needs a person is a live session, requested in a file in
+  `docs/live-sessions/` that the owner answers by editing its Status line.
+  Work that needs no run carries on in the meantime.
+- `queue/` holds the open research questions, one file per spec area, grouped
+  by the evidence each one needs (Static, Agent run, Live session, Source,
+  Blocked), each with an ID such as `Q-COMBAT-012`. `queue/README.md` gives
+  the format.
+- `docs/HANDOVER.md` is the current state of work outside any goal, at most
+  200 lines, rewritten every session and committed on its own. `docs/goals/`
+  holds one file per running long-running goal, which claims its areas and
+  carries its own handover, and `docs/DECISIONS.md` the owner's decisions, whose
+  oldest entries move to numbered files in `docs/decisions/` before it passes
+  1,000 lines.
+- Function inventories go in `coverage/<build ID>/<manifest path>.tsv`, with a
+  `CD:` prefix written as an `@CD` directory, one per file the analysis reads, with addresses, sizes and the researcher's own
+  names only. They are the one analysis export that is committed, and
+  `.gitignore` now lets the root `coverage/` through.
+- `docs/IMPLEMENTATION-PLAN.md` records the project's stage, gives each slice
+  an Exit item, and keeps only owner questions; research questions move to
+  `queue/`.
+- Batches are research, implementation or tooling. Implementation batches
+  work from the spec alone, never open `queue/`, and leave gaps as `Spec gap:`
+  notes on parity rows. Research batches make the parity and citation changes
+  the documentation check needs.
+- `AGENTS.md` gains a Planning and tracking work section, and the bootstrap
+  checklist gains the Runtime access and Survey stages.
+- `.claude/skills/` carries the protocol's procedures as agent skills:
+  `runtime-access`, `plan-work`, `start-session`, `research-item`,
+  `implement-rows`, `triage-report`, `live-session` and `end-session`. They hold steps and link
+  to the published pages for the rules.
+- `Test-TemplateInfrastructure.ps1` requires the new files and skills, fails on
+  a Markdown file over 1,000 lines in `queue/`, `docs/goals/`,
+  `docs/live-sessions/`, `docs/reports/`, the plan or the decisions (including
+  `docs/decisions/`), and on a handover over 200 lines.
+
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new

@@ -50,7 +50,7 @@ investigation unless the owner asks for it.
 
 **1. Write the implementation plan.** Fill in `docs/IMPLEMENTATION-PLAN.md`: the
 game profile, the scope and non-goals, the ordered vertical slices with
-acceptance criteria, the risks, and the open questions.
+acceptance criteria, the risks, and the questions only the owner can answer.
 
 **2. Configure the project identity.** Fill in `tools/project-config.json` and
 run `./tools/Bootstrap-Project.ps1`; it enforces the plan and latest-version
@@ -80,6 +80,106 @@ over broad but unplayable systems.
 **6. Verify and hand over.** Run the commands below, update the README status
 table and the parity files to match what is actually true, and tick off
 `docs/BOOTSTRAP-CHECKLIST.md` as decisions are captured elsewhere.
+
+## Planning and tracking work
+
+Work is planned, tracked and handed on under the
+[work protocol](https://dinorefurb.com/work-protocol/); where this section and
+the published page differ, the page wins.
+
+- The project moves through the stages Intake, Runtime access, Survey, Slices
+  and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
+  `docs/RUNTIME.md` records what can be done with the original running, and
+  whether an agent, only a person, or nobody can do it.
+- Static analysis comes first, and runs of the original are the last resort
+  for each question: an `Agent run` or `Live session` item is taken up only
+  after its own static attempt is under `Tried:`, or when it asks for the run
+  that confirms a static reading. Runs take their place in the order of work
+  (a run that blocks the current slice comes before static work that does
+  not), and within each step of it `Static` items come first, then
+  `Emulated call` items.
+- An emulated call runs one function of the original in the Unicorn harness
+  in `tools/emu/`, with no window, timer or input, and needs no run lock. It
+  is an experiment with `starting_state: emulated-call`, names arguments and
+  memory by parameter, field path or glossary name, and establishes an entry
+  only when its cases reach every branch the entry describes and the reading
+  of the function's callers and inputs is complete. It never confirms what
+  depends on interrupts (`# may run:`), timing or the operating system.
+- Several agents work on different games on the same machine at once, under
+  one account or several. Run an original only while holding the machine's
+  run lock, whose path `docs/RUNTIME.md` gives; take it with an exclusive
+  create that fails if the file exists, and delete only a lock you created or
+  one the protocol calls abandoned. If another agent holds it, do not wait.
+  Outside a live session, never attach to, send input to or stop a process
+  you did not start.
+- Evidence from runs comes mostly from people. Runs an agent drives are the
+  most fragile evidence there is, so they are scripted, start from a fixed
+  state and are kept to questions nothing else answers.
+- People test the rebuild when they happen to and report in words and
+  screenshots. Never wait for a report or plan around one. Record one at once
+  in `docs/reports/` with the `triage-report` skill; a research session
+  triages it into a `Defect (R-...)` parity note, a queue item or a finding.
+  Screenshots are never committed: the rebuild's go in `GAME_DIR/reports/`,
+  the original's in `GAME_DIR/captures/`, the durable local reference store.
+- Competing readings of an open question are written in the entry's Open
+  questions section with the evidence for and against each, never kept only
+  in a session, and never implemented until an entry says them.
+- A run that needs a person is a live session, requested in a file in
+  `docs/live-sessions/` that the owner answers there. Never wait idle for one.
+- Open research questions live in `queue/<AREA>.md`, grouped by the evidence
+  they need, in the area of the first entry they name, each with an ID
+  (`Q-COMBAT-012`) that everything outside the queue refers to it by. An item
+  is closed by recording its answer in `spec/` and deleting it in the same
+  commit. An item is taken up again only with new evidence, a new tool or a
+  new reading, and when that second attempt ends in the same place it moves
+  to the section of the evidence that would settle it, or to `Blocked` when
+  that evidence is out of reach.
+- A batch is one commit, and is research, implementation or tooling, never
+  more than one. A session keeps to one side of the clean room. An
+  implementation batch works from the spec alone, never opens analysis output
+  or `queue/`, and under `spec/` only adds open questions and `unknown`
+  entries; a gap becomes a `Spec gap:` note on the parity row, which the next
+  research session turns into a queue item and removes once it is answered. A research batch makes the parity
+  and citation changes the documentation check requires of what it did to
+  the spec, and changes no other code apart from `tools/`. A tooling batch
+  (extractor, Ghidra scripts, inventory export, the emulator harness in
+  `tools/emu/`, live session measurements, headless runner, fixture harness)
+  needs no decision.
+- Commit messages end with a `Spec:` trailer naming the entries created or
+  changed, any commit that changes a row's status adds `Parity:`, and any
+  that closes queue items adds `Queue:` with their IDs.
+- A claim moves from an `unknown` listing (or `sourced` from a document),
+  through competing readings kept in its entry's Open questions, each with a
+  queue item, to a description at `supported` once direct evidence (the code
+  that produces the behaviour) settles it, then `established` by a complete
+  reading of the code, or, only where it depends on something the code does
+  not decide, when a run or a tester's capture of the original agrees.
+  Circumstantial evidence never raises a status. Contradicting evidence makes
+  it `disputed`, and a wrong claim is superseded, never deleted. The
+  protocol's "The life of a claim" section has the details.
+- `docs/HANDOVER.md` is the current state of work outside any goal, at most
+  200 lines, rewritten at the end of every session that works under no goal,
+  and names items and entries by ID without saying what research found.
+  `docs/goals/` holds one file per running goal, which claims its areas and
+  has a handover of its own for sessions under it. `docs/DECISIONS.md`
+  records the owner's decisions and moves its oldest entries to
+  `docs/decisions/` before it passes 1,000 lines. A session ends by
+  committing its handover on its own and pushing the branch; half-done work
+  never goes into a batch commit.
+- Progress is what scripts compute: parity totals, entries by status,
+  executable and file coverage, queue sizes. Never a hand-written percentage.
+  Executable coverage is measured against the function inventories,
+  `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an `@CD`
+  directory), one for each file the analysis reads. An inventory holds only each function's start address, its size, and
+  optionally a name the researcher gave it and why it is out of scope, never
+  code, bytes, strings, constants or names that came from the original, so it
+  is committed.
+
+The procedures are skills in `.claude/skills/`: `runtime-access`,
+`plan-work`, `start-session`, `research-item`, `implement-rows`,
+`triage-report`, `live-session` and `end-session`. For a `/goal`, write the goal file with
+`plan-work`, keep to its scope, and end every batch with the status block the
+skills print.
 
 ## Rules that never bend
 
@@ -128,8 +228,9 @@ one roll is a guess.
 
 Use the standard's statuses and no other scale. Rules, formats, screens, and
 bugs are `unknown`, `sourced` (outside sources only), `supported` (one kind of
-evidence from the original), `established` (a reading of the files and a run of
-the original agree), `disputed`, or `superseded`. Findings and experiments are
+direct evidence from the original), `established` (a complete reading of the
+code, or a reading and a run of the original that agree where the code does
+not decide the outcome), `disputed`, or `superseded`. Findings and experiments are
 `recorded`, `reproduced`, or `superseded`. A part of an entry that is less
 certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
@@ -151,7 +252,9 @@ individual things a designer made, such as a unit, an item, a site, or a
 character (an enumeration of those is named `UNIT_TYPE_3`, not by the unit's
 name). The names the game gives its concepts and mechanics are terms the spec
 uses, and constants the code does arithmetic with are written down in full. Tool procedure stays in `docs/GHIDRA.md`. Never commit broad
-decompiler, instruction, or Version Tracking exports.
+decompiler, instruction, or Version Tracking exports. The function inventories
+in `coverage/` are the one export that is committed, and only with the columns
+the planning section above allows.
 
 ## Fidelity
 
@@ -238,7 +341,7 @@ to fail when discovery drops below an expected count.
 A change is finished when the solution builds, `./tools/Invoke-Validation.ps1` passes, new
 behavior has tests, the spec entries it relies on exist with the status their
 evidence supports, the documents that assert status (`README.md`, `PARITY.md`,
-`parity/`, `deviations/`) match reality, and the plan's open questions have been updated
+`parity/`, `deviations/`) match reality, and `queue/` has been updated
 with whatever the work settled or newly raised.
 
 Commits describe the change and its evidence, not the tooling that produced it.
