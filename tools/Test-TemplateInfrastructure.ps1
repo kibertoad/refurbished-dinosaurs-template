@@ -64,7 +64,7 @@ foreach ($file in $standardMarkdown) {
 # The work protocol applies the same limit to its own files, and keeps the handover to the
 # current state in at most 200 lines.
 $protocolMarkdown = @()
-foreach ($directory in @('queue', 'docs/goals')) {
+foreach ($directory in @('queue', 'docs/goals', 'docs/decisions')) {
     $path = Join-Path $root $directory
     if (Test-Path -LiteralPath $path) {
         $protocolMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')

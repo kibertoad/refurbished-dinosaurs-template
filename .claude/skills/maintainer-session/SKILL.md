@@ -30,9 +30,10 @@ nobody needs to ask a question during the session.
 1. For each step the owner ran, write a dynamic finding or an experiment with
    its fixture under the standard, recording the environment and the hashes of
    captures and saves. Nothing that holds the game's content is committed.
-2. Give the entries the status the evidence supports; a run beside an existing
-   static finding usually makes an entry `established`.
+2. Give the entries the status the evidence supports for everything they
+   say, as `research-item` step 4 describes, and update the parity rows of
+   the entries whose status changed.
 3. Delete the settled items from the queue; add `Tried:` to any step that did
    not settle its item, and new items for new questions.
 4. Run the documentation check and commit, with a `Spec:` trailer, one commit
-   per area. Print the status block from `research-item` for each.
+   per area, adding `Parity:` for the rows whose status changed. Print the status block from `research-item` for each.

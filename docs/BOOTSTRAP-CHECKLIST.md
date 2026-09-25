@@ -24,7 +24,8 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       manual, FAQ, or earlier tool the work relies on.
 - [ ] Fill in `docs/IMPLEMENTATION-PLAN.md`.
 - [ ] Survey: give every file in the build manifest a format entry (`unknown`
-      where nothing is known), take a function inventory of the executable,
+      where nothing is known), export a function inventory of the executable
+      to `coverage/<build ID>.tsv` (start address and size per function),
       add a screen entry for every screen the manual mentions, and seed a
       `queue/<AREA>.md` for every area.
 - [ ] Harness: specify the random number generator, understand the save

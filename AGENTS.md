@@ -91,18 +91,23 @@ the published page differ, the page wins.
   Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
 - Open research questions live in `queue/<AREA>.md`, grouped by the evidence
   they need. An item is closed by recording its answer in `spec/` and deleting
-  it in the same commit. An item tried twice without new evidence moves to
-  `Blocked` with what was tried.
+  it in the same commit. An item is taken up again only with new evidence, a
+  new tool or a new reading, and moves to `Blocked` with what was tried when
+  that second attempt ends in the same place.
 - A batch is one commit, and is either research or implementation. An
   implementation batch works from the spec alone and never opens analysis
-  output; a gap in the spec becomes an Open question and a queue item.
+  output or changes `spec/`; a gap in the spec becomes a queue item. A
+  research batch that changes an entry's status updates its parity row.
 - Commit messages end with a `Spec:` trailer naming the entries created or
-  changed, and implementation commits add `Parity:` for the rows moved.
+  changed, and any commit that changes a row's status adds `Parity:`.
 - `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
   at the end of every session. `docs/goals/` holds one file per running goal.
-  `docs/DECISIONS.md` records the owner's decisions.
+  `docs/DECISIONS.md` records the owner's decisions and moves its oldest
+  entries to `docs/decisions/` before it passes 1,000 lines.
 - Progress is what scripts compute: parity totals, entries by status,
-  executable and file coverage, queue sizes. Never a hand-written percentage.
+  executable and file coverage, queue sizes. Executable coverage is measured
+  against `coverage/<build ID>.tsv`, the function inventory exported from the
+  analysis database (addresses and sizes only, so it is committed). Never a hand-written percentage.
 
 The procedures are skills in `.claude/skills/`: `start-session`,
 `research-item`, `implement-rows`, `maintainer-session`, `end-session` and

@@ -30,7 +30,8 @@ never code or spec entries apart from new `unknown` entries.
    are merged.
 2. During Survey: every file in the build manifest without a format entry gets
    an `unknown` format entry and a queue item; so does every screen the manual
-   mentions. Where a function inventory exists, a large function no entry
+   mentions. Where a function inventory exists in `coverage/`, a large
+   function no entry
    cites gets a queue item against the nearest entry or a new `unknown` one.
 3. Move items that block the current slice to the top of their section.
 

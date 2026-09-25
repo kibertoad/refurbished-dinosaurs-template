@@ -29,6 +29,14 @@ names the slice it blocks or `none`. An item already worked on adds `Tried:`;
 an item under `Blocked` adds `Waiting on:`.
 
 Close an item by recording the answer in `spec/` and deleting the item in the
-same commit. After two attempts that end in the same place, move the item to
-`Blocked` with what was tried. A file that would pass 1,000 lines is split into
-`queue/AREA/KIND.md`, one file per section.
+same commit. An item with a `Tried:` note is taken up again only with
+something the first attempt did not have: new evidence, a new tool, or a
+reading nobody has tried. If that second attempt ends in the same place, move
+the item to `Blocked` with what was tried.
+
+A file that would pass 1,000 lines becomes a directory of the same name with
+one file per section that has items, named after the section in lower case
+with a hyphen for the space: `queue/COMBAT/static.md`,
+`queue/COMBAT/agent-run.md`. Each opens with `# COMBAT: Static`. A section file
+that would still pass is split by the kind of the first entry each item names:
+`queue/COMBAT/static/RULE.md`.

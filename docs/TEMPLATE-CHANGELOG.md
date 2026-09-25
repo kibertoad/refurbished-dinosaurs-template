@@ -21,7 +21,11 @@ project.
   by the evidence each one needs. `queue/README.md` gives the format.
 - `docs/HANDOVER.md` is the current state only, at most 200 lines, rewritten
   every session. `docs/goals/` holds one file per running long-running goal,
-  and `docs/DECISIONS.md` the owner's decisions.
+  and `docs/DECISIONS.md` the owner's decisions, whose oldest entries move to
+  numbered files in `docs/decisions/` before it passes 1,000 lines.
+- The function inventory the Survey takes goes in `coverage/<build ID>.tsv`,
+  addresses and sizes only, so executable coverage is computed from the
+  repository.
 - `docs/IMPLEMENTATION-PLAN.md` records the project's stage (Intake, Survey,
   Harness, Slices, Audit), gives each slice an Exit item, and keeps only
   owner questions; research questions move to `queue/`.
@@ -33,7 +37,7 @@ project.
   pages for the rules.
 - `Test-TemplateInfrastructure.ps1` requires the new files and skills, fails on
   a Markdown file over 1,000 lines in `queue/`, `docs/goals/`, the plan or the
-  decisions, and on a handover over 200 lines.
+  decisions (including `docs/decisions/`), and on a handover over 200 lines.
 
 ## Spec file size limit, 2026-09-25
 

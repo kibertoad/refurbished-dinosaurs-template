@@ -12,8 +12,10 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
 
 1. **Pick one item** from `queue/<AREA>.md`, or a few about the same entry.
    Read the entries it names, their Open questions sections and any `Tried:`
-   note. If the item has been tried twice without new evidence, move it to
-   `Blocked` instead of trying again.
+   note. Take up an item that has a `Tried:` note only with something that
+   attempt did not have: new evidence, a new tool, or a reading nobody has
+   tried. If that second attempt ends in the same place, move the item to
+   `Blocked` with what was tried and what would change the outcome.
 2. **State the question and the competing readings** in your working notes
    (not in the repository). Decide what evidence would rule each reading out.
 3. **Gather evidence, cheapest first**: data files, then a static reading
@@ -23,18 +25,27 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    bounded instruction context when signedness or control flow matters.
 4. **Record it** in `spec/` with the templates in `docs/SPEC-ENTRY-TEMPLATES.md`:
    one finding per observation, an experiment with a fixture for a controlled
-   run. Then give each entry it concerns the status the evidence supports,
-   and put what the evidence does not reach in its Open questions. Evidence
-   that contradicts an entry makes it `disputed`. Never reproduce content.
+   run. Then give each entry it concerns the status the evidence supports
+   for everything the entry says, and put what the evidence does not reach in
+   its Open questions. An experiment beside a static finding makes an entry
+   `established` only if it covers every branch of the procedure and, for a
+   random outcome, enough repetitions for its comparison, and a rule stays
+   below `established` while a glossary claim it relies on is `(unknown)`.
+   Evidence that contradicts an entry makes it `disputed`. Never reproduce
+   content.
 5. **Update the queue in the same change**: delete the settled item, split an
    item that turned out to be two questions, add every new question as a new
    item, and add `Tried:` to an item you could not settle.
-6. **Check**: run the documentation check (it rewrites `spec/index/` and
+6. **Update the parity rows** of every entry whose status changed: copy the
+   new spec status into Spec status and work out Status again. Code, Tests and
+   Notes stay as they are.
+7. **Check**: run the documentation check (it rewrites `spec/index/` and
    `PARITY.md`; commit what it writes). Do not change `src/` apart from tools
    the research needed.
-7. **Commit** with a message saying what was found and on what evidence, ending
-   in a `Spec:` trailer listing the entries created or changed.
-8. **Print the status block** (format below), then continue with the next item
+8. **Commit** with a message saying what was found and on what evidence, ending
+   in a `Spec:` trailer listing the entries created or changed, and a
+   `Parity:` trailer listing the rows whose status changed, if any.
+9. **Print the status block** (format below), then continue with the next item
    if a goal is running, or `end-session` if not.
 
 ```text

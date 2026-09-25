@@ -20,10 +20,12 @@ and it tests whether the spec says enough.
 2. **Read the entries** the rows name, and every rule, format and glossary term
    they cite. Read the deviations listed on the rows.
 3. **Where the spec does not say enough** to write the code, stop at that
-   point: add the gap to the entry's Open questions and an item to
-   `queue/<AREA>.md`. Then either leave the row `partial`, or write the code
+   point: add an item to `queue/<AREA>.md` for the entry, saying what the
+   code needs to know. Then either leave the row `partial`, or write the code
    with a `PLACEHOLDER: <spec ID>` comment; the row cannot be `complete`
-   while the comment exists. Never fill a gap with a plausible guess.
+   while the comment exists. Never fill a gap with a plausible guess. Change
+   nothing under `spec/`: the research batch that takes up the item adds the
+   gap to the entry's Open questions if it cannot settle it.
 4. **Write the code** within the architecture boundaries in `AGENTS.md`
    (deterministic Core, bounded parsing in Resources, presentation in Game).
    Comments cite the spec IDs they implement. A departure from the spec needs
