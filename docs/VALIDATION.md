@@ -37,7 +37,13 @@ specifies (`xxhsum -H2`); `SpecHash` in `Restoration.Inspect` computes it, and
 `Restoration.Inspect --source <dir>` prints it for every file of a source.
 `OriginalGameFiles` in the test project resolves both kinds of path, checks
 each file's hash before a test reads it, and skips the test when the file is
-absent. Listed tests run with every deviation that has a setting switched off.
+absent. A test file that reads the original through `OriginalGameFiles` or
+`GAME_DIR` carries the comment `// needs: GAME_DIR`, and only such a file does.
+`tools/Test-TemplateInfrastructure.ps1` fails a test file that uses
+`OriginalGameFiles` without it, and the documentation check fails a listed test
+file that mentions `GAME_DIR` without it. Every other listed test, such as one
+that replays the fixture of an emulated call, needs nothing from the original
+and runs in CI like any other test. Listed tests run with every deviation that has a setting switched off.
 A `mandatory` deviation cannot be switched off, so a listed test that reaches
 the behavior it changes cites the deviation's ID and leaves that case out or
 compares with the original's result as the deviation changes it.
@@ -47,11 +53,26 @@ generator states the experiment fixture recorded, or from its `seeds` where the
 original's state could not be read. It then gets the same result on every run,
 so a correct rebuild never fails it by chance.
 
-Pull requests, including those from forks, run without a copy, so these tests
-skip there. A configured project adds a main-branch CI job on a self-hosted
-runner, or with storage only the maintainers can read, that sets `GAME_DIR` to a
-maintainer-owned copy and fails if any test listed for a `validated` row in
-`parity/` skipped. The copy never goes in the repository or a published build
+CI never has a copy of the original, which cannot be uploaded anywhere a
+runner could fetch it, so the marked tests skip there, and a skipped test does
+not fail the build. They run on a maintainer's machine with `GAME_DIR` set to a
+copy the maintainer owns. After a run of `./tools/Invoke-Validation.ps1` in
+which every test in every marked test file of a `validated` row passed and none
+was skipped, record the run with the documentation check from the pinned
+toolkit commit, naming the builds the run used, and commit the
+`VALIDATION.md` it writes:
+
+```sh
+node artifacts/check-documentation.mjs --record-validation BLD-GOG-EN-1.1
+git add VALIDATION.md
+```
+
+`VALIDATION.md` holds the commit, the date, the builds, and the hash of each
+marked test file of a `validated` row. The check, in CI as well, fails a
+`validated` row whose marked test file is missing from it or has changed since
+it was recorded, so a change to such a test needs a new local run before it
+merges. A change to code that a marked test exercises needs one too, which the
+check cannot see. The copy never goes in the repository or a published build
 artifact.
 
 ## Local automated checks
@@ -126,7 +147,9 @@ and `deviations/` against the standard's list of
 [checks](https://dinorefurb.com/documentation-standard/#checks), compiles each
 `.ksy` file with the Kaitai Struct compiler, checks that every spec and
 deviation ID cited in `src/`, `tests/` and `tools/` exists and is not
-superseded, and fails when `spec/index/` or `PARITY.md` is stale. It fetches
+superseded, fails when `spec/index/` or `PARITY.md` is stale, and fails a `validated`
+row whose marked tests are not in `VALIDATION.md` as they are now (see
+[Tests against the original](#tests-against-the-original)). It fetches
 the full history so it can fail a pull request that deletes a spec ID, area or
 deviation that exists on `main`. The toolkit's
 [setup guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/documentation-standard-check.md)

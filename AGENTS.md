@@ -200,8 +200,10 @@ skills print.
   settles it.
 - **CI never needs proprietary content.** Every packaging check, and every test
   that does not compare against the original, passes on a machine with no copy
-  of the game. Tests that read the original find it through `GAME_DIR` and
-  report themselves skipped when it is absent.
+  of the game. Tests that read the original find it through `GAME_DIR`,
+  report themselves skipped when it is absent, and carry the comment
+  `// needs: GAME_DIR`. They run on a maintainer's machine, and the run is
+  recorded in `VALIDATION.md` (`docs/VALIDATION.md`).
 - **Parse defensively.** Original files are untrusted input: bound every length,
   reject path traversal, and fail with a diagnosable error instead of throwing
   from deep inside a reader.

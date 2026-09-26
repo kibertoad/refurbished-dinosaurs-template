@@ -106,6 +106,20 @@ if ($ci -notmatch '(?m)^\s*(-\s+)?uses:\s*kibertoad/refurbished-dinosaurs-toolki
     $failures.Add('CI workflow does not run the documentation standard check pinned to a full commit SHA')
 }
 
+# A test that reads the original runs only on a maintainer's machine, and says so with this
+# comment, which the documentation check needs to tell it from the tests CI runs.
+$testsRoot = Join-Path $root 'tests'
+if (Test-Path -LiteralPath $testsRoot) {
+    foreach ($file in Get-ChildItem -LiteralPath $testsRoot -Recurse -File -Filter '*.cs') {
+        if ($file.Name -in @('OriginalGameFiles.cs', 'OriginalGameFilesTests.cs') -or
+            $file.FullName -match '[\\/](bin|obj)[\\/]') { continue }
+        $text = Get-Content -LiteralPath $file.FullName -Raw
+        if ($text -match '\bOriginalGameFiles\.' -and $text -notmatch 'needs:\s*GAME_DIR') {
+            $failures.Add("$($file.FullName.Substring($root.Length + 1)) uses OriginalGameFiles without a '// needs: GAME_DIR' comment")
+        }
+    }
+}
+
 $launchers = @(Get-ChildItem -LiteralPath $root -File -Filter 'Start *.bat')
 if ($launchers.Count -ne 1) {
     $failures.Add("expected exactly one root Start launcher, found $($launchers.Count)")

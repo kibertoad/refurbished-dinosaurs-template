@@ -45,7 +45,9 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    argues otherwise.
 6. **Test it**: synthetic tests for the logic; where an experiment fixture
    exists, a test that replays it and lists the row's ID. Tests that need the
-   original find it through `GAME_DIR` and skip without it. Manual play is not
+   original find it through `GAME_DIR`, skip without it, and carry the comment
+   `// needs: GAME_DIR`; after they pass locally with the original, record the
+   run in `VALIDATION.md` as `docs/VALIDATION.md` describes. Manual play is not
    a test.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.
