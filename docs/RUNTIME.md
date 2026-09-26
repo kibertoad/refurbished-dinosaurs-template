@@ -19,7 +19,9 @@ How it runs: _natively, under Wine, in DOSBox-X or another emulator, or in a
 virtual machine, with versions._
 
 Emulator harness: _the Unicorn version, whether `tools/emu/` loads this build,
-and the stubs it has._
+and the stubs it has._ Emulated calls are always allowed, so the last row is
+`agent` wherever the harness loads the build, whoever may run the game, and
+`none` only until a tooling batch builds the harness.
 
 | Capability | Who | Tried | What would change it |
 |---|---|---|---|

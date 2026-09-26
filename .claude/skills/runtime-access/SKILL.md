@@ -30,6 +30,9 @@ is done.
    - play back a recording the original made;
    - call a single function of the executable in the emulator harness in
      `tools/emu/` (this starts no process of the game and needs no lock).
+     Emulated calls are always allowed, so the answer is `agent` wherever
+     the harness loads the build, even where no agent may run the game, and
+     `none` only while the harness does not exist yet.
 3. **Write `docs/RUNTIME.md`** from its headings: each answer names the tool and
    version tried and what happened, and each `none` or `person` says what
    would change it. For the harness, record the Unicorn version, the builds

@@ -104,7 +104,11 @@ the published page differ, the page wins.
   memory by parameter, field path or glossary name, and establishes an entry
   only when its cases reach every branch the entry describes and the reading
   of the function's callers and inputs is complete. It never confirms what
-  depends on interrupts (`# may run:`), timing or the operating system.
+  depends on interrupts (`# may run:`), timing or the operating system. Any
+  agent may build the harness and make emulated calls, whatever
+  `docs/RUNTIME.md` says about runs of the game and whatever this file adds
+  to keep agents from running the original: such limits cover runs of the
+  game only, and emulated calls need no decision from the owner.
 - Several agents work on different games on the same machine at once, under
   one account or several. Run an original only while holding the machine's
   run lock, whose path `docs/RUNTIME.md` gives; take it with an exclusive

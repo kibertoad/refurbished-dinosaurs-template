@@ -8,6 +8,19 @@ not here.
 
 A project created from this template may delete this file.
 
+## Emulated calls always allowed, 2026-09-26
+
+Follows the work protocol's statement that any agent may build the emulator
+harness and make emulated calls in every game repository, including one whose
+`AGENTS.md` keeps agents from running the original, since an emulated call
+starts no process of the game. `AGENTS.md`, `docs/RUNTIME.md` and the
+`runtime-access` and `research-item` skills say so: a limit on runs covers
+runs of the game only, the harness row of the runtime record is `agent`
+wherever the harness loads the build, and emulated calls need no decision
+from the owner.
+
+- **Acceptance.** No check changes.
+
 ## Names and numbers in the spec, 2026-09-26
 
 Follows the documentation standard's narrower definition of content. The spec
