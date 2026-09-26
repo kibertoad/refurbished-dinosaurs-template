@@ -39,7 +39,8 @@ runnable. Set each slice's targets to what `docs/RUNTIME.md` makes reachable:
 without runs of the original, rule and screen rows, and format rows with no
 files (memory structures, messages), stop at `implemented`. The
 first slice gives the rebuild a headless runner that a test drives from a
-fixture. A workable default order is source identification and extraction,
+fixture; a project that adopts this plan after its first slice builds the
+runner in its current slice. A workable default order is source identification and extraction,
 separate asset extraction plus assetless startup and diagnostics, native resolution and scaling,
 title-to-first-interaction flow, deterministic state and replay, and only then
 breadth.
@@ -64,7 +65,8 @@ breadth.
   incomplete, stale, or foreign packs without reading the original installation._
 - **Automated tests.** _The tests that prove it. Tests that compare against the
   original read it from `GAME_DIR` and skip without it; the rest need no
-  original content._
+  original content. In the first slice, a test that drives the headless
+  runner from a fixture._
 - **Observed parity.** _The parity rows the slice should make `validated`,
   and the experiments or captures their tests compare against._
 - **Exit.** _Statements a script or reviewer can check: which parity rows reach

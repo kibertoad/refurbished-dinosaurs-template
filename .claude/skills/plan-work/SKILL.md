@@ -22,7 +22,9 @@ never code or spec entries apart from new `unknown` entries.
    screen rows, and formats with no files (memory structures, messages), stop
    at `implemented`, and a row that needs a live session nobody has accepted
    stays at `implemented` with the gap in the risks. The first slice gives the
-   rebuild a headless runner that a test drives from a fixture. Exit criteria
+   rebuild a headless runner that a test drives from a fixture; where the
+   plan has no such slice because the project adopted the protocol later,
+   the current slice builds it. Exit criteria
    are statements a script or reviewer can check, naming queue items by ID. Put questions only the owner can
    answer in the plan's owner questions, and nothing else there.
 3. Remove anything from the plan that is status narration, a dated

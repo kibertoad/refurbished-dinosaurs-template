@@ -8,6 +8,16 @@ not here.
 
 A project created from this template may delete this file.
 
+## Headless runner for projects that adopt the protocol later, 2026-09-26
+
+The work protocol puts the rebuild's headless runner in the first slice. A
+project that adopts the protocol after its first slice has no slice left to
+put it in, so the plan guidance and the `plan-work` skill now have it built in
+the current slice, and the Slice 1 skeleton asks for a test that drives the
+runner from a fixture.
+
+- **Acceptance.** No check changes.
+
 ## Emulated calls always allowed, 2026-09-26
 
 Follows the work protocol's statement that any agent may build the emulator
