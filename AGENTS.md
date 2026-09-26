@@ -278,14 +278,19 @@ bug cannot be told from a design decision, the original behavior stays and any
 fix becomes a setting.
 
 Every departure from the spec is a `DEV-AREA-NNN` file in `deviations/`,
-with a Default of `off`, `on` or `mandatory`. A setting starts `off`, with the
-original's behavior, unless the entry's Justification argues that the rebuild's
-behavior is strictly better: then it starts `on`, and a player who wants the
-original switches it off. A deviation with no setting is `mandatory`, and its
-Justification also says why the original's behavior is not worth a setting. The
-fix of an unintended bug that players do not rely on is `on` without one. A
-quirk that may be deliberate or that players rely on is never strictly better,
-so its deviation starts `off`. The validation suite runs with every setting
+with a Default of `off`, `on` or `mandatory`. A deviation may be `on` or
+`mandatory` when its Justification argues that the rebuild's behavior is
+strictly better, or that it is a small judgement call that makes the game
+better to play, such as keeping precision the original threw away or pacing by
+a fixed clock where the original followed the speed of the machine, and that
+touches nothing players build strategies around. A change some players would
+reasonably prefer the original's way, as a matter of taste or because it
+changes results players notice, gets a setting that starts `off`, with the
+original's behavior. A deviation with no setting is `mandatory`, and its
+Justification also says why the original's behavior is not worth a setting.
+The fix of an unintended bug that players do not rely on is `on` without one.
+A quirk that may be deliberate or that players rely on never qualifies, so its
+deviation starts `off`. The validation suite runs with every setting
 switched off, and a test that reaches a mandatory deviation cites its ID and
 allows for it. Rebalancing and new features belong in a separate mode or
 project.

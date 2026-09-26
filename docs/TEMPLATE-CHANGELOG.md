@@ -8,6 +8,18 @@ not here.
 
 A project created from this template may delete this file.
 
+## Judgement-call deviations, 2026-09-27
+
+Follows the documentation standard's amended deviation rule: a deviation may
+be `on` or `mandatory` when it is strictly better than the original, or when it
+is a small judgement call that makes the game better to play and touches
+nothing players build strategies around. A change some players would
+reasonably not want gets a setting that starts `off`. `AGENTS.md` and
+`docs/SPEC-ENTRY-TEMPLATES.md` say so.
+
+- **Acceptance.** No check changes: `on` and `mandatory` deviations already
+  need a Justification.
+
 ## Emulated calls always allowed, 2026-09-26
 
 Follows the work protocol's statement that any agent may build the emulator

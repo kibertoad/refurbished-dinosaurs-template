@@ -374,7 +374,8 @@ one. Then what the standard asks of this kind of term.>
 One file per deviation in `deviations/` at the repository root, named after its
 ID (`deviations/DEV-COMBAT-002.md`). Default is `off`, `on` or `mandatory`
 (Setting `None`). Keep the Justification item, which argues that the rebuild's
-behavior is strictly better than the original's, for a `mandatory` deviation
+behavior is strictly better than the original's, or that it is a small
+judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
 [deviation log](https://dinorefurb.com/documentation-standard/#deviation-log)
@@ -388,7 +389,7 @@ its file.
 - Reason: <what the original does and why the rebuild differs>
 - Setting: <setting name, or None>
 - Default: <off, on or mandatory>
-- Justification: <why the rebuild's behaviour is strictly better>
+- Justification: <why the rebuild's behaviour is strictly better, or what the judgement call improves and why no player would miss the original's>
 - Dropped: no
 ````
 
