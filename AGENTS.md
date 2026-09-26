@@ -92,6 +92,11 @@ points at that copy.
   repository, to read the methodology, the standard or the protocol.
 - Assume the local copy is up to date and rely on it. A difference between it
   and the published pages is not a reason to go online during a task.
+- A link such as `work-protocol.md#batches` names one section. Read only that
+  section: search the page for its heading (`## Batches`) to get its line
+  number, and read from there to the next heading of the same level. Read a
+  whole page at most once per session, and never again for a section already
+  in context.
 - Checking whether a newer version has been published, and refreshing the
   copy, is always started by a person. Do it only when the owner asks for it
   in the current task, and then follow `docs/standard/README.md`.
