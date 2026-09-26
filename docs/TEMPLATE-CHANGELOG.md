@@ -18,6 +18,13 @@ online to check for a newer version: checking and refreshing are started only
 by a person, following `docs/standard/README.md`. Agents had been fetching
 the published pages again and again during routine work.
 
+`AGENTS.md`, `docs/SPEC-ENTRY-TEMPLATES.md` and the `research-item` skill no
+longer restate the standard and the protocol. Their planning, discipline,
+fidelity and citation sections keep the rules every session relies on and the
+paths this repository uses, each with a link to the section of the copy that
+gives the details, and the entry templates keep only the blank entries. A
+refresh of the copy then needs no rewrite of those summaries.
+
 - **Acceptance.** No check changes.
 
 ## Rules live in `Core`, one test per branch, 2026-09-30
