@@ -248,12 +248,14 @@ Durable findings go in `spec/`, one entry per file named after its ID, and not
 in conversation history or large retained dumps. IDs are never reused or
 renumbered, and an entry that turns out wrong becomes `superseded`. The spec
 describes the original only and never names a class, file, or setting from this
-repository. It never reproduces content: texts, images, sounds, maps, scripts,
-the per-unit or per-item statistics a designer filled in, or the names of
-individual things a designer made, such as a unit, an item, a site, or a
-character (an enumeration of those is named `UNIT_TYPE_3`, not by the unit's
-name). The names the game gives its concepts and mechanics are terms the spec
-uses, and constants the code does arithmetic with are written down in full. Tool procedure stays in `docs/GHIDRA.md`. Never commit broad
+repository. It holds names, numbers, formulas, and tables in full, as a strategy
+guide would: the names of concepts and of the things a designer made (an
+enumeration value may be named `UNIT_ARCHER`), constants, and the per-unit or
+per-item statistics a designer filled in, with a table of more than 64 values in
+a value file. It never keeps a substantial copy of the game's writing (dialogue,
+descriptions, messages, the manual's prose; quote a short passage at most and
+refer to the rest by resource), its art (images, sounds, music, video, maps), or
+a meaningful slice of its code or scripts. Tool procedure stays in `docs/GHIDRA.md`. Never commit broad
 decompiler, instruction, or Version Tracking exports. The function inventories
 in `coverage/` are the one export that is committed, and only with the columns
 the planning section above allows.
