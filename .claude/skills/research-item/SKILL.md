@@ -57,7 +57,9 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    file exists, record the ID of every process the run starts in it, and if
    another agent holds it, do not wait). Never touch a process you did not
    start. Items under `Live session` go to `live-session`.
-   For an item under `Emulated call`, follow the protocol's
+   An emulated call is always allowed, including in a repository whose
+   `AGENTS.md` keeps agents from running the original: those limits cover
+   runs of the game only. For an item under `Emulated call`, follow the protocol's
    [Emulated calls](https://dinorefurb.com/work-protocol/#emulated-calls).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
