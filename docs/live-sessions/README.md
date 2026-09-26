@@ -4,7 +4,7 @@ One file per live session an agent has asked for, named after it:
 `docs/live-sessions/combat-order.md`. In a live session the maintainer runs the
 original and signals at each point the script names, and the agent measures
 the running process. The
-[work protocol](https://dinorefurb.com/work-protocol/#live-sessions) sets the
+[work protocol](../standard/work-protocol.md#live-sessions) sets the
 rules, and the `live-session` skill writes, runs and ingests them.
 
 The owner answers a request by editing its Status line. Until it says

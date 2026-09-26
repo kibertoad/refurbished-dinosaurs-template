@@ -5,7 +5,7 @@ description: Close a work session on this restoration - stop processes the sessi
 
 # End a session
 
-The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#sessions).
+The rules are in the [work protocol](../../../docs/standard/work-protocol.md#sessions).
 
 1. **Processes**: stop every process this session started (Ghidra and Java,
    the original game, test hosts, servers), and leave anything whose owner is

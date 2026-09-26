@@ -5,7 +5,7 @@ description: Request, prepare and ingest a live session, in which a person runs 
 
 # Live session
 
-The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#live-sessions).
+The rules are in the [work protocol](../../../docs/standard/work-protocol.md#live-sessions).
 The maintainer's time is the scarcest resource the project has: prepare it so
 nobody needs to ask a question during the session. Never wait idle for one.
 

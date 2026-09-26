@@ -8,6 +8,18 @@ not here.
 
 A project created from this template may delete this file.
 
+## Local copy of the standard, 2026-09-27
+
+`docs/standard/` now holds the methodology, the documentation standard and the
+work protocol, copied from the website repository at a recorded commit, and
+every link to those pages in the template points at the copy. `AGENTS.md`
+tells agents to read the copy, to assume it is up to date, and never to go
+online to check for a newer version: checking and refreshing are started only
+by a person, following `docs/standard/README.md`. Agents had been fetching
+the published pages again and again during routine work.
+
+- **Acceptance.** No check changes.
+
 ## Rules live in `Core`, one test per branch, 2026-09-30
 
 The architecture boundaries now say that every decision the original makes — a
@@ -77,7 +89,7 @@ slice of its code or scripts. `AGENTS.md` and the research-item skill say so.
 
 ## Work protocol, 2026-09-25
 
-Follows the new [work protocol](https://dinorefurb.com/work-protocol/), which
+Follows the new [work protocol](standard/work-protocol.md), which
 sets how restoration work is planned, tracked and handed on.
 
 - The stages are Intake, Runtime access, Survey, Slices and Audit.
@@ -149,7 +161,7 @@ sets how restoration work is planned, tracked and handed on.
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new
-[File size](https://dinorefurb.com/documentation-standard/#file-size) section,
+[File size](standard/documentation-standard.md#file-size) section,
 which limits every Markdown file it defines to 1,000 lines and splits the files
 that grew with the whole project.
 
@@ -178,15 +190,15 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](https://dinorefurb.com/documentation-standard/#deviation-log)
+[documentation standard](standard/documentation-standard.md#deviation-log)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 
 ## Documentation standard and methodology, 2026-09-25
 
 The template now follows the dinorefurb.com
-[methodology](https://dinorefurb.com/methodology/) and version 1 of the
-[documentation standard](https://dinorefurb.com/documentation-standard/).
+[methodology](standard/methodology.md) and version 1 of the
+[documentation standard](standard/documentation-standard.md).
 
 - `spec/` holds the documentation of the original game: `README.md` (scope,
   standard version, area list), `glossary.md`, `LICENSE` (CC BY 4.0 for the

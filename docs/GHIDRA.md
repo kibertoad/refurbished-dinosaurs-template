@@ -24,7 +24,7 @@ Always verify executable length and SHA-256 before interpreting an address.
 Another version of the executable is another build, with its own
 `spec/builds/` entry, and a finding lists it only when it was checked there
 too, with a location in each build. Addresses are written in the
-[notation](https://dinorefurb.com/documentation-standard/#notation) for the
+[notation](standard/documentation-standard.md#notation) for the
 executable's format: the full virtual address at the header's image base for
 PE, and `segment:offset` for MZ, COM, and NE, with the load segment the
 standard fixes for each.
@@ -225,7 +225,7 @@ Some questions are answered faster by watching the original than by reading it:
 the value of a global after the generator runs, the order of calls during a
 load, what a seed produces. The general-purpose runtime tools are still being
 compared (see
-[Methodology](https://dinorefurb.com/methodology/#studying-the-original)), so
+[Methodology](standard/methodology.md#studying-the-original)), so
 the template does not ship one.
 
 The Magic & Mayhem restoration (`kibertoad/magic-and-mayhem-again`) has a

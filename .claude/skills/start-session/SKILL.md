@@ -5,7 +5,7 @@ description: Resume restoration work at the start of a session. Use before any r
 
 # Start a session
 
-The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#sessions).
+The rules are in the [work protocol](../../../docs/standard/work-protocol.md#sessions).
 This skill is the procedure; where they differ, the protocol wins.
 
 1. Decide the session's side: research (with tooling that reads the original)

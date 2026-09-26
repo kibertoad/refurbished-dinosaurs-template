@@ -81,11 +81,26 @@ over broad but unplayable systems.
 table and the parity files to match what is actually true, and tick off
 `docs/BOOTSTRAP-CHECKLIST.md` as decisions are captured elsewhere.
 
+## The local copy of the standard
+
+`docs/standard/` holds the methodology, the documentation standard and the
+work protocol as published at dinorefurb.com, and its README names the commit
+they were copied from. Every reference to those pages in this repository
+points at that copy.
+
+- Read the local copy. Do not fetch dinorefurb.com, or the website's source
+  repository, to read the methodology, the standard or the protocol.
+- Assume the local copy is up to date and rely on it. A difference between it
+  and the published pages is not a reason to go online during a task.
+- Checking whether a newer version has been published, and refreshing the
+  copy, is always started by a person. Do it only when the owner asks for it
+  in the current task, and then follow `docs/standard/README.md`.
+
 ## Planning and tracking work
 
 Work is planned, tracked and handed on under the
-[work protocol](https://dinorefurb.com/work-protocol/); where this section and
-the published page differ, the page wins.
+[work protocol](docs/standard/work-protocol.md); where this section and
+that page differ, the page wins.
 
 - The project moves through the stages Intake, Runtime access, Survey, Slices
   and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
@@ -214,10 +229,9 @@ skills print.
 
 ## Reverse-engineering discipline
 
-The project follows the [methodology](https://dinorefurb.com/methodology/) and
-the [documentation standard](https://dinorefurb.com/documentation-standard/)
-published at dinorefurb.com. This section and the next two summarize them;
-where they differ, the published pages win.
+The project follows the [methodology](docs/standard/methodology.md) and
+the [documentation standard](docs/standard/documentation-standard.md). This
+section and the next two summarize them; where they differ, the pages win.
 
 Start with one narrow player-visible question. The executable has the final word
 on what the shipped game does. The manual says what the designers intended and

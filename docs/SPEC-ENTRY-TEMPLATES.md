@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](https://dinorefurb.com/documentation-standard/#entry-types)
+sections the [documentation standard](standard/documentation-standard.md#entry-types)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -10,7 +10,7 @@ it.
 Rules, formats, screens and bugs may also have `complete_reading`, a list of
 the static findings that together read all of the entry, which makes it
 `established` without a run (see the standard's
-[Complete readings](https://dinorefurb.com/documentation-standard/#complete-readings)).
+[Complete readings](standard/documentation-standard.md#complete-readings)).
 Leave it out until such a reading exists.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
@@ -21,7 +21,7 @@ runs on every pull request and reports what an entry is missing, as
 
 Every Markdown file the standard defines, entries included, is at most 1,000
 lines. An entry that would pass the limit is split by what it describes, as
-the standard's [File size](https://dinorefurb.com/documentation-standard/#file-size)
+the standard's [File size](standard/documentation-standard.md#file-size)
 section says. The documentation standard check and
 `tools/Test-TemplateInfrastructure.ps1` both check the limit. Build manifests,
 value files, Kaitai definitions, fixtures and save patches are not counted.
@@ -356,7 +356,7 @@ heading. A glossary file is not an entry, so it has no ID and no front matter,
 and it is renamed along with its term. Two terms never differ only in case, and
 no term is a name Windows reserves for a device (`con`, `prn`, `aux`, `nul`,
 `com1` to `com9`, `lpt1` to `lpt9`, in any case).
-The standard's [Where it lives](https://dinorefurb.com/documentation-standard/#where-it-lives)
+The standard's [Where it lives](standard/documentation-standard.md#where-it-lives)
 section lists what each kind of term also gives. Every claim about the original
 (an address, the order of a list, the order of handlers or of a queue, what an
 outside value is read from) is followed by the IDs of its findings or
@@ -378,7 +378,7 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](https://dinorefurb.com/documentation-standard/#deviation-log)
+[deviation log](standard/documentation-standard.md#deviation-log)
 section sets out. Delete it otherwise. IDs are never reused or renumbered, and a dropped deviation keeps
 its file.
 

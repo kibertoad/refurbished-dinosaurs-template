@@ -5,9 +5,9 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [methodology](https://dinorefurb.com/methodology/), the
-[documentation standard](https://dinorefurb.com/documentation-standard/) and
-the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
+The rules are in the [methodology](../../../docs/standard/methodology.md), the
+[documentation standard](../../../docs/standard/documentation-standard.md) and
+the [work protocol](../../../docs/standard/work-protocol.md#research-batches).
 `AGENTS.md` summarizes the clean-room rules; they never bend.
 
 1. **Turn spec gaps into items**: for every parity row whose Notes starts with
@@ -64,7 +64,7 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](https://dinorefurb.com/work-protocol/#emulated-calls).
+   [Emulated calls](../../../docs/standard/work-protocol.md#emulated-calls).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,

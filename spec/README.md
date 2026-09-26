@@ -10,7 +10,7 @@ class, file or setting from the rebuild in this repository.
 ## Standard version
 
 This spec follows version 1 of the
-[documentation standard](https://dinorefurb.com/documentation-standard/).
+[documentation standard](../docs/standard/documentation-standard.md).
 
 ## Areas
 
