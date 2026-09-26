@@ -91,8 +91,9 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    an experiment or dynamic finding beside the static one, covering every
    branch and, for a random outcome, enough repetitions for its comparison. A
    rule stays below `established` while a glossary claim it relies on is
-   `(unknown)`. Evidence that contradicts an entry makes it `disputed`. Never
-   reproduce content.
+   `(unknown)`. Evidence that contradicts an entry makes it `disputed`. Write
+   names, numbers and tables in full, and never copy more than a short passage
+   of the game's writing, any of its art, or a meaningful slice of its code.
 6. **Update the queue in the same change**: delete the settled item, split an
    item that turned out to be two questions, add every new question as a new
    item in the queue file of the area of the first entry it names, and add

@@ -8,6 +8,18 @@ not here.
 
 A project created from this template may delete this file.
 
+## Names and numbers in the spec, 2026-09-26
+
+Follows the documentation standard's narrower definition of content. The spec
+may use the names of the things a designer made, in its text and in
+enumeration names such as `UNIT_ARCHER`, and writes numbers, formulas and
+tables in full, including per-unit and per-item statistics. It still keeps no
+substantial copy of the game's writing, none of its art, and no meaningful
+slice of its code or scripts. `AGENTS.md` and the research-item skill say so.
+
+- **Acceptance.** No check changes: the documentation check never enforced the
+  old restriction, so every spec that passed it still passes.
+
 ## Work protocol, 2026-09-25
 
 Follows the new [work protocol](https://dinorefurb.com/work-protocol/), which
