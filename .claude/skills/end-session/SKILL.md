@@ -26,15 +26,15 @@ The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#sessi
    gate, or mixes two kinds of batch.
 4. **Handover**: under a goal, rewrite the Handover section of its goal file;
    otherwise rewrite `docs/HANDOVER.md` from its section headings. State what
-   is true now: stage, branch and whether it is pushed, the last gate result
-   with its date, unfinished work (with its `wip/` branch), blockers, and at
+   is true now: stage, the last gate result with its date, unfinished work
+   (with its `wip/` branch), blockers, and at
    most five next items naming queue items by ID, parity rows or a slice.
-   Never write what research found or tried. Delete what is no longer true
-   instead of adding below it. Stay under 200 lines. Commit the handover on
-   its own.
-5. **Push** the branch, unless `AGENTS.md` says the owner pushes; then the
-   handover says how many commits the branch is ahead of its remote, counting
-   its own.
+   Get branch, commit and remote sync state from Git when needed; do not copy
+   them into the handover. Never write what research found or tried. Delete
+   what is no longer true instead of adding below it. Stay under 200 lines.
+   Commit the handover on its own.
+5. **Push** only when the owner has requested it. Check Git directly for the
+   branch's remote sync state when reporting it.
 6. **Report** the final status block from `research-item`, followed by one
    line on anything the owner has to decide or do, such as a live session
    request waiting for an answer.

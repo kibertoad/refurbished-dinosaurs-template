@@ -14,8 +14,6 @@ See the [work protocol](https://dinorefurb.com/work-protocol/#working-files).
 ## State
 
 - Stage: _Intake, Runtime access, Survey, Slices (which slice) or Audit._
-- Branch: _name_, at _commit_. _Pushed, or, where the owner pushes, how many
-  commits it is ahead of its remote, counting the one holding this file._
 - Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
 
 ## Unfinished

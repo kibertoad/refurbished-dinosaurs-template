@@ -31,7 +31,7 @@ None known.
 
 ## Handover
 
-- Branch: claude/combat-static, at 3f2a9c1, pushed.
+- Stage: Slices.
 - Last gate: 2026-09-25, documentation check passed, fast gate passed.
 - Unfinished: none.
 - Blockers: none known.
