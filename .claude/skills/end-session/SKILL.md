@@ -33,8 +33,9 @@ The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#sessi
    them into the handover. Never write what research found or tried. Delete
    what is no longer true instead of adding below it. Stay under 200 lines.
    Commit the handover on its own.
-5. **Push** only when the owner has requested it. Check Git directly for the
-   branch's remote sync state when reporting it.
+5. **Push** the branch unless `AGENTS.md` says the owner pushes or the user
+   has instructed otherwise. Check Git directly for the branch's remote sync
+   state when reporting it; do not copy a count into the handover.
 6. **Report** the final status block from `research-item`, followed by one
    line on anything the owner has to decide or do, such as a live session
    request waiting for an answer.
