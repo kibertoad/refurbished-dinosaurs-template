@@ -345,11 +345,10 @@ branch no entry describes is never a guess: it becomes a question in the
 entry's Open questions and a `Spec gap:` note on the parity row, as the
 `implement-rows` skill says.
 
-Testability is a design constraint, not a review pass. Each rule ships with
-fast-gate tests over synthetic state, one per branch — usually a static class
-over the serializable state type, called by `Game`. When a bug is traced to
-branch logic in `Game`, extract the rule into `Core`, pin every branch with a
-test, and fix it there.
+Each rule ships with fast-gate tests over synthetic state. The rule itself is
+usually a static class over the serializable state type, called by `Game`.
+When a bug is traced to branch logic in `Game`, extract the rule into `Core`,
+pin every branch with a test, and fix it there.
 
 Determinism is a feature: identical commands and seed must produce identical
 state, because saves, replays, and parity validation depend on it. Every
