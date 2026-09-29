@@ -94,3 +94,11 @@ reproducible on modern hardware, and what the fallback is for each._
 
 _The release-shaped definition of finished for this plan: which slices, which
 parity matrix rows validated, which platforms packaged and smoke-tested._
+
+
+## Template maintenance: evidence tooling
+
+While this checkout is unconfigured, the game-agnostic tooling work in
+[the evidence tooling plan](TEMPLATE-EVIDENCE-PLAN.md) is authorized by the
+request to address the ten accumulated research priorities. It introduces
+no game behavior and retains documentation Standard v1.

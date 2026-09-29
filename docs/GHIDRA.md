@@ -267,3 +267,11 @@ implements.
 - Never copy decompiled implementation or raw disassembly into production or
   documentation.
 - Never make production load, execute, or depend on the original binary.
+
+
+## Bounded evidence reports
+
+Use [the evidence tooling guide](EVIDENCE-TOOLS.md) for MZ/FBOV operand
+resolution, explicit control-flow review, bounded tables and function inventory
+joins. Raw operands and analyzer boundaries remain observations to verify.
+The report tools do not promote spec status or establish native reachability.

@@ -84,6 +84,9 @@ try {
     & (Join-Path $PSScriptRoot 'Test-TemplateInfrastructure.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Template infrastructure verification failed.' }
 
+    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed.' }
+
     $msbuildArguments = @(
         "-maxCpuCount:$MaxCpuCount",
         '-nodeReuse:true',
