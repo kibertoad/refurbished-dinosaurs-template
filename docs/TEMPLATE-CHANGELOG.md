@@ -8,6 +8,15 @@ not here.
 
 A project created from this template may delete this file.
 
+## Bounded evidence tooling, 2026-09-29
+
+Adds MZ/FBOV location provenance, incoming candidate controls, explicit flow
+review, bounded table layouts and portable function inventory joins. Generic
+Ghidra exporters omit original code and analyzer names from committed inventories.
+Synthetic Node fixtures run in the canonical gate. The maintenance plan and
+EVIDENCE-TOOLS guide state unsupported cases and the limits of each report.
+Standard v1 remains in use.
+
 ## Judgement-call deviations, 2026-09-27
 
 Follows the documentation standard's amended deviation rule: a deviation may
