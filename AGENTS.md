@@ -381,3 +381,10 @@ exist with the status their evidence supports, the documents that assert status
 `queue/` has been updated with whatever the work settled or newly raised.
 
 Commits describe the change and its evidence, not the tooling that produced it.
+
+## Evidence review and offline rules
+
+Apply the claim-relevant procedure in [EVIDENCE-REVIEW](docs/EVIDENCE-REVIEW.md)
+before asserting a complete reading. Verified offline copies and explicit
+refresh instructions are in [UPSTREAM-RULES](docs/UPSTREAM-RULES.md). These
+procedures retain Standard v1 and the published pages' authority.

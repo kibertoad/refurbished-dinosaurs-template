@@ -51,6 +51,8 @@ if (Test-Path -LiteralPath $configPath -PathType Leaf) {
     $projectName = $config.projectName
     $isConfigured = [bool] $config.configured
 }
+& node (Join-Path $root 'tools/upstream.mjs') verify
+if ($LASTEXITCODE -ne 0) { throw 'Pinned upstream snapshot verification failed.' }
 $findings = [Collections.Generic.List[string]]::new()
 
 $paths = @(& git -c "safe.directory=$safeRoot" -c core.quotepath=false -C $root ls-files --cached --others --exclude-standard)
@@ -60,6 +62,8 @@ $identifier = [regex]::new("(?<![A-Za-z0-9_])$([regex]::Escape($templateName))(?
 $checkIdentifiers = $isConfigured -and $projectName -and $projectName -cne $templateName
 
 foreach ($relative in $paths | Sort-Object -Unique) {
+    # Immutable upstream text can contain examples of template identifiers; its digests are verified above.
+    if ($relative -match '^(docs/upstream|vendor)/') { continue }
     $file = Join-Path $root $relative
     if (-not [IO.File]::Exists($file)) { continue }
     $extension = [IO.Path]::GetExtension($relative)

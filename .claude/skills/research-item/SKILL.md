@@ -40,6 +40,10 @@ the [work protocol](https://dinorefurb.com/work-protocol/#research-batches).
    open stays `unknown` (or `sourced`). Never leave a reading only in the
    session's memory, and never let one reach code except as what an entry
    says.
+   Keep each item to one falsifiable question with its own settling condition.
+   Split independently answerable dependencies into separate IDs. Apply the
+   claim-relevant checks and synthetic examples in `docs/EVIDENCE-REVIEW.md`
+   before treating a reading as complete; these add no statuses or schema.
 4. **Gather evidence statically**: data files, then a static reading
    (procedure in `docs/GHIDRA.md`). Settle statically whatever a static
    reading can settle, even where a run could too. Keep neutral names

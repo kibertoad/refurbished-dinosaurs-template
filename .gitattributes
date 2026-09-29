@@ -4,3 +4,7 @@
 *.iss text eol=crlf
 *.yml text eol=lf
 *.json text eol=lf
+
+# Hash-verified upstream copies keep their exact bytes on every platform: no EOL conversion.
+docs/upstream/** -text
+vendor/** -text

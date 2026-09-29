@@ -63,7 +63,7 @@ toolkit commit, naming the builds the run used, and commit the
 `VALIDATION.md` it writes:
 
 ```sh
-node artifacts/check-documentation.mjs --record-validation BLD-GOG-EN-1.1
+node tools/upstream.mjs docs --record-validation BLD-GOG-EN-1.1
 git add VALIDATION.md
 ```
 
@@ -155,14 +155,17 @@ deviation that exists on `main`. The toolkit's
 [setup guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/documentation-standard-check.md)
 lists its inputs.
 
+The verified offline runner and explicit refresh procedure are documented in
+[UPSTREAM-RULES](UPSTREAM-RULES.md). The canonical gate checks snapshot hashes,
+the matching CI pin, documentation, and synthetic evidence/snapshot tests.
+
 The check writes `spec/index/` and `PARITY.md`; nobody edits them by hand. After
 changing the spec, `parity/` or `deviations/`, run the script from the same
-toolkit commit the workflow pins, with Node.js 20 or newer, and commit what it
+toolkit commit the workflow pins, with Node.js 22 or newer, and commit what it
 writes:
 
 ```sh
-curl -fsSL --create-dirs -o artifacts/check-documentation.mjs https://raw.githubusercontent.com/kibertoad/refurbished-dinosaurs-toolkit/<sha>/tools/check-documentation.mjs
-node artifacts/check-documentation.mjs
+node tools/upstream.mjs docs
 git add spec/index PARITY.md
 ```
 

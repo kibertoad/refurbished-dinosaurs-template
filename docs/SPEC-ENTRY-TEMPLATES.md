@@ -411,3 +411,9 @@ rows belong in. It also writes the totals and the area links in `PARITY.md`.
 | Spec ID | Title | Spec status | Code | Tests | Deviations | Status | Notes |
 |---|---|---|---|---|---|---|---|
 ````
+
+## Reviewing a claim
+
+Use [EVIDENCE-REVIEW](EVIDENCE-REVIEW.md) for checks relevant to the claim,
+including synthetic worked examples. Record the reasoning in existing v1
+sections and fields; this guidance adds no schema or confidence scale.

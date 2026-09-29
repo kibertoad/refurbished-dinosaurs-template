@@ -21,7 +21,11 @@ This skill is the procedure; where they differ, the protocol wins.
    the current branch, and any `wip/` branch the handover names. Anything
    uncommitted that the handover does not mention belongs to someone else or
    to a crashed session: report it and leave it alone.
-4. Run the documentation check in `--check` mode as `docs/VALIDATION.md` ("Spec
+4. Verify the pinned rules with `node tools/upstream.mjs verify`. When the
+   published rules cannot be reached, read the verified copies under
+   `docs/upstream/` and report their revision without claiming freshness.
+   `docs/UPSTREAM-RULES.md` describes explicit online checks and refreshes.
+   Run the documentation check in `--check` mode as `docs/VALIDATION.md` ("Spec
    checks") describes. A failure on a clean tree is the first thing to fix.
 5. Read the plan's stage and current slice in `docs/IMPLEMENTATION-PLAN.md`,
    and check `docs/live-sessions/` for a request the owner has accepted.
