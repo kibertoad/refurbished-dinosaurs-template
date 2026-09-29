@@ -54,8 +54,7 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    that replays it and lists the row's ID. Tests that need the original find
    it through `GAME_DIR`, skip without it, and carry the comment
    `// needs: GAME_DIR`; after they pass locally with the original, record the
-   run in `VALIDATION.md` as `docs/VALIDATION.md` describes. Manual play is
-   not a test.
+   run in `VALIDATION.md` as `docs/VALIDATION.md` describes.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
