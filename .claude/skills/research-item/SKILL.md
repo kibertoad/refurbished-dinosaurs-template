@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 141-154),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 143-156),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -66,14 +66,21 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 219-251).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 237-273).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
    the type edges, cases for every branch and seeded random cases, run them
-   all in the harness and in each reading, and compare exactly. The fixture
+   all in the harness and in each reading, and compare exactly. Give every
+   import, interrupt or port access the function reaches an explicit stub
+   (anything else must stop the run with an error naming it); name in Setup
+   each stub, port model and video memory mapped as RAM, and what the
+   comparison assumes of them; give port values by glossary name. A copy to
+   video memory shows the bytes written, never the pixels. The fixture
    names arguments by the rule's Parameters and memory by field path or
-   glossary name, never by register or address, with
+   glossary name, never by register or address, lists each run's draws in
+   order as `{ rule, bound, result }` (the rule entry it was made under,
+   integers, no call address), with
    `starting_state: emulated-call`. The entry reaches `established` only if
    the cases reached every branch it describes and the reading of its
    callers and inputs is complete, and a rule with `# may run:` never does on
@@ -95,7 +102,23 @@ only the lines the link gives, and never a section already read this session.
    resolved, the instructions checked wherever types, signedness or casts
    decide a result, and nothing left to interrupts or threads (`# may run:`),
    memory nothing wrote, timing, or the operating system. List its findings in
-   the entry's `complete_reading`. An entry that depends on any of those needs
+   the entry's `complete_reading`. The standard's
+   [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 137-181)
+   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 392-440)
+   sections list what that covers; the parts most often missed are the
+   segment each access actually goes through, every part of a stored call
+   target, the other byte of a word written a byte at a time, allocation
+   sizes and units, a bound on the number of outputs, return values at the
+   width each caller tests, cleanup read once per path into it, and errors
+   passed back through recursion. A "no other caller" finding needs a second
+   search independent of the analyzer's function boundaries, with each hit
+   checked to decode as a call; a dispatch table finding reads how the input
+   becomes an index and what bounds it. An `offset` into overlay code lies
+   inside a row of its build's Code ranges section, whose finding shows the
+   range holds code. A procedure keeps each call a later decision depends on
+   as its own step, says what a rejected or abandoned call leaves in place,
+   and marks with `# visible:` comments where a change becomes visible to
+   other actors. An entry that depends on any of those needs
    an experiment or dynamic finding beside the static one, covering every
    branch and, for a random outcome, enough repetitions for its comparison. A
    rule stays below `established` while a glossary claim it relies on is

@@ -54,10 +54,15 @@ using it. Review the diff and run the canonical gate before committing; run `nod
 edit vendored files, broaden accepted formats locally, or promote spec claims as
 a side effect of a rules/checker update.
 
-The current checker includes toolkit PRs [10](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/10)
-and [11](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/11):
-superseded rules do not own active procedures, and executable location kinds are
-validated against the explicit v1 format list. Both licenses are retained next
+The current checker includes toolkit PRs [10](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/10),
+[11](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/11)
+[12](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/12)
+and [13](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/13):
+superseded rules do not own active procedures, executable location kinds are
+validated against the explicit v1 format list, build entries have a Code ranges
+section that every overlay offset lies inside, a long list of a build's
+other files is checked, and each draw in a fixture's runs is `{ rule, bound,
+result }` naming a rule entry. Both licenses are retained next
 to their respective copies. SHA-256 here identifies upstream tooling bytes; spec
 builds and captures continue to use the Standard's XXH3-128 hashes.
 

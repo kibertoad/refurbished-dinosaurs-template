@@ -4,7 +4,7 @@ Next ID: R-001
 
 People play the rebuild and report what does not work the way they expect, in
 words and with screenshots, whenever they happen to. Nothing waits for them.
-The [work protocol](../upstream/work-protocol.md#reports-from-testing) (lines 253-269)
+The [work protocol](../upstream/work-protocol.md#reports-from-testing) (lines 275-291)
 sets the rules, and the `triage-report` skill records and triages them.
 
 One file per report that has not been triaged yet, or that waits for what it

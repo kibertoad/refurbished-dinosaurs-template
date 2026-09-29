@@ -120,6 +120,15 @@ that page differ, the page wins.
   and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
   `docs/RUNTIME.md` records what can be done with the original running, and
   whether an agent, only a person, or nobody can do it.
+- Survey lists the installation and the media the game reads in full, and
+  records how the listing was made. Every path in that listing is in the
+  build's manifest, which holds every file the game uses, studied or not, or
+  in the build entry's Other files section with the reason it is left out
+  (in `BLD-<alias>.other-files.yaml` beside the manifest when the list is
+  long). A file whose use is unknown stays in the manifest. Checking the
+  format definitions against the few files whose hashes identify the release
+  does not end Survey; until every path is accounted for, the plan says what
+  is missing.
 - Static analysis comes first, and runs of the original are the last resort
   for each question: an `Agent run` or `Live session` item is taken up only
   after its own static attempt is under `Tried:`, or when it asks for the run
@@ -133,7 +142,13 @@ that page differ, the page wins.
   memory by parameter, field path or glossary name, and establishes an entry
   only when its cases reach every branch the entry describes and the reading
   of the function's callers and inputs is complete. It never confirms what
-  depends on interrupts (`# may run:`), timing or the operating system. Any
+  depends on interrupts (`# may run:`), timing, the operating system or the
+  hardware. Every import, interrupt or port access the function reaches has
+  an explicit stub, anything else stops the run with an error naming it, and
+  an experiment names in its Setup every stub, port model and video memory
+  mapped as ordinary RAM, and gives each port value by its glossary name. A
+  copy into video memory that ran to the end shows the bytes written, never
+  the pixels. Any
   agent may build the harness and make emulated calls, whatever
   `docs/RUNTIME.md` says about runs of the game and whatever this file adds
   to keep agents from running the original: such limits cover runs of the
@@ -269,6 +284,27 @@ not decide the outcome), `disputed`, or `superseded`. Findings and experiments a
 certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
 
+A complete reading also covers what the standard's
+[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 137-181)
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 392-440) sections
+list, among them: two addresses are the same storage only where the reading
+shows the segment each is formed in and accessed through (a BP offset read
+through DS is the caller's stack only where DS equals SS there); a stored
+call target is followed through every part it carries, such as an object
+adjustment or two words that form one far pointer; a byte stored into a word
+read whole names what writes the other byte; an allocation keeps apart the
+bytes requested, the width they are computed in, the allocator's unit, the
+header's size and the range later written, and a failed request may leave
+state changed; the number of outputs a procedure can produce is bounded on
+its own, apart from each input's bound; a return value is followed into each
+caller at the width it is tested; cleanup is read once per path into it; and
+an error passed back through recursion is traced to what can produce it. A
+finding that a function has no other callers checks the analyzer's list with
+a second search that does not depend on function boundaries, and one about a
+dispatch table reads how the input becomes an index and what bounds it before
+naming which input selects which entry. An `offset` into overlay code lies
+wholly inside a row of its build's Code ranges section.
+
 Unidentified functions, globals, fields, and scripts keep neutral names
 (`fn_00478CD0`, `g_004C1F20`, `unk_2A`) until a finding or experiment shows what
 they do, because a wrong name given early steers every later reading. Decompiler
@@ -372,6 +408,25 @@ lives only in a code comment is the one that gets implemented inverted. A
 branch no entry describes is never a guess: it becomes a question in the
 entry's Open questions and a `Spec gap:` note on the parity row, as the
 `implement-rows` skill says.
+
+Where `Core` computes a rule with a different algorithm from the entry's
+procedure, tests compare the state and outputs a later call reads, not only
+the result: for a search with a work queue, a node queued twice, a stored
+score that improves while an older queue entry waits, and a search stopped at
+its step limit and resumed. Wiring a rule into `Game` is tested through its
+intermediate states: one shared value followed through input, `Core`
+updates, presentation, and a save and restore, with distinct values per axis;
+what a second actor sees at each `# visible:` point; reservations across a
+table refresh and a save; a requester's rejection apart from a failed route.
+A checkpoint or replay API states what its identity covers (every field and
+behaviour-driving resource that decides how play continues, hashed in a
+stated, versioned encoding), rejects a mismatched checkpoint without changing
+the host, says whether a snapshot may be restored more than once, and never
+drops unsaved state such as a paused path search silently. These tests
+compare the rebuild with the spec or with itself, so none of them validates a
+parity row; see the protocol's
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
+and [Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 180-188).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.

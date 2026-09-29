@@ -8,6 +8,56 @@ not here.
 
 A project created from this template may delete this file.
 
+## Website rules up to kibertoad/refurbished-dinosaurs@21f6041, 2026-09-30
+
+The local copy in `docs/upstream/` is refreshed to the core website's
+`21f6041`. That brings in changes #15 to #25. What they add, and where the
+template now repeats it:
+
+- **Survey.** The installation is listed in full. Every path goes either in
+  the manifest, which holds every file the game uses, or in the build's
+  Other files with a reason. A long list goes in
+  `BLD-<alias>.other-files.yaml`. (`AGENTS.md`, `plan-work`, bootstrap
+  checklist, build template.)
+- **Code ranges.** A build entry has a Code ranges section. An offset into
+  overlay code has to lie wholly inside one of its rows. (Build template,
+  `research-item`, `AGENTS.md`.)
+- **Readings and findings.** New rules cover:
+  - segment identity
+  - stored call targets
+  - overlapping writes
+  - allocations
+  - output counts
+  - "no other caller" searches
+  - dispatch tables
+  - return values
+  - cleanup paths
+  - errors passed back through recursion
+  - procedure steps, rejected calls and `# visible:` points
+
+  (`AGENTS.md`, `research-item`.)
+- **Emulated calls.** Every port access needs an explicit stub. Port models
+  and video memory mapped as RAM are named in the experiment. A copy into
+  video memory shows bytes, never pixels. (`AGENTS.md`, `research-item`,
+  `docs/RUNTIME.md`.)
+- **Implementation.** New test rules cover:
+  - agreement between different algorithms
+  - intermediate states while a rule is wired into `Game`
+  - checkpoint and replay identity and restore contracts
+
+  (`AGENTS.md`, `implement-rows`.)
+
+The vendored checker and the CI action are pinned to the toolkit change
+that enforces the Code ranges section and the other-files list
+(kibertoad/refurbished-dinosaurs-toolkit#12), and to #13 after it, which
+checks that each draw a fixture's run lists is `{ rule, bound, result }`
+naming a rule entry; the `research-item` skill says so.
+
+- **Acceptance.** The following commands pass:
+  - `node tools/upstream.mjs verify`
+  - `node tools/upstream.mjs links`
+  - `node tools/upstream.mjs docs --check`
+
 ## Local copy of the standard, 2026-09-30
 
 Agents had been fetching the published methodology, documentation standard and
@@ -211,7 +261,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 786-807)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 814-835)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

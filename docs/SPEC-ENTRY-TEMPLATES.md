@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 294-728)
+sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 302-755)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -10,7 +10,7 @@ it.
 Rules, formats, screens and bugs may also have `complete_reading`, a list of
 the static findings that together read all of the entry, which makes it
 `established` without a run (see the standard's
-[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 137-177)).
+[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 137-181)).
 Leave it out until such a reading exists.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
@@ -24,7 +24,8 @@ lines. An entry that would pass the limit is split by what it describes, as
 the standard's [File size](upstream/documentation-standard.md#file-size) (lines 94-108)
 section says. The documentation standard check and
 `tools/Test-TemplateInfrastructure.ps1` both check the limit. Build manifests,
-value files, Kaitai definitions, fixtures and save patches are not counted.
+lists of a build's other files, value files, Kaitai definitions, fixtures and
+save patches are not counted.
 
 ## Build
 
@@ -47,14 +48,39 @@ manifest: BLD-<ALIAS>.files.yaml
 ## Compared with other builds
 
 ## Other files
+
+## Code ranges
 ````
+
+Other files says how the installation and the media the game reads were
+listed, closely enough to repeat, and gives every path of that listing the
+manifest leaves out with its reason. When that list would take the entry past
+the line limit, it goes in `spec/builds/BLD-<ALIAS>.other-files.yaml`, whose
+only key is `other_files`, and the section names that file:
+
+```yaml
+other_files:
+  - path: <path as the manifest would write it>
+    reason: <installer, wrapper, compatibility shim, ...>
+```
+
+Code ranges is a table of the parts of each file that hold code located by
+offset, or `None.` where all code is located by address. A range is half-open,
+and a location's `offset` into overlay code lies wholly inside one row:
+
+```markdown
+| File | Range | Overlay | Finding |
+|---|---|---|---|
+| `<path>` | `0x<start>..0x<end>` | <overlay or bank number, or -> | `FND-<AREA>-<NNN>` |
+```
 
 A build has one executable that runs the game's rules. An installation that
 ships two, such as a DOS and a Windows version over the same data files, is two
 builds, and both list the shared files.
 
 The build's files go in its manifest, `spec/builds/BLD-<ALIAS>.files.yaml`,
-whose only key is `files`. A path uses forward slashes and is relative to the
+whose only key is `files`. It lists every file the game uses, including files
+not studied yet, not only those whose hashes identify the release. A path uses forward slashes and is relative to the
 install directory, or starts with `CD:` (`CD1:`, `CD2:` for more than one disc)
 for a file read from the disc and never installed. A packed executable adds
 `packer` and `unpacked`. `Restoration.Inspect --source <dir>` prints each
@@ -378,7 +404,7 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](upstream/documentation-standard.md#deviation-log) (lines 786-807)
+[deviation log](upstream/documentation-standard.md#deviation-log) (lines 814-835)
 section sets out. Delete it otherwise. IDs are never reused or renumbered, and a dropped deviation keeps
 its file.
 
