@@ -47,7 +47,7 @@ template now repeats it:
 
   (`AGENTS.md`, `implement-rows`.)
 
-The vendored checker and the CI action are pinned to the toolkit change
+The vendored checker and the CI action are pinned to the head of the toolkit change
 that enforces the Code ranges section and the other-files list
 (kibertoad/refurbished-dinosaurs-toolkit#12).
 
