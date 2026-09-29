@@ -431,3 +431,10 @@ original content; `./tools/Invoke-Validation.ps1` passes; the configured-sample
 CI and installer smoke tests pass; status documents match reality; the skill
 validator and read-only dry run pass; changes are committed on a feature branch,
 pushed, and opened as a pull request with the evidence summarized.
+
+## 2026-09-30: v1 evidence review and offline authority
+
+Added conditional evidence review examples and queue decomposition guidance.
+Pinned unchanged Standard v1, Protocol and checker snapshots with explicit
+freshness/refresh commands, digest verification and configuration preservation.
+The checker and CI both include merged toolkit PR #11.

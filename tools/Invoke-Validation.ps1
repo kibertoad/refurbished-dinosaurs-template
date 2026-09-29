@@ -84,7 +84,10 @@ try {
     & (Join-Path $PSScriptRoot 'Test-TemplateInfrastructure.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Template infrastructure verification failed.' }
 
-    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs')
+    & node (Join-Path $repositoryRoot 'tools/upstream.mjs') docs --check
+    if ($LASTEXITCODE -ne 0) { throw 'Pinned documentation check failed.' }
+
+    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed.' }
 
     $msbuildArguments = @(

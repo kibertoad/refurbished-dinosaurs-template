@@ -4,3 +4,7 @@
 *.iss text eol=crlf
 *.yml text eol=lf
 *.json text eol=lf
+
+# Hash-verified upstream copies retain exact LF bytes on every platform.
+docs/upstream/** text eol=lf
+tools/vendor/** text eol=lf
