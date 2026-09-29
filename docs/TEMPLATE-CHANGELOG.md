@@ -12,12 +12,12 @@ A project created from this template may delete this file.
 
 The architecture boundaries now say that every decision the original makes — a
 flag cascade, a gate, a branch table, an outcome selector, a state transition —
-lives in `Core` as a pure function over the serializable state, even when only
-`Game` calls it; that each entry's branch table is implemented whole, one test
-per branch, including the branches `Game` cannot reach yet; and that a bug
-traced to branch logic in `Game` is fixed by extracting the rule into `Core`
-first. `AGENTS.md` says so, the definition of done requires it, and the
-`implement-rows` skill repeats it.
+lives in `Core` as a pure function of the serializable state and its inputs,
+even when only `Game` calls it; that each entry's branch table is implemented
+whole, one test per branch, including the branches `Game` cannot reach yet; and
+that a bug traced to branch logic in `Game` is fixed by extracting the rule
+into `Core` first. `AGENTS.md` says so, the definition of done requires it, and
+the `implement-rows` and `start-session` skills repeat it.
 
 - **Evidence.** The Wages of War restoration (`wages-due`) implemented the
   office fax dispatcher's signed-contract branch table inside the presentation

@@ -41,7 +41,8 @@ This skill is the procedure; where they differ, the protocol wins.
      an experiment (`FND-`, `EXP-`), with the tests that exercise it: its
      entry was superseded because the mechanic does not exist. Then rows
      whose Notes start with `Defect (R-...)`, adding a test that fails without
-     the fix and removing the note. Then parity rows of the current slice
+     the fix (extracting branch logic found in `Game` into `Core` first) and
+     removing the note. Then parity rows of the current slice
      from the goal or the plan, whose spec status is at least `supported`. Do
      not open `queue/` or `docs/reports/`.
 7. Say in two or three lines what you picked and why, then hand over to
