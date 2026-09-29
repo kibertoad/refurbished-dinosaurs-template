@@ -8,6 +8,31 @@ not here.
 
 A project created from this template may delete this file.
 
+## Website rules up to kibertoad/refurbished-dinosaurs@b923e85, 2026-09-30
+
+The local copy in `docs/upstream/` is refreshed to the core website's
+`b923e85`, which brings in #23. The work protocol gains a Recorded runs
+section, and the standard lets a fixture's run list its draws from the
+generator. The vendored checker stays on toolkit `c361820`, which already
+checks those draws. Where the template now repeats the new rules:
+
+- **Recorded runs.** Where an agent can start the original, read its memory
+  and set breakpoints, a probe records the seed and every draw under the ID
+  of the rule that made it, reaches its state by memory writes to
+  `supported` or `established` fields, and waits on a state it can read.
+  A divergence is explained by a copy of memory at the first differing draw,
+  kept in `GAME_DIR/captures/`. (`AGENTS.md`, `research-item`,
+  `live-session`.)
+- **Runtime record.** Each build's section gives the probe's command line.
+  (`docs/RUNTIME.md`, `runtime-access`.)
+- **Implementation.** The generator takes the rule ID with every draw and has
+  a hook only tests use. A fixture with draws is replayed draw by draw, and
+  the rebuild is never fitted to a recording. (`AGENTS.md`, `implement-rows`.)
+- **Acceptance.** The following commands pass:
+  - `node tools/upstream.mjs verify`
+  - `node tools/upstream.mjs links`
+  - `node tools/upstream.mjs docs --check`
+
 ## Website rules up to kibertoad/refurbished-dinosaurs@21f6041, 2026-09-30
 
 The local copy in `docs/upstream/` is refreshed to the core website's
@@ -261,7 +286,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 814-835)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 816-837)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

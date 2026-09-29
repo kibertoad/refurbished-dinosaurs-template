@@ -62,11 +62,24 @@ only the lines the link gives, and never a section already read this session.
    in `docs/RUNTIME.md`; take it with an exclusive create that fails if the
    file exists, record the ID of every process the run starts in it, and if
    another agent holds it, do not wait). Never touch a process you did not
-   start. Items under `Live session` go to `live-session`.
+   start. Where `docs/RUNTIME.md` gives a probe, the run follows the protocol's
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 225-237):
+   the fixture lists each draw as `{ rule, bound, result }` by rule ID,
+   never by call address, and a draw from a function no rule cites stops
+   the recording and gets an `unknown` entry and a queue item. Memory writes
+   go only to `supported` or `established` fields or to globals whose
+   glossary term gives evidence for the address, and Setup lists each one.
+   Waits end on a state the probe reads, never a fixed time. Record at least
+   two runs with different seeds. When the rebuild diverges, repeat the run
+   with its seed, copy memory at the entry of the first differing draw into
+   `GAME_DIR/captures/` (by hash, never committed), read the code statically,
+   and record the reading as a finding that changes the entry, with the
+   copied values in Observations.
+   Items under `Live session` go to `live-session`.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 237-273).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 251-287).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
