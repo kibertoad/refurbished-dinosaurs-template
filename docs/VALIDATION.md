@@ -144,7 +144,7 @@ The `Documentation standard` job in `.github/workflows/ci.yml` runs the
 [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
 pinned to a full commit SHA, on every pull request. It checks `spec/`, `parity/`
 and `deviations/` against the standard's list of
-[checks](upstream/documentation-standard.md#checks) (lines 730-780), compiles each
+[checks](upstream/documentation-standard.md#checks) (lines 757-808), compiles each
 `.ksy` file with the Kaitai Struct compiler, checks that every spec and
 deviation ID cited in `src/`, `tests/` and `tools/` exists and is not
 superseded, fails when `spec/index/` or `PARITY.md` is stale, and fails a `validated`

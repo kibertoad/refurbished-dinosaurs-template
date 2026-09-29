@@ -5,9 +5,9 @@ description: Plan restoration work - record the project's stage, write or revise
 
 # Plan work
 
-The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-78),
-[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 80-119) and
-[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 294-332).
+The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-80),
+[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 82-121) and
+[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 316-354).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,
@@ -48,7 +48,9 @@ never code or spec entries apart from new `unknown` entries.
    `validated` row's tests replay. Items duplicating one another are merged,
    and
    the merged item keeps one of their IDs.
-2. During Survey: every file the manifest lists as `data` without a format
+2. During Survey: until every path of the installation's listing is in the
+   manifest or the build's Other files, the plan says what is still missing
+   and Survey stays open. Every file the manifest lists as `data` without a format
    entry gets an `unknown` format entry and a queue item (CD audio tracks need
    none); so does every screen the manual mentions. Where function
    inventories exist in `coverage/`, a large function no entry cites gets a

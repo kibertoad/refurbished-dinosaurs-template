@@ -5,8 +5,8 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 
 # Implementation batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 156-166)
-and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 782-898).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
+and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 810-926).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 
@@ -56,7 +56,16 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    that replays it and lists the row's ID. Tests that need the original find
    it through `GAME_DIR`, skip without it, and carry the comment
    `// needs: GAME_DIR`; after they pass locally with the original, record the
-   run in `VALIDATION.md` as `docs/VALIDATION.md` describes.
+   run in `VALIDATION.md` as `docs/VALIDATION.md` describes. Where the code
+   uses a different algorithm from the entry's procedure, compare the state a
+   later call reads as well as the result (for a queued search: a node queued
+   twice, a score improved while an older entry waits, a stop at the step
+   limit and a resume). Where the batch wires a rule into `Game`, follow one
+   shared value through input, `Core`, presentation and a save and restore,
+   with distinct values per axis, and test what a second actor sees at each
+   `# visible:` point. A checkpoint or replay change follows the protocol's
+   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 180-188).
+   None of these tests validates a row.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`

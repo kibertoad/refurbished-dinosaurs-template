@@ -26,8 +26,10 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Runtime access: fill in `docs/RUNTIME.md` with the `runtime-access`
       skill, answering every capability for the analysis build from an
       attempt.
-- [ ] Survey: list in the manifest every file the game uses and the rest under
-      the build entry's Other files, give the format of every file listed as
+- [ ] Survey: list the installation and the media the game reads in full,
+      record how, list in the manifest every file the game uses and every
+      other path under the build entry's Other files with its reason, give
+      the format of every file listed as
       `data` an entry (`unknown` where nothing is known; CD audio tracks need
       none), export a function inventory of each file the analysis reads to
       `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an

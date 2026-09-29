@@ -11,7 +11,7 @@ every run of the original, including the checks behind this file, holds the
 machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
 Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
 `REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
-[Running the original](upstream/work-protocol.md#running-the-original) (lines 197-217).
+[Running the original](upstream/work-protocol.md#running-the-original) (lines 215-235).
 
 ## BLD-_alias_
 
@@ -19,7 +19,8 @@ How it runs: _natively, under Wine, in DOSBox-X or another emulator, or in a
 virtual machine, with versions._
 
 Emulator harness: _the Unicorn version, whether `tools/emu/` loads this build,
-and the stubs it has._ Emulated calls are always allowed, so the last row is
+and the stubs it has, including any port models and video memory mapped as
+RAM, and the limits of what they test._ Emulated calls are always allowed, so the last row is
 `agent` wherever the harness loads the build, whoever may run the game, and
 `none` only until a tooling batch builds the harness.
 
