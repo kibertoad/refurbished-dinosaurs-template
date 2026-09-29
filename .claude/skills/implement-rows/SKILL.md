@@ -5,8 +5,8 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 
 # Implementation batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 156-164)
-and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 770-886).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 156-166)
+and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 782-898).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 
