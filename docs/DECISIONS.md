@@ -8,7 +8,7 @@ timing. Live sessions are answered in their request files in
 decision.
 Newest first. A decision that departs from the original is also a deviation in
 `deviations/`. See the
-[work protocol](upstream/work-protocol.md#what-needs-the-owner) (lines 286-288).
+[work protocol](upstream/work-protocol.md#what-needs-the-owner) (lines 290-292).
 
 Each entry is a `##` heading of the form `YYYY-MM-DD: what was decided`,
 followed by the reason in a short paragraph and what it rules in or out.

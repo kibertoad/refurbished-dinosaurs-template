@@ -11,7 +11,7 @@ every run of the original, including the checks behind this file, holds the
 machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
 Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
 `REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
-[Running the original](upstream/work-protocol.md#running-the-original) (lines 195-215).
+[Running the original](upstream/work-protocol.md#running-the-original) (lines 197-217).
 
 ## BLD-_alias_
 

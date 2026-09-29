@@ -5,7 +5,7 @@ description: Record and triage a report from someone who played the rebuild - wo
 
 # Report from testing
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#reports-from-testing) (lines 251-267).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#reports-from-testing) (lines 253-269).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Reports arrive when they happen to. Never wait for one, never ask for testing

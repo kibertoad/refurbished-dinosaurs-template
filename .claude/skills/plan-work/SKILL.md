@@ -7,7 +7,7 @@ description: Plan restoration work - record the project's stage, write or revise
 
 The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-78),
 [The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 80-119) and
-[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 290-326).
+[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 294-332).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,

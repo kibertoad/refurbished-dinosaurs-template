@@ -1,31 +1,31 @@
 {
   "standardVersion": 1,
-  "captured": "2026-09-30",
+  "captured": "2026-09-29",
   "files": [
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "33a83a7bbbf61e744ceb896a2034d5ca6b85b724",
+      "revision": "595fdbe8410a3f3bf76f6387d9d16c0e6fb3cb8f",
       "source": "website/content/english/pages/documentation-standard.md",
       "path": "docs/upstream/documentation-standard.md",
-      "sha256": "0b689cabaf32913e7d7a65aeb79d0bc16a16ed860f23237a322bc9affdcb8385"
+      "sha256": "f5ec66883db20803c33a6347aff4dce6a3144fc1013c51d6d82a0372cb1a4d0c"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "33a83a7bbbf61e744ceb896a2034d5ca6b85b724",
+      "revision": "595fdbe8410a3f3bf76f6387d9d16c0e6fb3cb8f",
       "source": "website/content/english/pages/methodology.md",
       "path": "docs/upstream/methodology.md",
       "sha256": "ac33ad93c35f1dbd9461ca9011947c8f6324e3c242007bd7bede390567b309f3"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "33a83a7bbbf61e744ceb896a2034d5ca6b85b724",
+      "revision": "595fdbe8410a3f3bf76f6387d9d16c0e6fb3cb8f",
       "source": "website/content/english/pages/work-protocol.md",
       "path": "docs/upstream/work-protocol.md",
-      "sha256": "0746cda1e08c0d3fa83b7a83e96316a98fccfd47ef79f38f1bb83eeebe0e21df"
+      "sha256": "129492ad78895ed7091cbd5a36691504cd01916ff642c8406b551ca1e21c1b41"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "33a83a7bbbf61e744ceb896a2034d5ca6b85b724",
+      "revision": "595fdbe8410a3f3bf76f6387d9d16c0e6fb3cb8f",
       "source": "LICENSE",
       "path": "docs/upstream/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"

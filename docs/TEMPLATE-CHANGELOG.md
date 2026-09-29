@@ -25,7 +25,9 @@ The template is updated when the website changes.
 keep their own statement of the rules. An earlier version of this change
 replaced it with links to the copy, but the template's text was newer than
 the published pages, so that dropped rules the pages did not have yet; the
-text is restored, with its links pointing at the copy.
+text is restored, with its links pointing at the copy. The published pages
+were then brought up to date with it (kibertoad/refurbished-dinosaurs#14), and
+the copy is pinned to that version.
 
 A file-read tool ignores anchors, so every link to a section of the copy now
 gives the section's lines, as in `work-protocol.md#batches (lines 137-183)`,
@@ -209,7 +211,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 774-795)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 786-807)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 
