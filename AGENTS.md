@@ -328,6 +328,27 @@ created by the current task.
 - `<Project>.Inspect`: read-only tooling over `Resources`.
 - `<Project>.Tests`: architecture, safety, and behavioral tests.
 
+**Rules live in `Core`; screens map them.** Every decision the original makes —
+a flag cascade, a gate, a branch table, an outcome selector, a state
+transition — lives in `Core` as a pure function over the serializable state,
+even when only `Game` calls it. `Game` translates those decisions into
+screens, art, input, and timing; a rule may not have `Game` as its only home,
+and a rule already written inline in a screen handler is extracted the first
+time it is touched. The placement test: if demonstrating a behavior needs a
+window, a graphics device, or the asset pack, the rule is not in `Core` yet.
+
+Implement each entry's branch table whole: every branch the entry describes
+gets its Core function and its test, including the branches `Game` cannot
+reach yet and the "impossible" arms of a guard. The branch that lives only in
+a code comment is the one that gets implemented inverted, and a branch no
+entry describes is left as a `Spec gap:` note, never a guess.
+
+Testability is a design constraint, not a review pass. Each rule ships with
+fast-gate tests over synthetic state, one per branch — usually a static class
+over the serializable state type, called by `Game`. When a bug is traced to
+branch logic in `Game`, extract the rule into `Core`, pin every branch with a
+test, and fix it there.
+
 Determinism is a feature: identical commands and seed must produce identical
 state, because saves, replays, and parity validation depend on it. Every
 compiled C# file is limited to 1,000 lines; split responsibilities instead of
@@ -352,9 +373,11 @@ to fail when discovery drops below an expected count.
 ## Definition of done
 
 A change is finished when the solution builds, `./tools/Invoke-Validation.ps1` passes, new
-behavior has tests, the spec entries it relies on exist with the status their
-evidence supports, the documents that assert status (`README.md`, `PARITY.md`,
-`parity/`, `deviations/`) match reality, and `queue/` has been updated
+behavior has tests that exercise every branch of each new rule directly, not
+only the branches a play session reaches, the spec entries it relies on exist
+with the status their evidence supports, the documents that assert status
+(`README.md`, `PARITY.md`, `parity/`, `deviations/`) match reality, and
+`queue/` has been updated
 with whatever the work settled or newly raised.
 
 Commits describe the change and its evidence, not the tooling that produced it.

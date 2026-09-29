@@ -39,16 +39,19 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    entries: never evidence, statuses or descriptions. Never open `queue/`: its
    items hold what research tried.
 5. **Write the code** within the architecture boundaries in `AGENTS.md`
-   (deterministic Core, bounded parsing in Resources, presentation in Game).
+   (deterministic Core, bounded parsing in Resources, presentation in Game). A
+   decision — a gate, a cascade, a state transition — lives in `Core` as a pure
+   function over the serializable state, never in `Game` alone.
    Comments cite the spec IDs they implement. A departure from the spec needs
    a deviation file first, with a Default of `off` unless its Justification
    argues otherwise.
-6. **Test it**: synthetic tests for the logic; where an experiment fixture
-   exists, a test that replays it and lists the row's ID. Tests that need the
-   original find it through `GAME_DIR`, skip without it, and carry the comment
-   `// needs: GAME_DIR`; after they pass locally with the original, record the
-   run in `VALIDATION.md` as `docs/VALIDATION.md` describes. Manual play is not
-   a test.
+6. **Test it**: synthetic tests for the logic, one per branch the entry
+   describes, not only the branches a play session reaches; where an experiment
+   fixture exists, a test that replays it and lists the row's ID. Tests that
+   need the original find it through `GAME_DIR`, skip without it, and carry the
+   comment `// needs: GAME_DIR`; after they pass locally with the original,
+   record the run in `VALIDATION.md` as `docs/VALIDATION.md` describes. Manual
+   play is not a test.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
