@@ -20,7 +20,9 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    of its own.
 2. **Pick rows**: rows whose Notes start with `Defect (R-...)` first (fix
    the rebuild to what the entry says, add a test that fails without the fix,
-   and remove the note), then parity rows in `parity/<AREA>.md` that the current slice of
+   and remove the note; when the fault is branch logic in `Game`, extract the
+   rule into `Core` first and pin every branch with a test), then parity rows
+   in `parity/<AREA>.md` that the current slice of
    `docs/IMPLEMENTATION-PLAN.md` names, whose Code is not `complete`. Prefer
    rows whose spec status is `supported` or `established`.
 3. **Read the entries** the rows name, and every rule, format and glossary term
@@ -39,16 +41,20 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    entries: never evidence, statuses or descriptions. Never open `queue/`: its
    items hold what research tried.
 5. **Write the code** within the architecture boundaries in `AGENTS.md`
-   (deterministic Core, bounded parsing in Resources, presentation in Game).
+   (deterministic Core, bounded parsing in Resources, presentation in Game). A
+   decision — a gate, a cascade, a branch table, an outcome selector, a state
+   transition — lives in `Core` as a pure function of the serializable state
+   and its inputs, never in `Game` alone.
    Comments cite the spec IDs they implement. A departure from the spec needs
    a deviation file first, with a Default of `off` unless its Justification
    argues otherwise.
-6. **Test it**: synthetic tests for the logic; where an experiment fixture
-   exists, a test that replays it and lists the row's ID. Tests that need the
-   original find it through `GAME_DIR`, skip without it, and carry the comment
+6. **Test it**: synthetic tests for the logic, one per branch the entry
+   describes, including the branches `Game` cannot reach yet and the
+   "impossible" arms of a guard; where an experiment fixture exists, a test
+   that replays it and lists the row's ID. Tests that need the original find
+   it through `GAME_DIR`, skip without it, and carry the comment
    `// needs: GAME_DIR`; after they pass locally with the original, record the
-   run in `VALIDATION.md` as `docs/VALIDATION.md` describes. Manual play is not
-   a test.
+   run in `VALIDATION.md` as `docs/VALIDATION.md` describes.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
