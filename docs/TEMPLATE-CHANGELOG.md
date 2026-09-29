@@ -49,7 +49,9 @@ template now repeats it:
 
 The vendored checker and the CI action are pinned to the toolkit change
 that enforces the Code ranges section and the other-files list
-(kibertoad/refurbished-dinosaurs-toolkit#12).
+(kibertoad/refurbished-dinosaurs-toolkit#12), and to #13 after it, which
+checks that each draw a fixture's run lists is `{ rule, bound, result }`
+naming a rule entry; the `research-item` skill says so.
 
 - **Acceptance.** The following commands pass:
   - `node tools/upstream.mjs verify`

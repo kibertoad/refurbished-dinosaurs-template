@@ -78,7 +78,9 @@ only the lines the link gives, and never a section already read this session.
    comparison assumes of them; give port values by glossary name. A copy to
    video memory shows the bytes written, never the pixels. The fixture
    names arguments by the rule's Parameters and memory by field path or
-   glossary name, never by register or address, with
+   glossary name, never by register or address, lists each run's draws in
+   order as `{ rule, bound, result }` (the rule entry it was made under,
+   integers, no call address), with
    `starting_state: emulated-call`. The entry reaches `established` only if
    the cases reached every branch it describes and the reading of its
    callers and inputs is complete, and a rule with `# may run:` never does on
