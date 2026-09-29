@@ -9,7 +9,8 @@ import { reviewFlow, boundedTable } from "./review.mjs";
 import { joinInventories, inventoryPath } from "./inventory.mjs";
 
 function readBounded(path, max = 256 * 1024 * 1024) {
-  if (!statSync(path).isFile() || statSync(path).size > max) throw new Error(`Input too large or not a file: ${path}`);
+  const stat = statSync(path);
+  if (!stat.isFile() || stat.size > max) throw new Error(`Input too large or not a file: ${path}`);
   return readFileSync(path);
 }
 export function run(args) {

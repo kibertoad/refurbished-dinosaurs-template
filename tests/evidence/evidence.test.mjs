@@ -42,6 +42,10 @@ test("incoming candidates preserve aliases, controls and truncation", () => {
   assert.throws(() => incomingCalls(image, 528, { controls: [81] }), /Positive control/);
   assert.match(incomingCalls(image, 81).negative, /no positive control/);
   assert.match(incomingCalls(image, 81, { controls: [80] }).negative, /this domain/);
+  // A call byte before an unresolvable relocated word is reported, not fatal to the search.
+  const bogus = synthetic(); bogus.writeUInt16LE(0x0F00, 99);
+  const partial = incomingCalls(readMz(bogus), 528, { controls: [80] });
+  assert.equal(partial.total, 1); assert.equal(partial.unresolved.length, 1); assert.equal(partial.unresolved[0].callSite, "0x00000060");
 });
 
 for (const [name, edit, error] of [
@@ -57,6 +61,7 @@ for (const [name, edit, error] of [
   ["bad descriptor token", (b) => { b.writeUInt16LE(16, 535); return b; }, /invalid FBOV fixup/],
   ["trampoline outside code", (b) => { b.writeUInt16LE(32, 290); return b; }, /trampoline/],
   ["extended executable", (b) => { b.writeUInt32LE(64, 60); b.write("PE", 64); return b; }, /unsupported/],
+  ["extended header past load image", (b) => { b.writeUInt32LE(576, 60); b.write("NE", 576); return b; }, /unsupported/],
 ]) test(`reject ${name}`, () => assert.throws(() => readMz(edit(synthetic())), error));
 
 test("flow traverses every branch beyond an early return and counts discontiguous bytes", () => {
@@ -89,6 +94,8 @@ test("other entries and analyzer ownership cannot silently join a caller", () =>
   ] };
   const report = reviewFlow(graph, 0);
   assert.equal(report.ownership.length, 1); assert.match(report.gaps[0].reason, /another exported/);
+  const twice = reviewFlow({ ...graph, instructions: [{ ...graph.instructions[0], next: [10, 10] }, graph.instructions[1]] }, 0);
+  assert.equal(twice.gaps.filter((g) => /another exported/.test(g.reason)).length, 1);
   assert.equal(report.localPathsResolved, false);
 });
 
@@ -99,6 +106,7 @@ test("table count and widths prohibit decoding beyond the declared layout", () =
   assert.throws(() => boundedTable(bytes, { ...layout, count: 4 }), /outside/);
   assert.throws(() => boundedTable(bytes, { ...layout, countEvidence: "" }), /evidence/);
   assert.throws(() => boundedTable(bytes, { ...layout, fields: [{ name: "tag", offset: 1, width: 2 }] }), /field/);
+  assert.throws(() => boundedTable(bytes, { ...layout, fields: [{ offset: 0, width: 2 }] }), /field/);
 });
 
 test("portable paths retain manifest identity and reject traversal/collisions", () => {
@@ -109,12 +117,16 @@ test("portable paths retain manifest identity and reject traversal/collisions", 
 
 test("inventory views report exclusions and reject aliased ownership conflicts", () => {
   const image = readMz(synthetic()), view = { name: "resident", ranges: [{ start: 64, end: 512 }], text: "start\tsize\n1001:0000\t8\n" };
-  const joined = joinInventories(image, "CD:GAME.EXE", [view, { name: "mapped", ranges: [{ start: 528, end: 560 }], text: "start\tsize\n1001:0000\t8\n101D:0000\t2\n" }]);
+  const joined = joinInventories(image, "CD:GAME.EXE", [view, { name: "mapped", ranges: [{ start: 528, end: 560 }], text: "start\tsize\n1001:0000\t8\n0x0210\t2\n" }]);
   assert.match(joined.tsv, /CD:GAME.EXE\+0x00000210\t2/); assert.equal(joined.views[1].excluded, 1);
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, { ...view, name: "second" }]), /Conflicting/);
   assert.throws(() => parseInventory("start\tsize\tname\n0x01\t1\tFromOriginal\n"), /only start and size/);
   assert.throws(() => parseInventory("start\tsize\n0x01\t1\n0x01\t1\n"), /Duplicate/);
   assert.throws(() => joinInventories(image, "GAME.EXE", [{ ...view, ranges: [{ start: 600, end: 610 }] }]), /outside/);
+  // Overlapping ownership across views is rejected even when no start collides.
+  assert.throws(() => joinInventories(image, "GAME.EXE", [view, { name: "other", ranges: [{ start: 256, end: 300 }], text: "start\tsize\n0x0104\t4\n" }]), /Conflicting ownership/);
+  // Segment arithmetic never reaches overlay payload; overlay starts must be canonical offsets.
+  assert.throws(() => image.address(0x101D, 0), /resident load image/);
   // A discontiguous function's body count must not be mistaken for start + size.
   assert.doesNotThrow(() => joinInventories(image, "GAME.EXE", [{ ...view, text: "start\tsize\n0x01FF\t5\n" }]));
 });

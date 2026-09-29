@@ -28,6 +28,7 @@ Use `incoming` with numeric `target`, `limit` (default 100) and `controls`
 (known call-site file offsets). It examines all declared MZ relocations and
 FBOV fixups for far-call byte candidates and canonicalizes segment aliases.
 A missed positive control fails. A capped report explicitly says truncated.
+A call-byte candidate whose target cannot be mapped is listed under `unresolved`.
 Candidates still need entry-based instruction verification. Near/computed calls,
 unrelocated pointers and unresolved instruction boundaries remain excluded.
 A zero result never proves absence outside this declared domain.
@@ -68,7 +69,8 @@ its starts to canonical `0x` file offsets using that import's documented map.
 An `inventory` config includes source identity, `build`, `manifest`, and
 `views`. Each view has a distinct `name`, an input `path` and explicit ownership
 `ranges` with numeric inclusive `start` and exclusive `end` file offsets.
-Ranges must lie in the resolver's declared source regions. The report counts
+Ranges must lie in the resolver's declared source regions, and no two views may
+own overlapping ranges. Segmented starts map only into the resident image. The report counts
 accepted and excluded rows per view and rejects duplicate or aliased ownership.
 Choose which view owns a region explicitly; never overwrite conflicting rows.
 An inventory size counts body bytes, so it cannot define an end address.

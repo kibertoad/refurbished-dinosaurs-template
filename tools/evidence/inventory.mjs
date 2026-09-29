@@ -24,13 +24,16 @@ export function parseInventory(text) {
 export function joinInventories(image, manifest, views) {
   inventoryPath("BLD-CHECK", manifest);
   if (!Array.isArray(views) || !views.length || views.length > 64) throw new Error("Supply 1..64 inventory views");
-  const output = new Map(), summaries = [], names = new Set();
+  const output = new Map(), summaries = [], names = new Set(), owned = [];
   for (const v of views) {
     if (!v.name || names.has(v.name) || !Array.isArray(v.ranges) || !v.ranges.length) throw new Error("Each view needs a distinct name and explicit ranges");
     names.add(v.name);
     for (const r of v.ranges) if (!Number.isSafeInteger(r.start) || !Number.isSafeInteger(r.end) || r.end <= r.start || !image.ranges.some((m) => r.start >= m.start && r.end <= m.end)) throw new Error("View range is outside mapped source");
     const sorted = [...v.ranges].sort((a, b) => a.start - b.start);
     if (sorted.some((r, i) => i && r.start < sorted[i - 1].end)) throw new Error("Overlapping ownership ranges within a view");
+    const other = owned.find((o) => sorted.some((r) => r.start < o.end && o.start < r.end));
+    if (other) throw new Error(`Conflicting ownership: view ${v.name} overlaps a range owned by ${other.view}; choose ownership explicitly`);
+    owned.push(...sorted.map((r) => ({ view: v.name, start: r.start, end: r.end })));
     const rows = parseInventory(v.text); let accepted = 0, excluded = 0;
     for (const row of rows) {
       const pair = /^([0-9A-Fa-f]{4}):([0-9A-Fa-f]{4})$/.exec(row.start);

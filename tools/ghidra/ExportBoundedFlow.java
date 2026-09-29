@@ -43,9 +43,9 @@ public class ExportBoundedFlow extends GhidraScript {
             }
             String kind = type.isComputed() ? "indirect" : type.isCall() ? "call" : type.isTerminal() ? "terminal" : type.isJump() ? "branch" : "ordinary";
             // A terminal mnemonic alone is insufficient to identify interrupt/OS semantics.
-            if (ins.getMnemonicString().toUpperCase(Locale.ROOT).startsWith("RET")) kind = "return";
             String mnemonic = ins.getMnemonicString().toUpperCase(Locale.ROOT);
-            boolean hardware = mnemonic.matches("(?:IN|OUT)(?:S[BDW]?)?|INT(?:[13O])?|HLT");
+            if (mnemonic.startsWith("RET")) kind = "return";
+            boolean hardware = mnemonic.matches("(?:IN|OUT)(?:S[BDW]?)?(?:\\.REP\\w*)?|INT(?:[13O])?|HLT");
             rows.add("{\"start\":" + at.getOffset() + ",\"size\":" + ins.getLength()
                 + ",\"kind\":\"" + kind + "\",\"next\":" + next + ",\"calls\":" + calls
                 + ",\"externalEffects\":" + (hardware ? "[\"instruction requires hardware/OS review\"]" : "[]")

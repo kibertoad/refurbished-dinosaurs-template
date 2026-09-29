@@ -26,7 +26,7 @@ export function readMz(bytes, loadSegment = 0x1000) {
   }
   if (header >= 64) {
     const extended = u32(60);
-    if (extended >= header && extended + 2 <= end && ["PE", "NE", "LE", "LX"].includes(bytes.toString("ascii", extended, extended + 2))) throw new Error("Extended executable format is unsupported by the MZ resolver");
+    if (extended >= header && extended + 2 <= bytes.length && ["PE", "NE", "LE", "LX"].includes(bytes.toString("ascii", extended, extended + 2))) throw new Error("Extended executable format is unsupported by the MZ resolver");
   }
   const overlays = [], descriptors = [], fbov = Math.ceil(end / 16) * 16;
   if (fbov + 4 <= bytes.length && bytes.toString("ascii", fbov, fbov + 4) === "FBOV") {
@@ -65,10 +65,13 @@ export function readMz(bytes, loadSegment = 0x1000) {
     }
   }
   const ranges = [{ view: "resident", start: header, end }, ...overlays.map((o) => ({ view: `overlay-${o.descriptor}`, start: o.start, end: o.end }))];
+  const trampolines = new Map(overlays.flatMap((o) => o.trampolines).map((t) => [t.site, t]));
+  // Segment arithmetic reaches only the resident load image. Overlay payload is loaded
+  // elsewhere at run time, so its starts must be supplied as canonical file offsets.
   function address(segment, offset) {
     if (![segment, offset].every((n) => Number.isInteger(n) && n >= 0 && n <= 65535)) throw new Error("Invalid segmented address");
     const p = header + (segment - loadSegment) * 16 + offset;
-    if (!ranges.some((r) => p >= r.start && p < r.end)) throw new Error("Address is outside mapped source ranges");
+    if (p < header || p >= end) throw new Error("Segmented address is outside the resident load image");
     return p;
   }
   function resolveOperand(site, targetOffset = 0) {
@@ -82,7 +85,7 @@ export function readMz(bytes, loadSegment = 0x1000) {
     const segment = loadSegment + relative;
     if (segment > 65535) throw new Error("Loaded segment exceeds FFFF; no wrap assumed");
     const target = address(segment, targetOffset);
-    const trampoline = overlays.flatMap((o) => o.trampolines).find((t) => t.site === target);
+    const trampoline = trampolines.get(target);
     return { site: hex(site), raw, relocated: true, kind, descriptor,
       loadedAddress: `${segment.toString(16).toUpperCase().padStart(4, "0")}:${targetOffset.toString(16).toUpperCase().padStart(4, "0")}`,
       fileOffset: hex(target), canonicalTarget: hex(trampoline?.target ?? target), trampoline: trampoline ? hex(target) : null };
@@ -93,18 +96,21 @@ export function incomingCalls(image, target, { limit = 100, controls = [] } = {}
   if (!Number.isInteger(limit) || limit < 1 || limit > 10000) throw new Error("Result limit must be 1..10000");
   if (!Number.isSafeInteger(target) || !image.ranges.some((r) => target >= r.start && target < r.end)) throw new Error("Target is outside mapped ranges");
   const operands = [...image.relocations, ...image.overlays.flatMap((o) => [...o.fixups])];
-  const sites = [], matches = [];
+  const sites = [], matches = [], unresolved = [];
   for (const operand of operands) {
     const site = operand - 3;
     const range = image.ranges.find((r) => site >= r.start && site + 5 <= r.end);
     if (!range || image.bytes[site] !== 0x9A) continue;
-    const resolved = image.resolveOperand(operand, image.bytes.readUInt16LE(site + 1));
+    let resolved;
+    // A call byte before a relocated data word is common; one bad candidate must not abort the search.
+    try { resolved = image.resolveOperand(operand, image.bytes.readUInt16LE(site + 1)); }
+    catch (error) { unresolved.push({ callSite: hex(site), reason: error.message }); continue; }
     sites.push(site);
     if (resolved.relocated && Number(resolved.canonicalTarget) === target) matches.push({ callSite: hex(site), ...resolved, classification: "declared relocation with call-byte candidate; verify instruction path" });
   }
   for (const c of controls) if (!sites.includes(c)) throw new Error(`Positive control ${hex(c)} was missed; do not use negative results`);
-  return { target: hex(target), matches: matches.slice(0, limit), total: matches.length, truncated: matches.length > limit,
+  return { target: hex(target), matches: matches.slice(0, limit), total: matches.length, truncated: matches.length > limit, unresolved,
     controls: controls.map((x) => hex(x)), searched: "all declared MZ segment relocations and FBOV fixups",
-    exclusions: ["near calls", "computed calls", "unrelocated pointers", "instruction-boundary verification"],
+    exclusions: ["near calls", "computed calls", "unrelocated pointers", "instruction-boundary verification", "candidates listed as unresolved"],
     negative: matches.length ? null : controls.length ? "No matching declared candidates in this domain" : "No candidates; no positive control supplied" };
 }
