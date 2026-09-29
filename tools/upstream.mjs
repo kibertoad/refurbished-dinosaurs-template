@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, mkdirSync, renameSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, renameSync, statSync, realpathSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
@@ -13,10 +13,13 @@ const FILES = [
   ["kibertoad/refurbished-dinosaurs-toolkit", "tools/check-documentation.mjs", "tools/vendor/check-documentation.mjs"],
   ["kibertoad/refurbished-dinosaurs-toolkit", "LICENSE", "tools/vendor/LICENSE"],
 ];
+const MAX_FILE = 2 * 1024 * 1024;
+const V1 = /follows version 1(?![0-9]|\.[0-9])/;
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const revision = (x) => typeof x === "string" && /^[0-9a-f]{40}$/.test(x);
-function read(path, max = 2 * 1024 * 1024) {
-  if (!statSync(path).isFile() || statSync(path).size > max) throw new Error(`Invalid or oversized snapshot file: ${path}`);
+function read(path, max = MAX_FILE) {
+  const stat = statSync(path);
+  if (!stat.isFile() || stat.size > max) throw new Error(`Invalid or oversized snapshot file: ${path}`);
   return readFileSync(path);
 }
 export function validateLock(lock) {
@@ -34,17 +37,18 @@ export function verifySnapshot(root = ROOT) {
   const lock = validateLock(JSON.parse(read(resolve(root, "tools/upstream-lock.json"), 65536)));
   for (const f of lock.files) if (digest(read(resolve(root, f.path))) !== f.sha256) throw new Error(`Snapshot digest mismatch: ${f.path}; restore or explicitly refresh the pinned source`);
   const standard = read(resolve(root, "docs/upstream/documentation-standard.md")).toString("utf8");
-  if (!standard.includes("follows version 1")) throw new Error("The pinned Standard text no longer identifies version 1; review is required");
+  if (!V1.test(standard)) throw new Error("The pinned Standard text no longer identifies version 1; review is required");
   const checker = lock.files.find((f) => f.path === "tools/vendor/check-documentation.mjs");
   const ci = read(resolve(root, ".github/workflows/ci.yml")).toString("utf8");
-  if (!ci.split(/\r?\n/).some(line => line.trim().startsWith(`- uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${checker.revision}`) && /@[0-9a-f]{40}(?:\s|$)/.test(line))) throw new Error("CI checker revision differs from the verified offline checker");
+  const pins = ci.split(/\r?\n/).filter((line) => line.includes("kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@"));
+  if (pins.length !== 1 || !pins[0].trim().startsWith(`- uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${checker.revision}`) || !/@[0-9a-f]{40}(?:\s|$)/.test(pins[0])) throw new Error("CI checker revision differs from the verified offline checker");
   return lock;
 }
 async function download(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(30000), headers: { "User-Agent": "restoration-template-upstream-check" } });
   if (!response.ok) throw new Error(`Upstream ${response.status}: ${url}`);
   const parts = []; let count = 0;
-  for await (const part of response.body) { count += part.length; if (count > 2 * 1024 * 1024) throw new Error("Upstream response exceeds snapshot limit"); parts.push(part); }
+  for await (const part of response.body) { count += part.length; if (count > MAX_FILE) throw new Error("Upstream response exceeds snapshot limit"); parts.push(part); }
   return Buffer.concat(parts);
 }
 export async function prepareSnapshot(rules, toolkit, fetchFile = download) {
@@ -52,10 +56,10 @@ export async function prepareSnapshot(rules, toolkit, fetchFile = download) {
   const staged = await Promise.all(FILES.map(async ([repository, source, path]) => {
     const rev = repository.endsWith("-toolkit") ? toolkit : rules;
     const bytes = await fetchFile(`https://raw.githubusercontent.com/${repository}/${rev}/${source}`);
-    if (!Buffer.isBuffer(bytes) || bytes.length > 2 * 1024 * 1024) throw new Error("Invalid snapshot response");
+    if (!Buffer.isBuffer(bytes) || bytes.length > MAX_FILE) throw new Error("Invalid snapshot response");
     return { metadata: { repository, revision: rev, source, path, sha256: digest(bytes) }, bytes };
   }));
-  if (!staged[0].bytes.toString("utf8").includes("follows version 1")) throw new Error("Refresh would change or lose Standard v1; review required");
+  if (!V1.test(staged[0].bytes.toString("utf8"))) throw new Error("Refresh would change or lose Standard v1; review required");
   return { lock: { standardVersion: 1, captured: new Date().toISOString().slice(0, 10), files: staged.map((x) => x.metadata) }, staged };
 }
 export async function checkUpstream(root = ROOT, fetchFile = download) {
@@ -97,7 +101,9 @@ export async function main(args, root = ROOT) {
   }
   throw new Error("Usage: upstream.mjs verify | docs [checker arguments] | check-upstream | refresh --rules <full-sha> --toolkit <full-sha>");
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+// Node resolves symlinks for the entry module, so compare real paths; a mismatch would skip main() and exit 0.
+const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();
+if (invokedDirectly) {
   try { process.exitCode = await main(process.argv.slice(2)); }
   catch (error) { console.error(`Upstream snapshot: ${error.message}. Freshness is unverified on a network failure; no successful check is implied.`); process.exitCode = 1; }
 }

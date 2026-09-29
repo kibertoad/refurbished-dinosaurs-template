@@ -51,7 +51,6 @@ if (Test-Path -LiteralPath $configPath -PathType Leaf) {
     $projectName = $config.projectName
     $isConfigured = [bool] $config.configured
 }
-# Immutable upstream text can contain examples of template identifiers.
 & node (Join-Path $root 'tools/upstream.mjs') verify
 if ($LASTEXITCODE -ne 0) { throw 'Pinned upstream snapshot verification failed.' }
 $findings = [Collections.Generic.List[string]]::new()
@@ -63,6 +62,7 @@ $identifier = [regex]::new("(?<![A-Za-z0-9_])$([regex]::Escape($templateName))(?
 $checkIdentifiers = $isConfigured -and $projectName -and $projectName -cne $templateName
 
 foreach ($relative in $paths | Sort-Object -Unique) {
+    # Immutable upstream text can contain examples of template identifiers; its digests are verified above.
     if ($relative -match '^(docs/upstream|tools/vendor)/') { continue }
     $file = Join-Path $root $relative
     if (-not [IO.File]::Exists($file)) { continue }

@@ -5,6 +5,6 @@
 *.yml text eol=lf
 *.json text eol=lf
 
-# Hash-verified upstream copies retain exact LF bytes on every platform.
-docs/upstream/** text eol=lf
-tools/vendor/** text eol=lf
+# Hash-verified upstream copies keep their exact bytes on every platform: no EOL conversion.
+docs/upstream/** -text
+tools/vendor/** -text
