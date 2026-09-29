@@ -52,7 +52,7 @@ jobs:
           # when it deletes a spec ID, area or deviation that exists there.
           fetch-depth: 0
       # The toolkit publishes no tags, and its setup guide pins a commit on its main branch.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@6e3cad31b6d61280a4649a873cf890377b402a75 # zizmor: ignore[stale-action-refs]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@aaa0d97bd4d1254ea5ca957995ca28a5e2e7f760 # zizmor: ignore[stale-action-refs]
   installer:
     name: Windows installer
     needs: verify
