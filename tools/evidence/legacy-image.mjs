@@ -96,7 +96,8 @@ export function incomingCalls(image, target, { limit = 100, controls = [] } = {}
   if (!Number.isInteger(limit) || limit < 1 || limit > 10000) throw new Error("Result limit must be 1..10000");
   if (!Number.isSafeInteger(target) || !image.ranges.some((r) => target >= r.start && target < r.end)) throw new Error("Target is outside mapped ranges");
   const operands = [...image.relocations, ...image.overlays.flatMap((o) => [...o.fixups])];
-  const sites = [], matches = [], unresolved = [];
+  // Scanned far-call sites and their canonical targets; controls are checked against this.
+  const scanned = new Map(), matches = [], unresolved = [];
   for (const operand of operands) {
     const site = operand - 3;
     const range = image.ranges.find((r) => site >= r.start && site + 5 <= r.end);
@@ -105,12 +106,14 @@ export function incomingCalls(image, target, { limit = 100, controls = [] } = {}
     // A call byte before a relocated data word is common; one bad candidate must not abort the search.
     try { resolved = image.resolveOperand(operand, image.bytes.readUInt16LE(site + 1)); }
     catch (error) { unresolved.push({ callSite: hex(site), reason: error.message }); continue; }
-    sites.push(site);
-    if (resolved.relocated && Number(resolved.canonicalTarget) === target) matches.push({ callSite: hex(site), ...resolved, classification: "declared relocation with call-byte candidate; verify instruction path" });
+    if (!resolved.relocated) continue;
+    scanned.set(site, resolved.canonicalTarget);
+    if (Number(resolved.canonicalTarget) === target) matches.push({ callSite: hex(site), ...resolved, classification: "declared relocation with call-byte candidate; verify instruction path" });
   }
-  for (const c of controls) if (!sites.includes(c)) throw new Error(`Positive control ${hex(c)} was missed; do not use negative results`);
+  // Controls are coverage controls: known far-call sites to any target, proving the domain was decoded.
+  for (const c of controls) if (!scanned.has(c)) throw new Error(`Positive control ${hex(c)} was missed; do not use negative results`);
   return { target: hex(target), matches: matches.slice(0, limit), total: matches.length, truncated: matches.length > limit, unresolved,
-    controls: controls.map((x) => hex(x)), searched: "all declared MZ segment relocations and FBOV fixups",
+    controls: controls.map((c) => ({ callSite: hex(c), canonicalTarget: scanned.get(c) })), searched: "all declared MZ segment relocations and FBOV fixups",
     exclusions: ["near calls", "computed calls", "unrelocated pointers", "instruction-boundary verification", "candidates listed as unresolved"],
     negative: matches.length ? null : controls.length ? "No matching declared candidates in this domain" : "No candidates; no positive control supplied" };
 }

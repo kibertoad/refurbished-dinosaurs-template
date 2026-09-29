@@ -25,9 +25,12 @@ build/file and the Standard's address or overlay `offset`, and describes the
 mapping. File offsets are independent of analyzer view addresses.
 
 Use `incoming` with numeric `target`, `limit` (default 100) and `controls`
-(known call-site file offsets). It examines all declared MZ relocations and
-FBOV fixups for far-call byte candidates and canonicalizes segment aliases.
-A missed positive control fails. A capped report explicitly says truncated.
+(coverage controls: file offsets of known far-call sites to any target). It
+examines all declared MZ relocations and FBOV fixups for far-call byte
+candidates and canonicalizes segment aliases. A control need not call `target`;
+it proves the search decoded real far calls in this domain, which is what makes
+a negative result usable. The report lists each control with the canonical
+target it resolved to. A missed or unresolved positive control fails. A capped report explicitly says truncated.
 A call-byte candidate whose target cannot be mapped is listed under `unresolved`.
 Candidates still need entry-based instruction verification. Near/computed calls,
 unrelocated pointers and unresolved instruction boundaries remain excluded.

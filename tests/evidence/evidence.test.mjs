@@ -41,11 +41,16 @@ test("incoming candidates preserve aliases, controls and truncation", () => {
   assert.match(report.matches[0].classification, /candidate/);
   assert.throws(() => incomingCalls(image, 528, { controls: [81] }), /Positive control/);
   assert.match(incomingCalls(image, 81).negative, /no positive control/);
-  assert.match(incomingCalls(image, 81, { controls: [80] }).negative, /this domain/);
+  const negative = incomingCalls(image, 81, { controls: [80] });
+  assert.match(negative.negative, /this domain/);
+  // A coverage control need not call the target; the report shows what it resolved to.
+  assert.deepEqual(negative.controls, [{ callSite: "0x00000050", canonicalTarget: "0x00000210" }]);
   // A call byte before an unresolvable relocated word is reported, not fatal to the search.
   const bogus = synthetic(); bogus.writeUInt16LE(0x0F00, 99);
   const partial = incomingCalls(readMz(bogus), 528, { controls: [80] });
   assert.equal(partial.total, 1); assert.equal(partial.unresolved.length, 1); assert.equal(partial.unresolved[0].callSite, "0x00000060");
+  // An unresolved site cannot serve as a control.
+  assert.throws(() => incomingCalls(readMz(bogus), 528, { controls: [96] }), /Positive control/);
 });
 
 for (const [name, edit, error] of [
