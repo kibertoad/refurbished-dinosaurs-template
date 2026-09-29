@@ -5,9 +5,11 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [methodology](../../../docs/upstream/methodology.md), the
-[documentation standard](../../../docs/upstream/documentation-standard.md) and
-the [work protocol](../../../docs/upstream/work-protocol.md#research-batches).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 141-154),
+and the sections of the methodology and the documentation standard the steps
+below link to. This skill is the procedure.
+Open a linked section only when a step leaves a question it answers, read
+only the lines the link gives, and never a section already read this session.
 `AGENTS.md` summarizes the clean-room rules; they never bend.
 
 1. **Turn spec gaps into items**: for every parity row whose Notes starts with
@@ -50,14 +52,14 @@ the [work protocol](../../../docs/upstream/work-protocol.md#research-batches).
    local storage. A run you drive is the last resort, only for an item under
    `Agent run` that meets the protocol's conditions and only while holding
    the run lock (path in `docs/RUNTIME.md`); see
-   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original). Items under
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 195-215). Items under
    `Live session` go to `live-session`. An item under `Emulated call`
-   follows [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls), with the harness in
+   follows [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 217-249), with the harness in
    `tools/emu/`; emulated calls are always allowed and need no run lock.
 5. **Record it** in `spec/` with the templates in
    `docs/SPEC-ENTRY-TEMPLATES.md`, and give each entry it concerns the status
-   the evidence supports, as [Status](../../../docs/upstream/documentation-standard.md#status) and
-   [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) define it. What the evidence
+   the evidence supports, as [Status](../../../docs/upstream/documentation-standard.md#status) (lines 118-167),
+   with its Complete readings, defines it. What the evidence
    does not reach goes in the entry's Open questions.
 6. **Update the queue in the same change**: delete the settled item, split an
    item that turned out to be two questions, add every new question as a new

@@ -4,6 +4,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { checkLinks } from "./upstream-sections.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FILES = [
@@ -84,6 +85,12 @@ export async function main(args, root = ROOT) {
     if (result.error) throw result.error;
     return result.status ?? 1;
   }
+  if (command === "links" && (!rest.length || (rest.length === 1 && rest[0] === "--write"))) {
+    const { problems, changed } = checkLinks(root, rest[0] === "--write");
+    for (const file of changed) console.log(`Wrote section ranges: ${file}`);
+    for (const problem of problems) console.error(problem);
+    return problems.length ? 1 : 0;
+  }
   if (command === "check-upstream" && !rest.length) {
     const reports = await checkUpstream(root); console.log(JSON.stringify(reports, null, 2)); return reports.some((r) => r.changed) ? 2 : 0;
   }
@@ -100,7 +107,7 @@ export async function main(args, root = ROOT) {
     for (const [path, bytes] of writes) { const target = resolve(root, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target + ".refresh", bytes); renameSync(target + ".refresh", target); }
     verifySnapshot(root); console.log("Refreshed explicit revisions. Review the diff and run the canonical gate before committing."); return 0;
   }
-  throw new Error("Usage: upstream.mjs verify | docs [checker arguments] | check-upstream | refresh --rules <full-sha> --toolkit <full-sha>");
+  throw new Error("Usage: upstream.mjs verify | docs [checker arguments] | links [--write] | check-upstream | refresh --rules <full-sha> --toolkit <full-sha>");
 }
 // Node resolves symlinks for the entry module, so compare real paths; a mismatch would skip main() and exit 0.
 const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();

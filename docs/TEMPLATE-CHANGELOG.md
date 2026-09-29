@@ -16,8 +16,8 @@ every link with a section anchor. The hash-verified copies in `docs/upstream/`
 are now the only place agents read them: the methodology joins the documentation
 standard and the work protocol there, and every link to those pages in the
 template points at the copy with the same anchor. `AGENTS.md` tells agents to
-read the copy, to assume it is up to date, to read only the section a link
-names, and never to go online to check for a newer version: checking and
+read the copy, to assume it is up to date, to read only the lines a section
+link gives, and never to go online to check for a newer version: checking and
 refreshing are started only by a person, following `docs/UPSTREAM-RULES.md`.
 The template is updated when the website changes.
 
@@ -28,10 +28,17 @@ paths this repository uses, each with a link to the section of the copy that
 gives the details, and the entry templates keep only the blank entries. A
 refresh of the copy then needs no rewrite of those summaries.
 
+A file-read tool ignores anchors, so every link to a section of the copy now
+gives the section's lines, as in `work-protocol.md#batches (lines 137-183)`,
+and agents read only those. The skills open with the sections they rely on
+instead of whole pages, and say that their steps are enough: a section is
+opened only for a question a step leaves, and never twice in a session.
+`node tools/upstream.mjs links --write` writes the ranges after a refresh.
+
 - **Acceptance.** The upstream tests fail when a link to one of the three
-  pages misses `docs/upstream/` or names no heading there, when a link
-  inside the copy names no heading, and when a file links the published
-  pages instead of the copy.
+  pages misses `docs/upstream/` or names no heading there, when a section
+  link's line range is missing or stale, when a link inside the copy names
+  no heading, and when a file links the published pages instead of the copy.
 
 ## Rules live in `Core`, one test per branch, 2026-09-30
 
@@ -174,7 +181,7 @@ sets how restoration work is planned, tracked and handed on.
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new
-[File size](upstream/documentation-standard.md#file-size) section,
+[File size](upstream/documentation-standard.md#file-size) (lines 94-108) section,
 which limits every Markdown file it defines to 1,000 lines and splits the files
 that grew with the whole project.
 
@@ -203,7 +210,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 774-795)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

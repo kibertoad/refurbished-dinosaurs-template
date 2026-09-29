@@ -14,9 +14,12 @@ Use Node.js 22 or newer:
 node tools/upstream.mjs verify
 node tools/upstream.mjs docs --check
 node tools/upstream.mjs docs
+node tools/upstream.mjs links
 ```
 
-The first command checks integrity and agreement with the CI action pin without
+`links` checks that every link into the copy names a heading there and gives
+that section's line range, so agents read only those lines; `links --write`
+adds or corrects the ranges. The first command checks integrity and agreement with the CI action pin without
 network access. The documentation runner verifies before executing the checker;
 without `--check` it regenerates the usual indexes and parity totals. The canonical
 validation gate runs these offline checks. Kaitai and other dependencies required
@@ -47,7 +50,7 @@ Refresh downloads all files before writing any of them, requires the Standard's
 v1 declaration, updates the CI checker pin, and writes the lock last. Individual
 files are replaced atomically; an interruption across files is detected by digest
 verification. Restore the previous snapshot or rerun the explicit refresh before
-using it. Review the diff and run the canonical gate before committing; the gate checks that every link into the copy still reaches a heading. Follow any change the new version makes to the rules in `AGENTS.md`, the skills and the documents that summarize them. Do not
+using it. Review the diff and run the canonical gate before committing; run `node tools/upstream.mjs links --write` first, which rewrites the line range of every section link to match the new copy; the gate fails on a link whose section no longer exists or whose range is stale. Follow any change the new version makes to the rules in `AGENTS.md`, the skills and the documents that summarize them. Do not
 edit vendored files, broaden accepted formats locally, or promote spec claims as
 a side effect of a rules/checker update.
 

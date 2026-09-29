@@ -9,7 +9,7 @@ History is in git, open research questions are in `queue/`, the plan is in
 `docs/goals/`, and the open live session requests are the files in
 `docs/live-sessions/`. Name items and entries by ID; what research found or
 tried belongs in the spec and the queue, never here.
-See the [work protocol](upstream/work-protocol.md#working-files).
+See the [work protocol](upstream/work-protocol.md#working-files) (lines 10-30).
 
 ## State
 

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream } from "../../tools/upstream.mjs";
 import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
+import { checkLinks, linkFile, sections } from "../../tools/upstream-sections.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const lock = JSON.parse(readFileSync(resolve(root, "tools/upstream-lock.json")));
 function fixture(t) {
@@ -107,32 +108,30 @@ test("configuration copy includes Git-visible files and excludes ignored or loca
   assert.equal(includedPath(".github\\workflows\\test.yml"), true);
 });
 
-test("links to the standard reach a heading of the local copy, never the website", () => {
-  const pages = ["methodology", "documentation-standard", "work-protocol"];
-  const slug = text => text.trim().toLowerCase().replace(/[^a-z0-9 _-]/g, "").replace(/ /g, "-");
-  const anchors = new Map(pages.map(page => {
-    let fenced = false; const slugs = new Set();
-    for (const line of readFileSync(resolve(root, `docs/upstream/${page}.md`), "utf8").split(/\r?\n/)) {
-      if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
-      else if (!fenced && /^#{1,6} /.test(line)) slugs.add(slug(line.replace(/^#+ /, "")));
-    }
-    return [page, slugs];
-  }));
-  const listed = spawnSync("git", ["ls-files", "-z", "-co", "--exclude-standard", "*.md"], { cwd: root, encoding: "utf8" });
-  assert.equal(listed.status, 0, listed.stderr);
-  const problems = [];
-  for (const file of [...new Set(listed.stdout.split("\0").filter(Boolean))]) {
-    if (!existsSync(resolve(root, file))) continue;
-    const text = readFileSync(resolve(root, file), "utf8"), inCopy = file.startsWith("docs/upstream/");
-    const pattern = inCopy
-      ? /\]\(\/(methodology|documentation-standard|work-protocol)\/(?:#([^)\s]+))?\)/g
-      : /\]\(([^)\s]*?)(methodology|documentation-standard|work-protocol)\.md(?:#([^)\s]+))?\)/g;
-    for (const match of text.matchAll(pattern)) {
-      const [page, anchor] = inCopy ? [match[1], match[2]] : [match[2], match[3]];
-      if (!inCopy && resolve(root, dirname(file), `${match[1]}${page}.md`) !== resolve(root, `docs/upstream/${page}.md`)) problems.push(`${file}: ${match[0]} misses docs/upstream/`);
-      else if (anchor && !anchors.get(page).has(anchor)) problems.push(`${file}: ${match[0]} names no heading`);
-    }
-    if (!inCopy && /dinorefurb\.com\/(methodology|documentation-standard|work-protocol)/.test(text)) problems.push(`${file}: links the published page instead of docs/upstream/`);
-  }
-  assert.deepEqual(problems, []);
+test("links to the standard reach a heading of the local copy and state its lines", () => {
+  assert.deepEqual(checkLinks(root).problems, []);
+});
+
+test("section ranges run from the heading to the next heading of the same level", () => {
+  const ranges = sections("---\ntitle: x\n---\n\n## A\ntext\n\n### B\n```\n# not a heading\n```\n\n## C\nlast\n");
+  assert.deepEqual(ranges.get("a"), { start: 5, end: 11 });
+  assert.deepEqual(ranges.get("b"), { start: 8, end: 11 });
+  assert.deepEqual(ranges.get("c"), { start: 13, end: 14 });
+  assert.equal(ranges.has("not-a-heading"), false);
+});
+
+test("link check reports misplaced, missing or stale ranges and rewrites them", () => {
+  const pages = new Map([["work-protocol", new Map([["batches", { start: 10, end: 20 }]])], ["methodology", new Map()], ["documentation-standard", new Map()]]);
+  const check = (text, write) => linkFile(root, "AGENTS.md", text, pages, write);
+  assert.deepEqual(check("[B](docs/upstream/work-protocol.md#batches) (lines 10-20).").problems, []);
+  assert.match(check("[B](docs/upstream/work-protocol.md#batches).").problems[0], /needs \(lines 10-20\), not no range/);
+  assert.match(check("[B](docs/upstream/work-protocol.md#batches) (lines 9-20).").problems[0], /not \(lines 9-20\)/);
+  assert.match(check("[B](docs/upstream/work-protocol.md#batchez)").problems[0], /names no heading/);
+  assert.match(check("[B](docs/standard/work-protocol.md#batches)").problems[0], /misses docs\/upstream/);
+  assert.match(check("[P](docs/upstream/work-protocol.md) (lines 1-2)").problems[0], /names no section/);
+  assert.match(check("see https://dinorefurb.com/work-protocol/").problems[0], /published page/);
+  const written = check("[B](docs/upstream/work-protocol.md#batches) (lines 9-20) and [B](docs/upstream/work-protocol.md#batches).", true);
+  assert.equal(written.text, "[B](docs/upstream/work-protocol.md#batches) (lines 10-20) and [B](docs/upstream/work-protocol.md#batches) (lines 10-20).");
+  assert.deepEqual(written.problems, []);
+  assert.match(linkFile(root, "docs/upstream/methodology.md", "[x](/work-protocol/#batchez)", pages).problems[0], /names no heading/);
 });

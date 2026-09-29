@@ -97,51 +97,56 @@ reference to those pages in this repository points at that copy.
   is `docs/upstream/work-protocol.md#emulated-calls`, and the same for
   `/methodology/` and `/documentation-standard/`. Only links to other pages of
   the site lead outside the copy.
-- A link such as `work-protocol.md#batches` names one section. Read only that
-  section: search the page for its heading (`## Batches`) to get its line
-  number, and read from there to the next heading of the same level. Read a
-  whole page at most once per session, and never again for a section already
-  in context.
+- A link to a section gives its lines, such as
+  `work-protocol.md#batches (lines 137-183)`. Read only those lines (with an
+  offset and a limit), never the whole page for one section, and never a
+  section again once it is in context. The lines include the section's
+  subsections, so a link to a subsection inside one already read adds
+  nothing. The upstream tests keep every range right; after a refresh,
+  `node tools/upstream.mjs links --write` rewrites them.
+- Skills and summaries in this repository are enough to do the work. Open a
+  linked section only when a step leaves a question it answers.
 - Checking whether a newer version has been published, and refreshing the
   copy, is always started by a person. Do it only when the owner asks for it
   in the current task, and then follow `docs/UPSTREAM-RULES.md`.
 
 ## Planning and tracking work
 
-Work is planned, tracked and handed on under the
-[work protocol](docs/upstream/work-protocol.md). Read the section a task needs
-there; this list only gives where each thing lives in this repository.
+Work is planned, tracked and handed on under the work protocol
+(`docs/upstream/work-protocol.md`). Read only the section a task needs, by the
+lines its link below gives; this list says where each thing lives in this
+repository.
 
 - Stage: `docs/IMPLEMENTATION-PLAN.md`
-  ([Stages](docs/upstream/work-protocol.md#stages)). What can be done with the
+  ([Stages](docs/upstream/work-protocol.md#stages) (lines 32-78)). What can be done with the
   original running, and by whom: `docs/RUNTIME.md`
-  ([Runtime access](docs/upstream/work-protocol.md#runtime-access)).
+  ([Runtime access](docs/upstream/work-protocol.md#runtime-access) (lines 42-60)).
 - Open questions: `queue/<AREA>.md`, with IDs such as `Q-COMBAT-012`
-  ([The queue](docs/upstream/work-protocol.md#the-queue),
-  [Order of work](docs/upstream/work-protocol.md#order-of-work)).
+  ([The queue](docs/upstream/work-protocol.md#the-queue) (lines 80-119),
+  [Order of work](docs/upstream/work-protocol.md#order-of-work) (lines 112-119)).
 - Runs of the original take the machine's run lock, whose path
   `docs/RUNTIME.md` gives
-  ([Running the original](docs/upstream/work-protocol.md#running-the-original)).
+  ([Running the original](docs/upstream/work-protocol.md#running-the-original) (lines 195-215)).
   Requests for a person's run go in `docs/live-sessions/`
-  ([Live sessions](docs/upstream/work-protocol.md#live-sessions)).
+  ([Live sessions](docs/upstream/work-protocol.md#live-sessions) (lines 205-215)).
 - Emulated calls use the harness in `tools/emu/`; any agent may build it and
   make them, whatever limits on runs of the game say
-  ([Emulated calls](docs/upstream/work-protocol.md#emulated-calls)).
+  ([Emulated calls](docs/upstream/work-protocol.md#emulated-calls) (lines 217-249)).
 - Reports from testers: `docs/reports/`, recorded with the `triage-report`
   skill. Screenshots of the rebuild go in `GAME_DIR/reports/`, of the original
   in `GAME_DIR/captures/`, never in Git
-  ([Reports from testing](docs/upstream/work-protocol.md#reports-from-testing)).
+  ([Reports from testing](docs/upstream/work-protocol.md#reports-from-testing) (lines 251-267)).
 - Batches, commits and their `Spec:`, `Parity:` and `Queue:` trailers:
-  [Batches](docs/upstream/work-protocol.md#batches). Statuses and how a claim
+  [Batches](docs/upstream/work-protocol.md#batches) (lines 137-183). Statuses and how a claim
   moves between them:
-  [The life of a claim](docs/upstream/work-protocol.md#the-life-of-a-claim).
+  [The life of a claim](docs/upstream/work-protocol.md#the-life-of-a-claim) (lines 121-135).
 - Handover: `docs/HANDOVER.md`, running goals in `docs/goals/`, the owner's
   decisions in `docs/DECISIONS.md`
-  ([Sessions](docs/upstream/work-protocol.md#sessions),
-  [Coding agents and long-running goals](docs/upstream/work-protocol.md#coding-agents-and-long-running-goals)).
+  ([Sessions](docs/upstream/work-protocol.md#sessions) (lines 185-193),
+  [Coding agents and long-running goals](docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 290-326)).
 - Progress is what scripts compute, never a hand-written percentage. Function
   inventories are committed as `coverage/<build ID>/<manifest path>.tsv`
-  ([Measuring progress](docs/upstream/work-protocol.md#measuring-progress)).
+  ([Measuring progress](docs/upstream/work-protocol.md#measuring-progress) (lines 269-284)).
 
 The procedures are skills in `.claude/skills/`: `runtime-access`,
 `plan-work`, `start-session`, `research-item`, `implement-rows`,
@@ -178,24 +183,24 @@ skills print.
 
 ## Reverse-engineering discipline
 
-The [methodology](docs/upstream/methodology.md) and the
-[documentation standard](docs/upstream/documentation-standard.md) govern the
-spec. Read the section a task needs; the points below are the ones every
-session relies on.
+The methodology (`docs/upstream/methodology.md`) and the documentation
+standard (`docs/upstream/documentation-standard.md`) govern the spec. Read
+only the section a task needs, by the lines its link below gives; the points
+below are the ones every session relies on.
 
 - The executable has the final word on what the shipped game does; the manual
   and fan sources are leads
-  ([Ground rules](docs/upstream/methodology.md#ground-rules)).
+  ([Ground rules](docs/upstream/methodology.md#ground-rules) (lines 12-22)).
 - Use the standard's statuses and no other scale, and never promote a
   plausible interpretation
-  ([Status](docs/upstream/documentation-standard.md#status)).
+  ([Status](docs/upstream/documentation-standard.md#status) (lines 118-167)).
 - Unidentified functions and globals keep neutral names (`fn_00478CD0`,
   `g_004C1F20`) until evidence shows what they do
-  ([Notation](docs/upstream/documentation-standard.md#notation)).
+  ([Notation](docs/upstream/documentation-standard.md#notation) (lines 169-202)).
 - The spec describes the original only, never names a class, file or setting
   of this repository, and never copies the game's writing, art or code
-  ([Where it lives](docs/upstream/documentation-standard.md#where-it-lives),
-  [Licence](docs/upstream/documentation-standard.md#licence)). Blank entries
+  ([Where it lives](docs/upstream/documentation-standard.md#where-it-lives) (lines 14-92),
+  [Licence](docs/upstream/documentation-standard.md#licence) (lines 888-898)). Blank entries
   of each kind are in `docs/SPEC-ENTRY-TEMPLATES.md`; tool procedure is in
   `docs/GHIDRA.md`.
 - Never commit broad decompiler, instruction or Version Tracking exports. The
@@ -204,9 +209,9 @@ session relies on.
 ## Fidelity
 
 What the rebuild keeps and what it may change is set by
-[Where fidelity stops](docs/upstream/methodology.md#where-fidelity-stops).
+[Where fidelity stops](docs/upstream/methodology.md#where-fidelity-stops) (lines 52-64).
 Every departure from the spec is a `DEV-AREA-NNN` file in `deviations/`
-([Deviation log](docs/upstream/documentation-standard.md#deviation-log)). The
+([Deviation log](docs/upstream/documentation-standard.md#deviation-log) (lines 774-795)). The
 validation suite runs with every setting switched off, and a test that reaches
 a mandatory deviation cites its ID. Rebalancing and new features belong in a
 separate mode or project.
@@ -216,7 +221,7 @@ separate mode or project.
 Code comments and tests cite the spec IDs they implement or check. A guessed
 formula carries a `PLACEHOLDER: <spec ID>` comment, and that parity row cannot
 be `complete` while it does. `PARITY.md` holds the totals and `parity/` the
-rows ([Parity matrix](docs/upstream/documentation-standard.md#parity-matrix));
+rows ([Parity matrix](docs/upstream/documentation-standard.md#parity-matrix) (lines 797-865));
 behavior without a spec entry gets an `unknown` entry before any code. Manual
 play never counts as a test.
 
