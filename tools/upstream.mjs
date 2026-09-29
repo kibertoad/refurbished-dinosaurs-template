@@ -10,8 +10,8 @@ const FILES = [
   ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/documentation-standard.md", "docs/upstream/documentation-standard.md"],
   ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/work-protocol.md", "docs/upstream/work-protocol.md"],
   ["kibertoad/refurbished-dinosaurs", "LICENSE", "docs/upstream/LICENSE"],
-  ["kibertoad/refurbished-dinosaurs-toolkit", "tools/check-documentation.mjs", "tools/vendor/check-documentation.mjs"],
-  ["kibertoad/refurbished-dinosaurs-toolkit", "LICENSE", "tools/vendor/LICENSE"],
+  ["kibertoad/refurbished-dinosaurs-toolkit", "tools/check-documentation.mjs", "vendor/check-documentation.mjs"],
+  ["kibertoad/refurbished-dinosaurs-toolkit", "LICENSE", "vendor/LICENSE"],
 ];
 const MAX_FILE = 2 * 1024 * 1024;
 const V1 = /follows version 1(?![0-9]|\.[0-9])/;
@@ -38,7 +38,7 @@ export function verifySnapshot(root = ROOT) {
   for (const f of lock.files) if (digest(read(resolve(root, f.path))) !== f.sha256) throw new Error(`Snapshot digest mismatch: ${f.path}; restore or explicitly refresh the pinned source`);
   const standard = read(resolve(root, "docs/upstream/documentation-standard.md")).toString("utf8");
   if (!V1.test(standard)) throw new Error("The pinned Standard text no longer identifies version 1; review is required");
-  const checker = lock.files.find((f) => f.path === "tools/vendor/check-documentation.mjs");
+  const checker = lock.files.find((f) => f.path === "vendor/check-documentation.mjs");
   const ci = read(resolve(root, ".github/workflows/ci.yml")).toString("utf8");
   const pins = ci.split(/\r?\n/).filter((line) => line.includes("kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@"));
   if (pins.length !== 1 || !pins[0].trim().startsWith(`- uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${checker.revision}`) || !/@[0-9a-f]{40}(?:\s|$)/.test(pins[0])) throw new Error("CI checker revision differs from the verified offline checker");
@@ -79,7 +79,7 @@ export async function main(args, root = ROOT) {
   if (command === "verify" && !rest.length) { verifySnapshot(root); console.log("Pinned Standard v1, Protocol and checker digests verified offline; upstream freshness not checked."); return 0; }
   if (command === "docs") {
     verifySnapshot(root);
-    const result = spawnSync(process.execPath, [resolve(root, "tools/vendor/check-documentation.mjs"), "--root", root, ...rest], { cwd: root, stdio: "inherit" });
+    const result = spawnSync(process.execPath, [resolve(root, "vendor/check-documentation.mjs"), "--root", root, ...rest], { cwd: root, stdio: "inherit" });
     if (result.error) throw result.error;
     return result.status ?? 1;
   }

@@ -7,4 +7,4 @@
 
 # Hash-verified upstream copies keep their exact bytes on every platform: no EOL conversion.
 docs/upstream/** -text
-tools/vendor/** -text
+vendor/** -text

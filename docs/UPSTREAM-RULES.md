@@ -3,7 +3,9 @@
 `tools/upstream-lock.json` identifies exact upstream revisions, source paths and
 SHA-256 digests for the unmodified Standard, Protocol, checker and MIT licenses.
 The standard remains **v1**. Source snapshots live in `docs/upstream/`; the checker
-is in `tools/vendor/`. LF attributes preserve their exact bytes across platforms.
+is in `vendor/`, outside the `--code` roots so the offline run and the CI action (which
+runs its own copy) scan the same files. Git attributes disable EOL conversion there, so
+their exact bytes survive on every platform.
 Configuration deliberately leaves these directories unchanged.
 
 Use Node.js 22 or newer:

@@ -93,7 +93,7 @@ function Test-IncludedPath([string] $root, [string] $fullName) {
     if (-not $normalizedName.StartsWith($normalizedRoot + [IO.Path]::DirectorySeparatorChar,
             [StringComparison]::OrdinalIgnoreCase)) { return $false }
     $relative = $normalizedName.Substring($normalizedRoot.Length + 1).Replace('\', '/')
-    if ($relative -match '^(docs/upstream|tools/vendor)(/|$)') { return $false }
+    if ($relative -match '^(docs/upstream|vendor)(/|$)') { return $false }
     return -not ($relative.Split('/') | Where-Object { $excludedDirectories -contains $_ })
 }
 

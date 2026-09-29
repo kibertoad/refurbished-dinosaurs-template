@@ -63,7 +63,7 @@ $checkIdentifiers = $isConfigured -and $projectName -and $projectName -cne $temp
 
 foreach ($relative in $paths | Sort-Object -Unique) {
     # Immutable upstream text can contain examples of template identifiers; its digests are verified above.
-    if ($relative -match '^(docs/upstream|tools/vendor)/') { continue }
+    if ($relative -match '^(docs/upstream|vendor)/') { continue }
     $file = Join-Path $root $relative
     if (-not [IO.File]::Exists($file)) { continue }
     $extension = [IO.Path]::GetExtension($relative)

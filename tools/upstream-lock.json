@@ -27,14 +27,14 @@
       "repository": "kibertoad/refurbished-dinosaurs-toolkit",
       "revision": "1560349d2e7430fd6b1b229b0b52f3782d08d3b0",
       "source": "tools/check-documentation.mjs",
-      "path": "tools/vendor/check-documentation.mjs",
+      "path": "vendor/check-documentation.mjs",
       "sha256": "a739e81104c97ede4a26c4dac16370c0f9545fc07f50dc7b633510d83b2275be"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs-toolkit",
       "revision": "1560349d2e7430fd6b1b229b0b52f3782d08d3b0",
       "source": "LICENSE",
-      "path": "tools/vendor/LICENSE",
+      "path": "vendor/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"
     }
   ]

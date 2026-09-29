@@ -67,7 +67,7 @@ test("project configuration preserves upstream bytes and licenses", t => {
   // sensitive to configuration without changing the real pinned files.
   const scratchLockPath = resolve(dir, "tools/upstream-lock.json");
   const scratchLock = JSON.parse(readFileSync(scratchLockPath));
-  for (const path of ["docs/upstream/documentation-standard.md", "tools/vendor/LICENSE"]) {
+  for (const path of ["docs/upstream/documentation-standard.md", "vendor/LICENSE"]) {
     const target = resolve(dir, path);
     const bytes = Buffer.concat([readFileSync(target), Buffer.from("\n{{DISPLAY_NAME}}\n")]);
     writeFileSync(target, bytes);
