@@ -53,3 +53,15 @@ superseded rules do not own active procedures, and executable location kinds are
 validated against the explicit v1 format list. Both licenses are retained next
 to their respective copies. SHA-256 here identifies upstream tooling bytes; spec
 builds and captures continue to use the Standard's XXH3-128 hashes.
+
+## Configuration-test prerequisites
+
+The upstream tests require Git, Node.js 22+ and PowerShell 7+ (`pwsh`), including
+on Windows. Their scratch copy includes tracked files and non-ignored untracked
+files, then excludes the existing local-output directories. Deleted tracked files
+are skipped. Ignored dependencies and caches are not copied.
+
+Like the canonical repository checks, validation requires a Git checkout. For a
+ZIP download, initialize a repository with `git init` before validating; the
+non-ignored files are then visible as untracked. There is no recursive-copy
+fallback that would reintroduce ignored local content.

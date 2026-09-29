@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, cpSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, cpSync, rmSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
-import { resolve, dirname, relative } from "node:path";
+import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream } from "../../tools/upstream.mjs";
+import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const lock = JSON.parse(readFileSync(resolve(root, "tools/upstream-lock.json")));
 function fixture(t) {
@@ -60,12 +62,47 @@ test("freshness distinguishes unchanged bytes, changed content and unavailable n
 });
 test("project configuration preserves upstream bytes and licenses", t => {
   const dir = fixture(t);
-  const excluded = new Set([".git", "artifacts", "bin", "obj", "TestResults", "analysis", "reference", "UserContent"]);
-  cpSync(root, dir, { recursive: true, filter: path => !relative(root, path).split(/[\\/]/).some(part => excluded.has(part)) });
-  const shell = process.platform === "win32" ? "powershell.exe" : "pwsh";
-  const configured = spawnSync(shell, ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"),
-    "-ProjectName", "EvidenceSample", "-DisplayName", "Evidence Sample"], { cwd: dir, encoding: "utf8" });
+  copyWorkingTree(root, dir);
+  // Upstream currently has no replaceable tokens. Make the scratch snapshots
+  // sensitive to configuration without changing the real pinned files.
+  const scratchLockPath = resolve(dir, "tools/upstream-lock.json");
+  const scratchLock = JSON.parse(readFileSync(scratchLockPath));
+  for (const path of ["docs/upstream/documentation-standard.md", "tools/vendor/LICENSE"]) {
+    const target = resolve(dir, path);
+    const bytes = Buffer.concat([readFileSync(target), Buffer.from("\n{{DISPLAY_NAME}}\n")]);
+    writeFileSync(target, bytes);
+    scratchLock.files.find(f => f.path === path).sha256 = createHash("sha256").update(bytes).digest("hex");
+  }
+  writeFileSync(scratchLockPath, JSON.stringify(scratchLock));
+  verifySnapshot(dir);
+  const configured = spawnSync("pwsh", ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"),
+    "-ProjectName", "EvidenceSample", "-DisplayName", "Evidence Sample", "-AppId", "00000000-0000-0000-0000-000000000001",
+    "-CopyrightYear", "2026", "-Force"], { cwd: dir, encoding: "utf8" });
   assert.equal(configured.status, 0, configured.error?.message ?? configured.stdout + configured.stderr);
   assert.equal(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))).projectName, "EvidenceSample");
   verifySnapshot(dir);
+});
+
+test("configuration copy includes Git-visible files and excludes ignored or local output", t => {
+  const source = mkdtempSync(resolve(tmpdir(), "v1-copy-source-"));
+  const destination = mkdtempSync(resolve(tmpdir(), "v1-copy-target-"));
+  t.after(() => { rmSync(source, { recursive: true, force: true }); rmSync(destination, { recursive: true, force: true }); });
+  const put = (path, text) => { mkdirSync(dirname(resolve(source, path)), { recursive: true }); writeFileSync(resolve(source, path), text); };
+  assert.throws(() => copyWorkingTree(source, destination), /requires a Git checkout/);
+  const git = (...args) => { const result = spawnSync("git", args, { cwd: source, encoding: "utf8" }); assert.equal(result.status, 0, result.stderr); };
+  git("init", "--quiet");
+  put(".gitignore", "node_modules/\n");
+  put("tracked.md", "tracked"); put("deleted.md", "deleted"); git("add", ".");
+  rmSync(resolve(source, "deleted.md"));
+  put("new.md", "Restoration.Core"); put("node_modules/ignored.md", "ignored");
+  put("artifacts/local.md", "excluded even if untracked and not ignored");
+  put(".github/workflows/test.yml", "workflow"); put("Start {{SHORTCUT_NAME}}.bat", "launcher");
+  copyWorkingTree(source, destination);
+  for (const path of ["tracked.md", "new.md", ".github/workflows/test.yml", "Start {{SHORTCUT_NAME}}.bat"]) {
+    assert.equal(readFileSync(resolve(destination, path), "utf8"), readFileSync(resolve(source, path), "utf8"));
+  }
+  for (const path of ["deleted.md", "node_modules", "artifacts", ".git"]) assert.equal(existsSync(resolve(destination, path)), false, path);
+  assert.equal(includedPath("nested\\obj\\output.txt"), false);
+  assert.equal(includedPath("nested/obj/output.txt"), false);
+  assert.equal(includedPath(".github\\workflows\\test.yml"), true);
 });
