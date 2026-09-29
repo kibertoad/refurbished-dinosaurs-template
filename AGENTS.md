@@ -163,6 +163,18 @@ that page differ, the page wins.
 - Evidence from runs comes mostly from people. Runs an agent drives are the
   most fragile evidence there is, so they are scripted, start from a fixed
   state and are kept to questions nothing else answers.
+- Where `docs/RUNTIME.md` says an agent can start the original without a
+  person, read its memory and set breakpoints, runs are recorded runs: a
+  script (the probe) records the seed and every draw from the random number
+  generator under the ID of the rule whose function made it, with its bound
+  and result, and a test replays the run against the rebuild draw by draw.
+  No address of the original reaches a fixture or a test. The probe reaches
+  its state by memory writes to `supported` or `established` fields and
+  waits on a state it can read, never on a fixed time. A divergence is
+  explained by a copy of memory at the draw that differs, kept in
+  `GAME_DIR/captures/` and never committed, and the finding changes the
+  entry; the rebuild follows the entry, never the recording. In a live
+  session only the draw recording and memory copies apply.
 - People test the rebuild when they happen to and report in words and
   screenshots. Never wait for a report or plan around one. Record one at once
   in `docs/reports/` with the `triage-report` skill; a research session
@@ -434,7 +446,9 @@ When a bug is traced to branch logic in `Game`, extract the rule into `Core`,
 pin every branch with a test, and fix it there.
 
 Determinism is a feature: identical commands and seed must produce identical
-state, because saves, replays, and parity validation depend on it. Every
+state, because saves, replays, and parity validation depend on it. The
+generator takes the ID of the rule making each draw and offers a hook that
+lets a test observe every draw; nothing but tests uses the hook. Every
 compiled C# file is limited to 1,000 lines; split responsibilities instead of
 raising the limit.
 

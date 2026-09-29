@@ -14,7 +14,7 @@ possible, and it is the one time the original is run before the static work
 is done.
 
 1. **Take the run lock** as the protocol's
-   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 215-235)
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 215-249)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an
    exclusive create that fails if it exists (`[IO.File]::Open($path,
    'CreateNew')` in PowerShell), naming this repository, the session and the
@@ -39,7 +39,10 @@ is done.
    version tried and what happened, and each `none` or `person` says what
    would change it. For the harness, record the Unicorn version, the builds
    it loads and the stubs it has.
-   Replace answers that are no longer true; do not append.
+   Replace answers that are no longer true; do not append. Where the agent
+   can start the build, read its memory and set breakpoints, runs of it are
+   recorded runs: give the probe's command line under Probe, or `none`
+   until a tooling batch writes the probe.
 4. **Move queue items** between `Emulated call`, `Agent run` and
    `Live session` where an answer changed, in the same commit.
 5. **Stop every process you started and delete the lock.** Commit, then print

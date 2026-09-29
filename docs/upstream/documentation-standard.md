@@ -492,6 +492,8 @@ The fixture is a JSON file that follows the standard's fixture schema. It holds 
 
 Where the generator's state can be read, the fixture records the state at the start of each run, so a test can replay single runs as well as compare the distribution. For random outcomes it also holds the tolerance: the statistical test a comparison uses and its significance level. A test that compares a distribution runs the rebuild from the states the fixture records, or, where the original's state could not be read, from the list of states in the fixture's `seeds`. It then gets the same result on every run, and a correct rebuild never fails it by chance, which a test drawing fresh random states would do once in every twenty runs at a significance level of 0.05.
 
+Where the original's calls to its generator can be watched, a run can also list them in order under `draws`, as a [recorded run](/work-protocol/#recorded-runs) does. Each draw gives the ID of the rule it was made under, the bound it asked for and the result it got, and a test compares the rebuild's draws with them one by one. A draw is never identified by the address of its call in the original's code. The rebuild cites the same rules, so the rule ID is something both sides can name.
+
 Like a patch, a fixture never records the game's writing, art or code. Where an event or the end state involves a named thing, the fixture identifies it by its index or ID in the game's files, which is what a test resolves, and may give its name beside that as a label. It leaves out any field of the end state that holds the game's writing, art or code.
 
 A save recreated from the Setup section and a patch will usually differ from the recorded hash in fields the patch does not set. The hash identifies the save the recorded runs used, and a test compares only what the fixture lists.
@@ -775,7 +777,7 @@ The script checks that:
 - every value file belongs to the entry its name gives and is named by that entry, every `table` that takes its values from one has as many rows as its count, every list written out in a procedure or a `table` definition has at most 64 values, and every value file of an enumeration table has that table's columns;
 - every packed file in a build entry gives its packer and the size, hash, format and unpacking tool of its unpacked form;
 - every pattern in a format entry's `files` matches a file in each build the entry lists;
-- no entry that is not superseded cites a superseded entry, whether in `builds`, a location, `evidence`, `conflicting` or `related`, and every entry that is not superseded has an empty `superseded_by`;
+- no entry that is not superseded cites a superseded entry, whether in `builds`, a location, `evidence`, `conflicting`, `related` or a draw in an experiment's fixture, and every entry that is not superseded has an empty `superseded_by`;
 - every superseded entry names what replaced or disproved it, and no chain of `superseded_by` links leads back to where it started;
 - a finding's or experiment's `superseded_by` names only findings and experiments, a build's only builds, a source's only sources, and a source appears in any other kind's `superseded_by` only in a bug's;
 - `conflicting` holds only findings and experiments and is empty unless the status is `disputed`, and `related` links only to the kinds allowed for the entry;
@@ -796,7 +798,7 @@ The script checks that:
 - every resource a screen or procedure references, and every file a procedure reads or writes, is in a file that a format entry lists, apart from CD audio tracks, which the build entry lists;
 - every binary format entry's `definition` exists unless the status is `unknown`, and every text format entry's `definition`, `size` and `byte_order` are null;
 - every Kaitai file belongs to the format entry its name and `meta/id` give, compiles, names the licence in `meta/license`, and has fixed sizes that match the layout table in its entry;
-- every experiment's `fixture` exists and validates against the fixture schema, every event it names has a glossary entry, every format, field path and glossary name in its end state exists, it gives the hash of the save its runs started from unless `starting_state` is `new-game` or `emulated-call`, and, for a patch, the hash of the base save as well;
+- every experiment's `fixture` exists and validates against the fixture schema, every event it names has a glossary entry, every format, field path and glossary name in its end state exists, every draw names a rule entry, it gives the hash of the save its runs started from unless `starting_state` is `new-game` or `emulated-call`, and, for a patch, the hash of the base save as well;
 - no rule whose procedure has a `# may run:` comment is `established`, or has a `validated` row, when every experiment it cites has `starting_state: emulated-call`;
 - every `starting_state` that names a save or a patch points to one in `saves/`, and every patch validates against the fixture schema and names formats and field paths that exist in their layout tables with status `supported` or `established`;
 - every save in `saves/` and every file in `recordings/` matches the hash in its fixture, is named by some experiment, and is listed in `spec/LICENSE` as covered by neither licence;

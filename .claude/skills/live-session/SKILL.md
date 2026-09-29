@@ -5,7 +5,7 @@ description: Request, prepare and ingest a live session, in which a person runs 
 
 # Live session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 225-235).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 239-249).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 The maintainer's time is the scarcest resource the project has: prepare it so
@@ -48,7 +48,9 @@ without a person, from the static readings.
 Once the Status is `accepted`, hold the run lock (path in `docs/RUNTIME.md`)
 for the whole session, and add the ID of the process the maintainer started
 to it. That process is the one you may attach to and read without having
-started it; never send it input or stop it. Follow the script; at each signal
+started it; never send it input or stop it. Where the probe can attach,
+record the draws and copy memory as a recorded run does, but never write
+memory or replace the seed. Follow the script; at each signal
 take the measurement, confirm it, and tell the maintainer to carry on. Delete
 the lock at the end, and set the request's Status to `held, YYYY-MM-DD`.
 
