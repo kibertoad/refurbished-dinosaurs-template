@@ -2,7 +2,7 @@
 
 What can be done with the original game running, and who can do it. The
 `runtime-access` skill fills this in during the Runtime access stage; see the
-[work protocol](https://dinorefurb.com/work-protocol/#runtime-access). This
+[work protocol](upstream/work-protocol.md#runtime-access) (lines 42-60). This
 file says what is true now: replace an answer when a tool, emulator or machine
 changes it. Findings from runs go in `spec/`, never here.
 
@@ -11,7 +11,7 @@ every run of the original, including the checks behind this file, holds the
 machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
 Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
 `REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
-[Running the original](https://dinorefurb.com/work-protocol/#running-the-original).
+[Running the original](upstream/work-protocol.md#running-the-original) (lines 195-215).
 
 ## BLD-_alias_
 

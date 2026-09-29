@@ -4,10 +4,12 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { checkLinks } from "./upstream-sections.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FILES = [
   ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/documentation-standard.md", "docs/upstream/documentation-standard.md"],
+  ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/methodology.md", "docs/upstream/methodology.md"],
   ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/work-protocol.md", "docs/upstream/work-protocol.md"],
   ["kibertoad/refurbished-dinosaurs", "LICENSE", "docs/upstream/LICENSE"],
   ["kibertoad/refurbished-dinosaurs-toolkit", "tools/check-documentation.mjs", "vendor/check-documentation.mjs"],
@@ -76,12 +78,18 @@ export async function checkUpstream(root = ROOT, fetchFile = download) {
 }
 export async function main(args, root = ROOT) {
   const [command, ...rest] = args;
-  if (command === "verify" && !rest.length) { verifySnapshot(root); console.log("Pinned Standard v1, Protocol and checker digests verified offline; upstream freshness not checked."); return 0; }
+  if (command === "verify" && !rest.length) { verifySnapshot(root); console.log("Pinned Standard v1, Methodology, Protocol and checker digests verified offline; upstream freshness not checked."); return 0; }
   if (command === "docs") {
     verifySnapshot(root);
     const result = spawnSync(process.execPath, [resolve(root, "vendor/check-documentation.mjs"), "--root", root, ...rest], { cwd: root, stdio: "inherit" });
     if (result.error) throw result.error;
     return result.status ?? 1;
+  }
+  if (command === "links" && (!rest.length || (rest.length === 1 && rest[0] === "--write"))) {
+    const { problems, changed } = checkLinks(root, rest[0] === "--write");
+    for (const file of changed) console.log(`Wrote section ranges: ${file}`);
+    for (const problem of problems) console.error(problem);
+    return problems.length ? 1 : 0;
   }
   if (command === "check-upstream" && !rest.length) {
     const reports = await checkUpstream(root); console.log(JSON.stringify(reports, null, 2)); return reports.some((r) => r.changed) ? 2 : 0;
@@ -99,7 +107,7 @@ export async function main(args, root = ROOT) {
     for (const [path, bytes] of writes) { const target = resolve(root, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target + ".refresh", bytes); renameSync(target + ".refresh", target); }
     verifySnapshot(root); console.log("Refreshed explicit revisions. Review the diff and run the canonical gate before committing."); return 0;
   }
-  throw new Error("Usage: upstream.mjs verify | docs [checker arguments] | check-upstream | refresh --rules <full-sha> --toolkit <full-sha>");
+  throw new Error("Usage: upstream.mjs verify | docs [checker arguments] | links [--write] | check-upstream | refresh --rules <full-sha> --toolkit <full-sha>");
 }
 // Node resolves symlinks for the entry module, so compare real paths; a mismatch would skip main() and exit 0.
 const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream } from "../../tools/upstream.mjs";
 import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
+import { checkLinks, linkFile, sections } from "../../tools/upstream-sections.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const lock = JSON.parse(readFileSync(resolve(root, "tools/upstream-lock.json")));
 function fixture(t) {
@@ -40,7 +41,7 @@ test("refresh stages exact explicit revisions and rejects lost v1 declaration or
   const rules = "a".repeat(40), toolkit = "b".repeat(40);
   const fetcher = async url => Buffer.from(url.endsWith("documentation-standard.md") ? "follows version 1" : "synthetic");
   const result = await prepareSnapshot(rules, toolkit, fetcher);
-  assert.equal(result.staged.length, 5); validateLock(result.lock);
+  assert.equal(result.staged.length, 6); validateLock(result.lock);
   assert.equal(result.lock.files.at(-1).revision, toolkit);
   await assert.rejects(prepareSnapshot("main", toolkit, fetcher), /full/);
   await assert.rejects(prepareSnapshot(rules, toolkit, async () => Buffer.from("version 2")), /Standard v1/);
@@ -105,4 +106,32 @@ test("configuration copy includes Git-visible files and excludes ignored or loca
   assert.equal(includedPath("nested\\obj\\output.txt"), false);
   assert.equal(includedPath("nested/obj/output.txt"), false);
   assert.equal(includedPath(".github\\workflows\\test.yml"), true);
+});
+
+test("links to the standard reach a heading of the local copy and state its lines", () => {
+  assert.deepEqual(checkLinks(root).problems, []);
+});
+
+test("section ranges run from the heading to the next heading of the same level", () => {
+  const ranges = sections("---\ntitle: x\n---\n\n## A\ntext\n\n### B\n```\n# not a heading\n```\n\n## C\nlast\n");
+  assert.deepEqual(ranges.get("a"), { start: 5, end: 11 });
+  assert.deepEqual(ranges.get("b"), { start: 8, end: 11 });
+  assert.deepEqual(ranges.get("c"), { start: 13, end: 14 });
+  assert.equal(ranges.has("not-a-heading"), false);
+});
+
+test("link check reports misplaced, missing or stale ranges and rewrites them", () => {
+  const pages = new Map([["work-protocol", new Map([["batches", { start: 10, end: 20 }]])], ["methodology", new Map()], ["documentation-standard", new Map()]]);
+  const check = (text, write) => linkFile(root, "AGENTS.md", text, pages, write);
+  assert.deepEqual(check("[B](docs/upstream/work-protocol.md#batches) (lines 10-20).").problems, []);
+  assert.match(check("[B](docs/upstream/work-protocol.md#batches).").problems[0], /needs \(lines 10-20\), not no range/);
+  assert.match(check("[B](docs/upstream/work-protocol.md#batches) (lines 9-20).").problems[0], /not \(lines 9-20\)/);
+  assert.match(check("[B](docs/upstream/work-protocol.md#batchez)").problems[0], /names no heading/);
+  assert.match(check("[B](docs/standard/work-protocol.md#batches)").problems[0], /misses docs\/upstream/);
+  assert.match(check("[P](docs/upstream/work-protocol.md) (lines 1-2)").problems[0], /names no section/);
+  assert.match(check("see https://dinorefurb.com/work-protocol/").problems[0], /published page/);
+  const written = check("[B](docs/upstream/work-protocol.md#batches) (lines 9-20) and [B](docs/upstream/work-protocol.md#batches).", true);
+  assert.equal(written.text, "[B](docs/upstream/work-protocol.md#batches) (lines 10-20) and [B](docs/upstream/work-protocol.md#batches) (lines 10-20).");
+  assert.deepEqual(written.problems, []);
+  assert.match(linkFile(root, "docs/upstream/methodology.md", "[x](/work-protocol/#batchez)", pages).problems[0], /names no heading/);
 });

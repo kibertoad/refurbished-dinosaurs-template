@@ -5,7 +5,9 @@ description: Request, prepare and ingest a live session, in which a person runs 
 
 # Live session
 
-The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#live-sessions).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 205-215).
+Open a linked section only when a step leaves a question it answers, read
+only the lines the link gives, and never a section already read this session.
 The maintainer's time is the scarcest resource the project has: prepare it so
 nobody needs to ask a question during the session. Never wait idle for one.
 

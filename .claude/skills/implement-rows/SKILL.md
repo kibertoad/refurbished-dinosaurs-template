@@ -5,8 +5,10 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 
 # Implementation batch
 
-The rules are in the [work protocol](https://dinorefurb.com/work-protocol/#implementation-batches)
-and the standard's [implementation side](https://dinorefurb.com/documentation-standard/#implementation-side).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 156-164)
+and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 770-886).
+Open a linked section only when a step leaves a question it answers, read
+only the lines the link gives, and never a section already read this session.
 
 **Work from the spec only.** Do not open Ghidra, decompiler or disassembly
 output, debugger logs, captures, screenshots of the original, research notes,

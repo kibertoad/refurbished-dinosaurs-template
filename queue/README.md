@@ -2,7 +2,7 @@
 
 The open research questions about the original, one file per spec area,
 named after the area: `queue/COMBAT.md`. The
-[work protocol](https://dinorefurb.com/work-protocol/#the-queue) defines the
+[work protocol](../docs/upstream/work-protocol.md#the-queue) (lines 80-119) defines the
 format; this file is a short reminder of it and stays in place when the area
 files arrive.
 
