@@ -101,7 +101,7 @@ Configuration cannot decide these. Each one is also an item in
 - `AGENTS.md`: canonical patched oracle, game terminology, evidence ledgers,
   local tools, validation commands, and game-specific invariants.
 - `spec/`: the documentation of the original game, in the format the
-  [documentation standard](standard/documentation-standard.md)
+  [documentation standard](upstream/documentation-standard.md)
   sets. It starts with a scope and area list to fill in and empty directories
   for each kind of entry; `docs/SPEC-ENTRY-TEMPLATES.md` has blank entries.
 - `PARITY.md` with `parity/`, and `deviations/`: how much of the spec the

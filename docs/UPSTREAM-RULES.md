@@ -1,7 +1,7 @@
-# Pinned Standard v1 and Protocol
+# Pinned Standard v1, Methodology and Protocol
 
 `tools/upstream-lock.json` identifies exact upstream revisions, source paths and
-SHA-256 digests for the unmodified Standard, Protocol, checker and MIT licenses.
+SHA-256 digests for the unmodified Standard, Methodology, Protocol, checker and MIT licenses.
 The standard remains **v1**. Source snapshots live in `docs/upstream/`; the checker
 is in `vendor/`, outside the `--code` roots so the offline run and the CI action (which
 runs its own copy) scan the same files. Git attributes disable EOL conversion there, so
@@ -23,20 +23,22 @@ validation gate runs these offline checks. Kaitai and other dependencies require
 by the checker must already be installed for applicable entries; a snapshot does
 not install them or make the entire build network-independent.
 
-The published pages retain their authority where they differ from template
-summaries. When unavailable, use the verified snapshots and record the pinned
-revision and that freshness was not checked. Owner instructions and explicit
-repository adaptations still apply. Snapshots are not proof that upstream has
-not changed, and network failure never counts as a freshness pass.
+The snapshots are the rules this repository follows, and agents read them
+instead of the published pages: `AGENTS.md` ("The local copy of the standard")
+says how. The template is updated when the website changes, so nobody checks
+for a newer version during routine work. Owner instructions and explicit
+repository adaptations still apply.
 
 ## Check or refresh explicitly
+
+Only when the owner asks for it in the current task:
 
 ```sh
 node tools/upstream.mjs check-upstream
 node tools/upstream.mjs refresh --rules <full-40-character-commit> --toolkit <full-40-character-commit>
 ```
 
-`check-upstream` compares the five pinned files with each repository's current
+`check-upstream` compares the six pinned files with each repository's current
 main commit: exit 0 means unchanged content, 2 means changed content, and 1 means
 failure. It makes no changes. A new commit with identical files is reported but
 does not require refresh. Review differences before selecting explicit revisions.
@@ -45,7 +47,7 @@ Refresh downloads all files before writing any of them, requires the Standard's
 v1 declaration, updates the CI checker pin, and writes the lock last. Individual
 files are replaced atomically; an interruption across files is detected by digest
 verification. Restore the previous snapshot or rerun the explicit refresh before
-using it. Review the diff and run the canonical gate before committing. Do not
+using it. Review the diff and run the canonical gate before committing; the gate checks that every link into the copy still reaches a heading. Follow any change the new version makes to the rules in `AGENTS.md`, the skills and the documents that summarize them. Do not
 edit vendored files, broaden accepted formats locally, or promote spec claims as
 a side effect of a rules/checker update.
 

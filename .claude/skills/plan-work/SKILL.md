@@ -5,7 +5,7 @@ description: Plan restoration work - record the project's stage, write or revise
 
 # Plan work
 
-The rules are in the [work protocol](../../../docs/standard/work-protocol.md).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md).
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,
 never code or spec entries apart from new `unknown` entries.
 

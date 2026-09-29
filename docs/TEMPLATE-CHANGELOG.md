@@ -8,15 +8,18 @@ not here.
 
 A project created from this template may delete this file.
 
-## Local copy of the standard, 2026-09-27
+## Local copy of the standard, 2026-09-30
 
-`docs/standard/` now holds the methodology, the documentation standard and the
-work protocol, copied from the website repository at a recorded commit, and
-every link to those pages in the template points at the copy. `AGENTS.md`
-tells agents to read the copy, to assume it is up to date, and never to go
-online to check for a newer version: checking and refreshing are started only
-by a person, following `docs/standard/README.md`. Agents had been fetching
-the published pages again and again during routine work.
+Agents had been fetching the published methodology, documentation standard and
+work protocol again and again during routine work, often a whole page for
+every link with a section anchor. The hash-verified copies in `docs/upstream/`
+are now the only place agents read them: the methodology joins the documentation
+standard and the work protocol there, and every link to those pages in the
+template points at the copy with the same anchor. `AGENTS.md` tells agents to
+read the copy, to assume it is up to date, to read only the section a link
+names, and never to go online to check for a newer version: checking and
+refreshing are started only by a person, following `docs/UPSTREAM-RULES.md`.
+The template is updated when the website changes.
 
 `AGENTS.md`, `docs/SPEC-ENTRY-TEMPLATES.md` and the `research-item` skill no
 longer restate the standard and the protocol. Their planning, discipline,
@@ -25,7 +28,10 @@ paths this repository uses, each with a link to the section of the copy that
 gives the details, and the entry templates keep only the blank entries. A
 refresh of the copy then needs no rewrite of those summaries.
 
-- **Acceptance.** No check changes.
+- **Acceptance.** The upstream tests fail when a link to one of the three
+  pages misses `docs/upstream/` or names no heading there, when a link
+  inside the copy names no heading, and when a file links the published
+  pages instead of the copy.
 
 ## Rules live in `Core`, one test per branch, 2026-09-30
 
@@ -96,7 +102,7 @@ slice of its code or scripts. `AGENTS.md` and the research-item skill say so.
 
 ## Work protocol, 2026-09-25
 
-Follows the new [work protocol](standard/work-protocol.md), which
+Follows the new [work protocol](upstream/work-protocol.md), which
 sets how restoration work is planned, tracked and handed on.
 
 - The stages are Intake, Runtime access, Survey, Slices and Audit.
@@ -168,7 +174,7 @@ sets how restoration work is planned, tracked and handed on.
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new
-[File size](standard/documentation-standard.md#file-size) section,
+[File size](upstream/documentation-standard.md#file-size) section,
 which limits every Markdown file it defines to 1,000 lines and splits the files
 that grew with the whole project.
 
@@ -197,15 +203,15 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](standard/documentation-standard.md#deviation-log)
+[documentation standard](upstream/documentation-standard.md#deviation-log)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 
 ## Documentation standard and methodology, 2026-09-25
 
 The template now follows the dinorefurb.com
-[methodology](standard/methodology.md) and version 1 of the
-[documentation standard](standard/documentation-standard.md).
+[methodology](upstream/methodology.md) and version 1 of the
+[documentation standard](upstream/documentation-standard.md).
 
 - `spec/` holds the documentation of the original game: `README.md` (scope,
   standard version, area list), `glossary.md`, `LICENSE` (CC BY 4.0 for the

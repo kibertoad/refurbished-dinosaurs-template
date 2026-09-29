@@ -5,7 +5,7 @@ description: Resume restoration work at the start of a session. Use before any r
 
 # Start a session
 
-The rules are in the [work protocol](../../../docs/standard/work-protocol.md#sessions).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions).
 This skill is the procedure; where they differ, the protocol wins.
 
 1. Decide the session's side: research (with tooling that reads the original)
@@ -21,10 +21,10 @@ This skill is the procedure; where they differ, the protocol wins.
    the current branch, and any `wip/` branch the handover names. Anything
    uncommitted that the handover does not mention belongs to someone else or
    to a crashed session: report it and leave it alone.
-4. Verify the pinned rules with `node tools/upstream.mjs verify`. When the
-   published rules cannot be reached, read the verified copies under
-   `docs/upstream/` and report their revision without claiming freshness.
-   `docs/UPSTREAM-RULES.md` describes explicit online checks and refreshes.
+4. Verify the local copy of the standard with `node tools/upstream.mjs verify`.
+   It runs offline. Read the rules from `docs/upstream/`, never from
+   dinorefurb.com; checking for a newer version is for the owner to ask for
+   (`docs/UPSTREAM-RULES.md`).
    Run the documentation check in `--check` mode as `docs/VALIDATION.md` ("Spec
    checks") describes. A failure on a clean tree is the first thing to fix.
 5. Read the plan's stage and current slice in `docs/IMPLEMENTATION-PLAN.md`,

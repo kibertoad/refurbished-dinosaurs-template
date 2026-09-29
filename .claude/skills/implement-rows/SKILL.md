@@ -5,8 +5,8 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 
 # Implementation batch
 
-The rules are in the [work protocol](../../../docs/standard/work-protocol.md#implementation-batches)
-and the standard's [implementation side](../../../docs/standard/documentation-standard.md#implementation-side).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches)
+and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side).
 
 **Work from the spec only.** Do not open Ghidra, decompiler or disassembly
 output, debugger logs, captures, screenshots of the original, research notes,

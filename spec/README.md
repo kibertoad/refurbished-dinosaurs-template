@@ -10,7 +10,7 @@ class, file or setting from the rebuild in this repository.
 ## Standard version
 
 This spec follows version 1 of the
-[documentation standard](../docs/standard/documentation-standard.md).
+[documentation standard](../docs/upstream/documentation-standard.md).
 
 ## Areas
 

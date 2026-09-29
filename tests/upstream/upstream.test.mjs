@@ -40,7 +40,7 @@ test("refresh stages exact explicit revisions and rejects lost v1 declaration or
   const rules = "a".repeat(40), toolkit = "b".repeat(40);
   const fetcher = async url => Buffer.from(url.endsWith("documentation-standard.md") ? "follows version 1" : "synthetic");
   const result = await prepareSnapshot(rules, toolkit, fetcher);
-  assert.equal(result.staged.length, 5); validateLock(result.lock);
+  assert.equal(result.staged.length, 6); validateLock(result.lock);
   assert.equal(result.lock.files.at(-1).revision, toolkit);
   await assert.rejects(prepareSnapshot("main", toolkit, fetcher), /full/);
   await assert.rejects(prepareSnapshot(rules, toolkit, async () => Buffer.from("version 2")), /Standard v1/);
@@ -105,4 +105,34 @@ test("configuration copy includes Git-visible files and excludes ignored or loca
   assert.equal(includedPath("nested\\obj\\output.txt"), false);
   assert.equal(includedPath("nested/obj/output.txt"), false);
   assert.equal(includedPath(".github\\workflows\\test.yml"), true);
+});
+
+test("links to the standard reach a heading of the local copy, never the website", () => {
+  const pages = ["methodology", "documentation-standard", "work-protocol"];
+  const slug = text => text.trim().toLowerCase().replace(/[^a-z0-9 _-]/g, "").replace(/ /g, "-");
+  const anchors = new Map(pages.map(page => {
+    let fenced = false; const slugs = new Set();
+    for (const line of readFileSync(resolve(root, `docs/upstream/${page}.md`), "utf8").split(/\r?\n/)) {
+      if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+      else if (!fenced && /^#{1,6} /.test(line)) slugs.add(slug(line.replace(/^#+ /, "")));
+    }
+    return [page, slugs];
+  }));
+  const listed = spawnSync("git", ["ls-files", "-z", "-co", "--exclude-standard", "*.md"], { cwd: root, encoding: "utf8" });
+  assert.equal(listed.status, 0, listed.stderr);
+  const problems = [];
+  for (const file of [...new Set(listed.stdout.split("\0").filter(Boolean))]) {
+    if (!existsSync(resolve(root, file))) continue;
+    const text = readFileSync(resolve(root, file), "utf8"), inCopy = file.startsWith("docs/upstream/");
+    const pattern = inCopy
+      ? /\]\(\/(methodology|documentation-standard|work-protocol)\/(?:#([^)\s]+))?\)/g
+      : /\]\(([^)\s]*?)(methodology|documentation-standard|work-protocol)\.md(?:#([^)\s]+))?\)/g;
+    for (const match of text.matchAll(pattern)) {
+      const [page, anchor] = inCopy ? [match[1], match[2]] : [match[2], match[3]];
+      if (!inCopy && resolve(root, dirname(file), `${match[1]}${page}.md`) !== resolve(root, `docs/upstream/${page}.md`)) problems.push(`${file}: ${match[0]} misses docs/upstream/`);
+      else if (anchor && !anchors.get(page).has(anchor)) problems.push(`${file}: ${match[0]} names no heading`);
+    }
+    if (!inCopy && /dinorefurb\.com\/(methodology|documentation-standard|work-protocol)/.test(text)) problems.push(`${file}: links the published page instead of docs/upstream/`);
+  }
+  assert.deepEqual(problems, []);
 });

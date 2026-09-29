@@ -8,6 +8,7 @@ import { spawnSync } from "node:child_process";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FILES = [
   ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/documentation-standard.md", "docs/upstream/documentation-standard.md"],
+  ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/methodology.md", "docs/upstream/methodology.md"],
   ["kibertoad/refurbished-dinosaurs", "website/content/english/pages/work-protocol.md", "docs/upstream/work-protocol.md"],
   ["kibertoad/refurbished-dinosaurs", "LICENSE", "docs/upstream/LICENSE"],
   ["kibertoad/refurbished-dinosaurs-toolkit", "tools/check-documentation.mjs", "vendor/check-documentation.mjs"],
@@ -76,7 +77,7 @@ export async function checkUpstream(root = ROOT, fetchFile = download) {
 }
 export async function main(args, root = ROOT) {
   const [command, ...rest] = args;
-  if (command === "verify" && !rest.length) { verifySnapshot(root); console.log("Pinned Standard v1, Protocol and checker digests verified offline; upstream freshness not checked."); return 0; }
+  if (command === "verify" && !rest.length) { verifySnapshot(root); console.log("Pinned Standard v1, Methodology, Protocol and checker digests verified offline; upstream freshness not checked."); return 0; }
   if (command === "docs") {
     verifySnapshot(root);
     const result = spawnSync(process.execPath, [resolve(root, "vendor/check-documentation.mjs"), "--root", root, ...rest], { cwd: root, stdio: "inherit" });

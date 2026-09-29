@@ -5,14 +5,14 @@ description: Find out and record in docs/RUNTIME.md what can be done with the or
 
 # Runtime access
 
-The rules are in the [work protocol](../../../docs/standard/work-protocol.md#runtime-access).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#runtime-access).
 Many games cannot be controlled by an agent at all. Static reading is the main
 source of evidence for every game; this check only finds out what runs are
 possible, and it is the one time the original is run before the static work
 is done.
 
 1. **Take the run lock** as the protocol's
-   [Running the original](../../../docs/standard/work-protocol.md#running-the-original)
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an
    exclusive create that fails if it exists (`[IO.File]::Open($path,
    'CreateNew')` in PowerShell), naming this repository, the session and the

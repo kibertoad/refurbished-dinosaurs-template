@@ -4,7 +4,7 @@
 > guidance with real content and delete nothing structural.
 >
 > This file says what the project intends and what is true now, following the
-> [work protocol](standard/work-protocol.md). It holds no dated
+> [work protocol](upstream/work-protocol.md). It holds no dated
 > checkpoints, no status narration and no research questions: git keeps the
 > history, `queue/` holds the research questions, and `docs/HANDOVER.md` says
 > where the last session stopped.
@@ -21,7 +21,7 @@
 | Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |
 | Editions available for validation | _their `BLD-` IDs; `docs/SOURCE-EDITIONS.md` holds the detail_ |
 | Existing research relied on | _their `SRC-` IDs: manuals, community documentation, prior analysis_ |
-| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](standard/work-protocol.md#stages) defines them. Move on only when the previous stage's exit criteria hold._ |
+| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](upstream/work-protocol.md#stages) defines them. Move on only when the previous stage's exit criteria hold._ |
 
 ## Scope
 

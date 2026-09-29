@@ -1,8 +1,13 @@
-# Methodology
+---
+title: "Methodology"
+meta_title: "Methodology: how the games are reverse engineered, documented and checked"
+description: "How we study the original game, write down how it works, and check the rebuild against it."
+draft: false
+---
 
 Every restoration follows the rules on this page. Where our own repositories fall short of them, we change the repositories.
 
-The project has two goals, described under [Philosophy](https://dinorefurb.com/philosophy/): a game people can play, and documentation complete enough that anyone can check that game or build their own. Most of these rules serve the second goal, because without it nobody can verify the first. How the work is planned, tracked and handed on is set out in the [work protocol](work-protocol.md).
+The project has two goals, described under [Philosophy](/philosophy/): a game people can play, and documentation complete enough that anyone can check that game or build their own. Most of these rules serve the second goal, because without it nobody can verify the first. How the work is planned, tracked and handed on is set out in the [work protocol](/work-protocol/).
 
 ## Ground rules
 
@@ -24,13 +29,13 @@ An experiment starts from a saved state, changes one input, and records what fol
 
 The manual tells us what the designers intended and is often wrong about what shipped. FAQs, wikis and tools written by other fans are leads, which we credit and re-check. A rule stays provisional until a complete reading of the code shows everything it says, or, where the outcome depends on something the code does not decide, such as timing, interrupts or the operating system, until a reading of the files and an observation of the original running agree. Evidence that only fits a rule, such as sizes that divide or a manual's description, never makes it more than a lead.
 
-To check what a single function of the executable computes, we call it in the [Unicorn](https://www.unicorn-engine.org) CPU emulator on inputs we choose, with no window and no timing involved, and record each set of calls as an experiment. The [work protocol](work-protocol.md#emulated-calls) gives the procedure. It confirms only what the code decides, since the emulator stands in for the operating system.
+To check what a single function of the executable computes, we call it in the [Unicorn](https://www.unicorn-engine.org) CPU emulator on inputs we choose, with no window and no timing involved, and record each set of calls as an experiment. The [work protocol](/work-protocol/#emulated-calls) gives the procedure. It confirms only what the code decides, since the emulator stands in for the operating system.
 
 ## Writing it down
 
 The documentation is written to be read without the code. For each game it covers every file format field by field, the rules and formulas with the order they resolve in and the points where random numbers are drawn, the AI as far as it can be reconstructed, and timing and input where they affect play. The original's bugs go into a catalogue, each with the conditions that trigger it.
 
-Every statement carries its evidence and a status saying how well established it is. Someone who wants to build a second engine should be able to do it from these documents alone, and someone who doubts a rule should be able to check it without asking us. The structure is set out in the [documentation standard](documentation-standard.md), and the specs of [Chaos Overlords](https://github.com/kibertoad/chaos-overlords-new-chrome/tree/main/spec), [Dark Sun: Wake of the Ravager](https://github.com/kibertoad/dark-sun-wake-redux/tree/main/spec) and [Conqueror A.D. 1086](https://github.com/kibertoad/reconqueror1086/tree/main/spec) follow it. Where a community wiki already covers a game's formats, we intend to contribute our findings there too.
+Every statement carries its evidence and a status saying how well established it is. Someone who wants to build a second engine should be able to do it from these documents alone, and someone who doubts a rule should be able to check it without asking us. The structure is set out in the [documentation standard](/documentation-standard/), and the specs of [Chaos Overlords](https://github.com/kibertoad/chaos-overlords-new-chrome/tree/main/spec), [Dark Sun: Wake of the Ravager](https://github.com/kibertoad/dark-sun-wake-redux/tree/main/spec) and [Conqueror A.D. 1086](https://github.com/kibertoad/reconqueror1086/tree/main/spec) follow it. Where a community wiki already covers a game's formats, we intend to contribute our findings there too.
 
 ## Checking the rebuild
 
@@ -40,7 +45,7 @@ The simulation is deterministic: the same inputs and seed give the same result o
 
 ## The parity matrix
 
-Every game repository has a parity matrix, kept apart from the spec: one file of rows per area under `parity/`, and `PARITY.md` with the totals. The spec says what the original does. The matrix says how much of that the rebuild does and how we know, with one row per rule, file format and screen in the spec. A row starts with the spec entry's status (unknown, sourced, supported, established or disputed). It becomes implemented when the code does everything the entry describes, and validated when the entry rests on evidence from the original (supported or established) and an automated test compares the rebuild with that evidence and passes. Manual play never makes a row validated, and neither does code that still contains a placeholder formula. The exact format is in the [documentation standard](documentation-standard.md#parity-matrix).
+Every game repository has a parity matrix, kept apart from the spec: one file of rows per area under `parity/`, and `PARITY.md` with the totals. The spec says what the original does. The matrix says how much of that the rebuild does and how we know, with one row per rule, file format and screen in the spec. A row starts with the spec entry's status (unknown, sourced, supported, established or disputed). It becomes implemented when the code does everything the entry describes, and validated when the entry rests on evidence from the original (supported or established) and an automated test compares the rebuild with that evidence and passes. Manual play never makes a row validated, and neither does code that still contains a placeholder formula. The exact format is in the [documentation standard](/documentation-standard/#parity-matrix).
 
 The matrix is our answer to "how accurate is it", published so readers can check the answer.
 

@@ -1,6 +1,6 @@
 # Spec entry templates
 
-Blank entries for each kind in `spec/`, in the order the [documentation standard](standard/documentation-standard.md#entry-types)
+Blank entries for each kind in `spec/`, in the order the [documentation standard](upstream/documentation-standard.md#entry-types)
 gives their fields and sections. Copy one into the directory for its kind, name the file after
 the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. What each field and
 section holds, the file size limit and the value files are in the standard section linked under
@@ -8,7 +8,7 @@ each heading; this page does not repeat them.
 
 ## Build
 
-See [Builds](standard/documentation-standard.md#builds).
+See [Builds](upstream/documentation-standard.md#builds).
 
 ````markdown
 ---
@@ -43,7 +43,7 @@ files:
 
 ## Source
 
-See [Sources](standard/documentation-standard.md#sources).
+See [Sources](upstream/documentation-standard.md#sources).
 
 ````markdown
 ---
@@ -64,7 +64,7 @@ licence: null
 
 ## Finding
 
-See [Findings](standard/documentation-standard.md#findings).
+See [Findings](upstream/documentation-standard.md#findings).
 
 ````markdown
 ---
@@ -95,7 +95,7 @@ environment: null
 
 ## Experiment
 
-See [Experiments](standard/documentation-standard.md#experiments).
+See [Experiments](upstream/documentation-standard.md#experiments).
 
 ````markdown
 ---
@@ -128,7 +128,7 @@ fixture: EXP-<AREA>-<NNN>.json
 
 ## Format
 
-See [Formats](standard/documentation-standard.md#formats).
+See [Formats](upstream/documentation-standard.md#formats).
 
 ````markdown
 ---
@@ -175,7 +175,7 @@ Value,Name,Meaning,Status,Evidence
 
 ## Rule
 
-See [Rules](standard/documentation-standard.md#rules).
+See [Rules](upstream/documentation-standard.md#rules).
 
 ````markdown
 ---
@@ -226,7 +226,7 @@ value
 
 ## Bug
 
-See [Bugs](standard/documentation-standard.md#bugs).
+See [Bugs](upstream/documentation-standard.md#bugs).
 
 ````markdown
 ---
@@ -265,7 +265,7 @@ None known.
 
 ## Screen
 
-See [Screens](standard/documentation-standard.md#screens).
+See [Screens](upstream/documentation-standard.md#screens).
 
 ````markdown
 ---
@@ -322,7 +322,7 @@ None known.
 
 ## Glossary term
 
-See [Where it lives](standard/documentation-standard.md#where-it-lives).
+See [Where it lives](upstream/documentation-standard.md#where-it-lives).
 
 ````markdown
 # <term>
@@ -333,7 +333,7 @@ one. Then what the standard asks of this kind of term.>
 
 ## Deviation
 
-See [Deviation log](standard/documentation-standard.md#deviation-log).
+See [Deviation log](upstream/documentation-standard.md#deviation-log).
 
 ````markdown
 # DEV-<AREA>-<NNN>
@@ -348,7 +348,7 @@ See [Deviation log](standard/documentation-standard.md#deviation-log).
 
 ## Parity area file
 
-See [Parity matrix](standard/documentation-standard.md#parity-matrix).
+See [Parity matrix](upstream/documentation-standard.md#parity-matrix).
 
 ````markdown
 # <AREA>
