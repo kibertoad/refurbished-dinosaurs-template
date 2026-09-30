@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "841dc66b49fb0a5c9a687be50bf2b5ad02f24076",
+  "revision": "d51fb73d1b6c7e7bd9bf46324c5a4fcf5b5668ee",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -55,7 +55,7 @@
     {
       "source": "tools/evidence/x86/values.py",
       "path": "tools/evidence/x86-reporter/x86/values.py",
-      "sha256": "e53466c4f3af34f1dc978d46e3b77e895462be2059dc663fb91badc2ae3eb402"
+      "sha256": "74047779f094510eca98c691688238c11e18da1c047165ca5aabc3417f4a2a96"
     },
     {
       "source": "LICENSE",
@@ -70,7 +70,7 @@
     {
       "source": "tests/evidence/test_x86.py",
       "path": "tests/evidence/test_x86.py",
-      "sha256": "ec0d9f0ad78100bed5fabfbb4b995a4a7d602f162ab1e1e2a83aeffe94d5c064"
+      "sha256": "26d1aa2890ccd11c3a8b3e969cf2bde37f7390f954f777a4699703dadae8a359"
     },
     {
       "source": "tests/evidence/bridge.test.mjs",
