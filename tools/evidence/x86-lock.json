@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "c2b21ee62fc404391e8dcfafd7029185f81241a9",
+  "revision": "c18a6bd0b3cc502658e23d7c36723c2b7e8d85a7",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -15,7 +15,7 @@
     {
       "source": "tools/evidence/report.mjs",
       "path": "tools/evidence/x86-reporter/report.mjs",
-      "sha256": "75769d77705e79ec610e64630efd4437c65e8be3a6ad077fd202a711e33d8ac8"
+      "sha256": "5ed289f6a3406f5cd73476dd067c5feb2d63a5a8ec1c94370b8a4b5117024696"
     },
     {
       "source": "tools/evidence/report.py",
@@ -33,24 +33,29 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
+      "source": "tools/evidence/x86/pe.py",
+      "path": "tools/evidence/x86-reporter/x86/pe.py",
+      "sha256": "9156f48d91c4a3b0a90cb6c357b3cac62ca6cd2b29199c29f6d25a4306e5f5fb"
+    },
+    {
       "source": "tools/evidence/x86/image.py",
       "path": "tools/evidence/x86-reporter/x86/image.py",
-      "sha256": "041988d4437cfa07fe5f6a9756d76937d68d430668021a3b3907c5059f8602b0"
+      "sha256": "ead7352d4f43e1d84d95dc3ec42e90523cb7266c54184a3b26021c8fd1fc0871"
     },
     {
       "source": "tools/evidence/x86/machine.py",
       "path": "tools/evidence/x86-reporter/x86/machine.py",
-      "sha256": "ade8d1a661b0912f2f6548f41c6c328a2d5e8e8a6f4e2cda3aa511f39462d138"
+      "sha256": "06b92d59475518e9adfe0cea3c676b28c4a3c226b1cf0510a09262009147942b"
     },
     {
       "source": "tools/evidence/x86/reports.py",
       "path": "tools/evidence/x86-reporter/x86/reports.py",
-      "sha256": "c2301718da9a16bd277785384975df70f9cc65693605872d54180a9946179d3e"
+      "sha256": "5550a87e44ff43e5c9e88faff850bfffaf1d4227d12ab3c874820d07cd04deab"
     },
     {
       "source": "tools/evidence/x86/trace.py",
       "path": "tools/evidence/x86-reporter/x86/trace.py",
-      "sha256": "cb18ab2db9c327ab62cde8c8411252ef36a41fa5a86c236d35f957ca977061f7"
+      "sha256": "66b383451af0579fd4f154627b580f3f3c80c176ad5696fa924b2bdcaa4dbb9d"
     },
     {
       "source": "tools/evidence/x86/values.py",
@@ -65,12 +70,17 @@
     {
       "source": "docs/bounded-evidence-reporters.md",
       "path": "docs/BOUNDED-EVIDENCE-REPORTERS.md",
-      "sha256": "669dbea4bd3559d11406eb16e677d90547623f196cf1e0655e838f2f513175c9"
+      "sha256": "4f5175e27711e305fdcef270f72516c24cff2fd2fab36b385315463a009feca4"
     },
     {
       "source": "tests/evidence/test_x86.py",
       "path": "tests/evidence/test_x86.py",
       "sha256": "18f43fd7e690d0852fc9536b1ae043dab4ddf801af4b42e31629bf9c87f402b0"
+    },
+    {
+      "source": "tests/evidence/test_pe.py",
+      "path": "tests/evidence/test_pe.py",
+      "sha256": "f6f74584e16a02d43c9263dcc3167aaacd0146add52197865cd5a72007700173"
     },
     {
       "source": "tests/evidence/bridge.test.mjs",

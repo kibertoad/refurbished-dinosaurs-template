@@ -7,12 +7,13 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const files = ["NOTICE.md", "legacy-image.mjs", "report.mjs", "report.py", "requirements.txt",
-  "x86/__init__.py", "x86/image.py", "x86/machine.py", "x86/reports.py", "x86/trace.py", "x86/values.py"];
+  "x86/__init__.py", "x86/pe.py", "x86/image.py", "x86/machine.py", "x86/reports.py", "x86/trace.py", "x86/values.py"];
 const mapping = [
   ...files.map(f => [`tools/evidence/${f}`, `tools/evidence/x86-reporter/${f}`]),
   ["LICENSE", "tools/evidence/x86-reporter/LICENSE"],
   ["docs/bounded-evidence-reporters.md", "docs/BOUNDED-EVIDENCE-REPORTERS.md"],
   ["tests/evidence/test_x86.py", "tests/evidence/test_x86.py"],
+  ["tests/evidence/test_pe.py", "tests/evidence/test_pe.py"],
   ["tests/evidence/bridge.test.mjs", "tests/evidence/bridge.test.mjs"],
 ];
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");

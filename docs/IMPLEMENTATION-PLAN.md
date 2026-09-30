@@ -142,3 +142,7 @@ must put configurations and reports in `GAME_DIR` and keep each game's reporter
 request open until its own case passes. Adopt the toolkit's paired DS/SS
 acceptance regression. Exit: pin verification, section-link checks and the
 canonical validation gate pass; configured game repositories remain untouched.
+
+## PE32 bounded reporter extension
+
+Adopt toolkit PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15), revision `c18a6bd0b3cc502658e23d7c36723c2b7e8d85a7`, for Windows restoration research. Exact pin mappings add `x86/pe.py` and `tests/evidence/test_pe.py`. Acceptance covers all ten query interfaces, malformed source mappings, overlapping instruction paths, late/cross-region calls, stack cleanup, partial producers and exhausted limits. Existing rules/checker snapshots remain unchanged. PE32+ and unresolved imports/computed targets remain outside the declared model. Exit: reporter/rules pins, section links, synthetic acceptance and canonical validation pass.

@@ -590,3 +590,7 @@ Added conditional evidence review examples and queue decomposition guidance.
 Pinned unchanged Standard v1, Protocol and checker snapshots with explicit
 freshness/refresh commands, digest verification and configuration preservation.
 The checker and CI both include merged toolkit PR #11.
+
+## PE32/i386 bounded reports, 2026-09-30
+
+Toolkit PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) supplies source-derived PE32 mappings and bounded flat 32-bit reports for the ten existing interfaces. The exact reporter pin includes the new loader and 25 PE synthetic acceptance cases alongside 45 legacy cases. Local and CI/release gates discover both Python suites; bootstrap preserves the additional pinned files. No original behavior, Standard version or checker/rules snapshot changes.
