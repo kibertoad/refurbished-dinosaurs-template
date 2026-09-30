@@ -11,7 +11,7 @@ A project created from this template may delete this file.
 ## Pinned x86 reporters and website rules up to kibertoad/refurbished-dinosaurs@94f8f67, 2026-09-30
 
 - **Reporters.** `tools/evidence/x86-reporter/` holds an exact copy of the
-  toolkit's bounded 16-bit x86 reporter at `b87e01d`, with its tests, guide
+  toolkit's bounded 16-bit x86 reporter at `c2b21ee`, with its tests, guide
   (`docs/BOUNDED-EVIDENCE-REPORTERS.md`) and license. `tools/evidence/report.mjs`
   exposes it as the `x86-*` commands. `tools/evidence/x86-lock.json` records
   the hashes, `node tools/evidence/sync-x86.mjs --check` verifies them offline,
