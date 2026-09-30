@@ -87,3 +87,24 @@ nonportable manifest paths rather than silently renaming them. Commit only the
 permitted inventory columns; keep view reports/configs local. Document the
 selected views and exclusions in the build/Ghidra guide in project-authored words.
 Coverage describes analyzer-discovered functions, not every function that exists.
+
+## Instruction-derived reports
+
+The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
+`x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation` and `x86-dispatch`
+commands use the pinned toolkit reporter. Install its Python dependency with
+`python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
+See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
+In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
+to this template's `x86-` commands, and the requirements file lives in the
+`x86-reporter/` subdirectory. The Python executable can be selected with
+`EVIDENCE_PYTHON`.
+
+`tools/evidence/x86-lock.json` records the toolkit revision and exact hashes of
+its source, tests, documentation and license. `node tools/evidence/sync-x86.mjs
+--check` verifies them offline. To adopt a reviewed revision, run the same command
+with a clean local toolkit checkout path instead of `--check`, then run the full
+validation gate. The command reads committed blobs to avoid checkout line-ending
+differences. It does not fetch upstream or change the local methodology snapshots.
+Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
+the instruction-derived variants supply the additional analysis.

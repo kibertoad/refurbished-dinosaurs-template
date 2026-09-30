@@ -4,6 +4,7 @@ import { readFileSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
+import { run as runX86 } from "./x86-reporter/report.mjs";
 import { readMz, incomingCalls } from "./legacy-image.mjs";
 import { reviewFlow, boundedTable } from "./review.mjs";
 import { joinInventories, inventoryPath } from "./inventory.mjs";
@@ -15,9 +16,10 @@ function readBounded(path, max = 256 * 1024 * 1024) {
 }
 export function run(args) {
   const [command, configPath, ...extra] = args;
-  if (!command || !configPath || extra.length) throw new Error("Usage: node tools/evidence/report.mjs <operand|incoming|flow|table|inventory> <local-config.json>");
+  if (!command || !configPath || extra.length) throw new Error("Usage: node tools/evidence/report.mjs <operand|incoming|flow|table|inventory|x86-COMMAND> <local-config.json>");
   const configFile = resolve(configPath), config = JSON.parse(readBounded(configFile, 16 * 1024 * 1024)), base = dirname(configFile);
   const local = (p) => { if (typeof p !== "string" || !p) throw new Error("Expected an input path"); return resolve(base, p); };
+  if (command.startsWith("x86-")) return runX86([command.slice(4), configFile]);
   if (command === "flow") return reviewFlow(JSON.parse(readBounded(local(config.graph), 32 * 1024 * 1024)), config.entry, config.limit);
   if (!["operand", "incoming", "table", "inventory"].includes(command)) throw new Error(`Unknown report command: ${command}`);
   const bytes = readBounded(local(config.source)), digest = createHash("sha256").update(bytes).digest("hex");
