@@ -1,32 +1,10 @@
 # Handover
 
-Where the work outside any goal stands now. Rewrite this file at the end of
-every session that works under no goal; do not append to it. A session under a
-goal writes the same sections in its goal file's Handover instead, so two
-sessions running at once never write the same file. It is at most 200 lines.
-History is in git, open research questions are in `queue/`, the plan is in
-`docs/IMPLEMENTATION-PLAN.md`, the goals running are the files in
-`docs/goals/`, and the open live session requests are the files in
-`docs/live-sessions/`. Name items and entries by ID; what research found or
-tried belongs in the spec and the queue, never here.
-See the [work protocol](upstream/work-protocol.md#working-files) (lines 10-30).
+Current tooling batch adopts PE32/i386 reporters from toolkit PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15), pinned at `c18a6bd0b3cc502658e23d7c36723c2b7e8d85a7`. The template remains unconfigured. No game-specific research or parity changes. Exact sources, tests, guide and license remain pinned. Local and CI/release gates discover both Python suites.
 
-## State
+PE32+ and runtime/indirect resolution remain unsupported. Reporter requests stay open until their own cases pass.
 
-- Stage: _Intake, Runtime access, Survey, Slices (which slice) or Audit._
-- Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
-
-## Unfinished
-
-_Anything left half done and left out of the batch commits, with where it
-stands, what finishes it, and its `wip/` branch where the working tree does not
-outlive the session. `None.` when the working tree is clean and every batch was
-committed._
-
-## Blockers
-
-None known.
-
-## Next
-
-_At most five items, each naming a queue item by its ID, a parity row or a slice._
+Canonical gate passed: policy/configuration/infrastructure, documentation and
+pins, 70 Python reporter cases, 39 Node cases, zero-warning Release build and
+56 .NET tests. Upstream toolkit PR CI passed. The companion template PR carries
+only reusable reporter adoption.
