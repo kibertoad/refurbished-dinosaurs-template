@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "2493e09e2b2f3aef71a11a8dca4005c02fd501f6",
+  "revision": "926e287a4134512d59fe021efe6507c933da03f1",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -70,7 +70,7 @@
     {
       "source": "docs/bounded-evidence-reporters.md",
       "path": "docs/BOUNDED-EVIDENCE-REPORTERS.md",
-      "sha256": "cf553bc459a5da5c400147f2a5bf20f4e6d49e4b6ead1f19f3c6afa2f5497ef7"
+      "sha256": "f0a1c7fa3bec1678a19d04b511e6f58c7c9b8ffb7c303c138a6eba5f4a814eb1"
     },
     {
       "source": "tests/evidence/test_x86.py",
