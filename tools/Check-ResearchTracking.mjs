@@ -9,7 +9,7 @@ export function checkResearchTracking(root) {
   const files = dir => existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? files(join(dir, e.name)) : e.name.endsWith('.md') ? [join(dir, e.name)] : []) : [];
   const specReadme = join(root, 'spec/README.md');
-  const areas = [...(existsSync(specReadme) ? read(specReadme) : '').matchAll(/^\| `([A-Z]+)` \|/gm)].map(m => m[1]);
+  const areas = [...(existsSync(specReadme) ? read(specReadme) : '').matchAll(/^\| `([A-Z][A-Z0-9]*)` \|/gm)].map(m => m[1]);
   for (const path of files(join(root, 'spec'))) {
     const body = read(path), metadata = body.match(/^---\n([\s\S]*?)\n---(?:\n|$)/)?.[1];
     const id = metadata?.match(/^id: (\S+)/m)?.[1];
@@ -23,7 +23,7 @@ export function checkResearchTracking(root) {
     if (!existsSync(path) && !existsSync(split)) { errors.push(`Missing queue for ${area}`); continue; }
     const body = read(existsSync(path) ? path : split);
     if (!body.startsWith(`# ${area}\n`)) errors.push(`Wrong queue heading for ${area}`);
-    const id = body.match(/^Next ID: Q-([A-Z]+)-(\d+)$/m);
+    const id = body.match(/^Next ID: Q-([A-Z][A-Z0-9]*)-(\d+)$/m);
     if (!id || id[1] !== area) errors.push(`Missing or invalid Next ID for ${area}`);
     else next.set(area, Number(id[2]));
     const sources = existsSync(path) ? [path] : files(join(root, `queue/${area}`)).filter(p => p !== split);
@@ -33,7 +33,7 @@ export function checkResearchTracking(root) {
     }
     for (const source of sources) {
       const content = read(source);
-      for (const match of content.matchAll(/^- (Q-([A-Z]+)-(\d+))\. ([\s\S]*?)(?=\n\n|\n## |$(?![\s\S]))/gm)) {
+      for (const match of content.matchAll(/^- (Q-([A-Z][A-Z0-9]*)-(\d+))\. ([\s\S]*?)(?=\n\n|\n## |$(?![\s\S]))/gm)) {
         const [full, qid, origin, number, rawText] = match;
         const text = rawText.replace(/\s+/g, ' ');
         if (items.has(qid)) errors.push(`Duplicate queue item ${qid}`);
@@ -48,7 +48,7 @@ export function checkResearchTracking(root) {
         if (!text.includes('?') || !text.includes('Settles it:') || !/Blocks:\s*\S/.test(text))
           errors.push(`${qid}: missing question, evidence or blocking scope`);
         const preceding = content.slice(0, match.index);
-        const section = [...preceding.matchAll(/^##? (?:[A-Z]+: )?(.+)$/gm)].at(-1)?.[1];
+        const section = [...preceding.matchAll(/^##? (?:[A-Z][A-Z0-9]*: )?(.+)$/gm)].at(-1)?.[1];
         if (section === 'Blocked' && !text.includes('Waiting on:')) errors.push(`${qid}: blocked item has no Waiting on`);
         items.set(qid, { refs, origin, number: Number(number) });
       }
@@ -63,7 +63,7 @@ export function checkResearchTracking(root) {
     if (!open || /^(None\.?|None known\.)$/i.test(open)) continue;
     const questions = open.split(/\n(?=- )/);
     for (const question of questions) {
-      const qids = [...question.matchAll(/\bQ-[A-Z]+-\d+\b/g)].map(m => m[0]);
+      const qids = [...question.matchAll(/\bQ-[A-Z][A-Z0-9]*-\d+\b/g)].map(m => m[0]);
       if (!qids.length) errors.push(`${id}: untracked open question`);
       for (const qid of qids) {
         if (!items.has(qid)) errors.push(`${id}: missing queue item ${qid}`);

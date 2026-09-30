@@ -4,12 +4,12 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { checkResearchTracking } from '../../tools/Check-ResearchTracking.mjs';
-function fixture(t, ending = '\n') {
+function fixture(t, ending = '\n', area = 'TEST') {
   const root = mkdtempSync(join(tmpdir(), 'research-tracking-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, 'spec/rules'), { recursive: true });
   mkdirSync(join(root, 'queue'));
-  const write = (name, body) => writeFileSync(join(root, name), body.replaceAll('TEST_ENTRY', ['RULE', 'TEST', '001'].join('-')).replaceAll('MISSING_ENTRY', ['RULE', 'MISSING', '001'].join('-')).replaceAll('\n', ending));
+  const write = (name, body) => writeFileSync(join(root, name.replaceAll('TEST', area)), body.replaceAll('TEST_ENTRY', ['RULE', 'TEST', '001'].join('-')).replaceAll('MISSING_ENTRY', ['RULE', 'MISSING', '001'].join('-')).replaceAll('TEST', area).replaceAll('\n', ending));
   write('spec/README.md', '# Spec\n\n| Area | Covers |\n| `TEST` | Test domain |\n');
   write('spec/rules/TEST_ENTRY.md', '---\nid: TEST_ENTRY\nsuperseded_by: []\n---\n\n## Open questions\n\n- Which branch? (Q-TEST-001)\n');
   const queue = '# TEST\n\nNext ID: Q-TEST-002\n\n## Static\n\n- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n\n## Emulated call\n\nNone.\n\n## Agent run\n\nNone.\n\n## Live session\n\nNone.\n\n## Source\n\nNone.\n\n## Blocked\n\nNone.\n';
@@ -46,4 +46,7 @@ test('documentation examples outside front matter do not create entries', t => {
   const {root, write} = fixture(t);
   write('spec/rules/example.md', '# Example\n\n```yaml\nid: TEST_ENTRY\nsuperseded_by: []\n```\n');
   assert.deepEqual(checkResearchTracking(root), []);
+});
+test('alphanumeric standard area IDs are tracked', t => {
+  assert.deepEqual(checkResearchTracking(fixture(t, '\n', 'AREA2').root), []);
 });
