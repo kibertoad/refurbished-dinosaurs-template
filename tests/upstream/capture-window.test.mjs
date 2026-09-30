@@ -4,6 +4,16 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+test('worker times out a stalled renderer and captures physical client edges on recovery', t => {
+  if (process.platform !== 'win32') return t.skip('Windows worker acceptance');
+  const scratch = mkdtempSync(join(tmpdir(), 'capture-worker-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const result = spawnSync('powershell.exe', ['-NoProfile', '-File',
+    resolve(import.meta.dirname, 'capture-worker.ps1'),
+    resolve(import.meta.dirname, '../../tools/Capture-OriginalWindow.ps1'), scratch],
+    { encoding: 'utf8', timeout: 30000 });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+});
 test('direct capture reads an offscreen synthetic window and rejects invalid or blank results', t => {
   if (process.platform !== 'win32') return t.skip('Windows PrintWindow acceptance');
   const scratch = mkdtempSync(join(tmpdir(), 'window-capture-'));
@@ -20,7 +30,7 @@ Add-Type -TypeDefinition $native
 $tokens=$null; $errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseInput($sourceText,[ref]$tokens,[ref]$errors)
 if ($errors.Count) { throw 'Capture helper did not parse' }
-$function=$ast.Find({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Save-ScreenFrame'}, $true)
+$function=$ast.Find({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Save-DirectScreenFrame'}, $true)
 Invoke-Expression $function.Extent.Text
 Add-Type -ReferencedAssemblies System.Windows.Forms,System.Drawing -TypeDefinition @'
 using System; using System.Drawing; using System.Windows.Forms;
@@ -44,7 +54,7 @@ try {
  $handle=$form.Handle
  $bounds=[pscustomobject]@{Width=32;Height=16;X=0;Y=0}
  $path=Join-Path $Output 'valid.png'
- Save-ScreenFrame $handle $bounds $path
+ Save-DirectScreenFrame $handle $bounds $path
  $bitmap=[Drawing.Bitmap]::new($path)
  try {
   if ($bitmap.GetPixel(4,8).ToArgb() -ne [Drawing.Color]::Red.ToArgb() -or
@@ -52,9 +62,9 @@ try {
  } finally {$bitmap.Dispose()}
  $form.Uniform=$true
  $form.Refresh()
- try {Save-ScreenFrame $handle $bounds (Join-Path $Output 'blank.png');throw 'Blank result accepted'}
+ try {Save-DirectScreenFrame $handle $bounds (Join-Path $Output 'blank.png');throw 'Blank result accepted'}
  catch {if($_.Exception.Message -notmatch 'uniform frame'){throw}}
- try {Save-ScreenFrame ([IntPtr]0) $bounds (Join-Path $Output 'invalid.png');throw 'Invalid window accepted'}
+ try {Save-DirectScreenFrame ([IntPtr]0) $bounds (Join-Path $Output 'invalid.png');throw 'Invalid window accepted'}
  catch {if($_.Exception.Message -notmatch 'does not support direct capture'){throw}}
  if((Test-Path (Join-Path $Output 'blank.png')) -or (Test-Path (Join-Path $Output 'invalid.png'))){throw 'Rejected frame written'}
 } finally {$form.Dispose()}

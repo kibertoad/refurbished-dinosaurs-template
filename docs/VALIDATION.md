@@ -118,7 +118,13 @@ through `PrintWindow` with full-content rendering, rather than copying its
 rectangle from the desktop, so a hidden or covered window never produces pixels
 from another application. Its `checkpoint.json` (schema version 2) records the
 target process, window title, and client size, but not the desktop layout,
-which does not affect the pixels. There is no desktop fallback. An unsupported window or
+which does not affect the pixels. Each frame runs in an isolated worker with a
+10-second deadline (adjustable with `-CaptureTimeoutSeconds`); a timeout kills
+only that worker and rejects the checkpoint, leaving the listener available.
+The worker measures and renders in per-monitor DPI-aware physical pixels, and
+the caller restores its previous thread DPI context after measuring. Worker
+startup adds to the time between burst frames; the interval is a minimum pause.
+There is no desktop fallback. An unsupported window or
 a uniform frame fails the whole checkpoint and leaves no frames behind. A
 successful capture still needs inspection: a launcher or emulator shell frame
 does not prove that the game reached a requested state. It writes to
@@ -206,3 +212,16 @@ command legality, resolution/order, RNG, presentation-only, manual-versus-binary
 or intentional modernization leaking into compatibility mode. Reduce a failure
 to the earliest mismatching phase or fixture, and preserve the smallest replay
 and all source identities needed to reproduce it.
+
+## Capture review validation (2026-10-01)
+
+Windows synthetic acceptance (`node --test tests/upstream/capture-window.test.mjs`)
+reproduced the synchronous wait with a target UI thread blocked for five seconds.
+The isolated worker failed within its two-second test deadline and a later capture
+succeeded. The bitmap retained the right and bottom client edges with the caller
+set DPI-unaware. This machine reports 96 DPI: cropping at 125% or higher and moving
+between monitors with different scale factors remain unconfirmed locally.
+
+The canonical `tools/Invoke-Validation.ps1` fast gate passed using a temporary
+portable PowerShell 7 runtime, including the Windows acceptance tests and Release
+solution build. No original game or proprietary assets were used.
