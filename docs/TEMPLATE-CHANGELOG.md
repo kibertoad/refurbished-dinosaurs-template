@@ -8,6 +8,30 @@ not here.
 
 A project created from this template may delete this file.
 
+## Variable uses past a stop, and website rules up to kibertoad/refurbished-dinosaurs@3b4e6fc, 2026-09-30
+
+- **Reporters.** The reporter pin moves from `a0b91d6` to toolkit `926e287`,
+  where PR [18](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/18)
+  merged.
+- **Behaviour.** `x86-uses` no longer lists a memory operand reached only past a
+  stop (an unread call, an unsupported instruction, an exhausted budget) in
+  `matches`. It goes in `conditionalAccesses`, and its `dependsOn` names every
+  stop that reaches it and every untraced call it is reached past. Such an
+  access still satisfies a positive control and always makes `negativeUsable`
+  false. A concrete segment query marks it as a possible alias rather than
+  moving it to `unresolvedAccesses`. (`docs/BOUNDED-EVIDENCE-REPORTERS.md`.)
+- **Rules.** `docs/upstream/` moves from `94f8f67` to `3b4e6fc`, where
+  [kibertoad/refurbished-dinosaurs#27](https://github.com/kibertoad/refurbished-dinosaurs/pull/27)
+  merged. The standard's report contracts gain the variable-use rule above,
+  the PUSH CS / near call far-return frame and uncorrelated unknown flag
+  producers, and the work protocol says what a reporter verification record
+  holds. The vendored checker stays on toolkit `c361820`.
+- **Acceptance.** `node tools/evidence/sync-x86.mjs --check`,
+  `node tools/upstream.mjs verify`, `node tools/upstream.mjs docs --check` and
+  `node tools/upstream.mjs links` pass, and so do the Python reporter suites.
+  The Node evidence, upstream, bridge and vendor tests pass apart from the
+  bootstrap preservation test, which needs PowerShell.
+
 ## PE32/i386 bounded reports, 2026-09-30
 
 - **Reporters.** The reporter pin moves from `b51b0c0` (toolkit PR 16, see
