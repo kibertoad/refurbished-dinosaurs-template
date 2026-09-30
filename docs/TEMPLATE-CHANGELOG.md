@@ -590,3 +590,17 @@ Added conditional evidence review examples and queue decomposition guidance.
 Pinned unchanged Standard v1, Protocol and checker snapshots with explicit
 freshness/refresh commands, digest verification and configuration preservation.
 The checker and CI both include merged toolkit PR #11.
+
+
+## Reporter case-verification refinements
+
+Pinned toolkit commit `2b688e66ba34ee25d9882ea4938f95b5461b0ba4` from
+toolkit PR 16. This refines entry-CFG use discovery after unread calls, unknown
+flag generations, push-CS/near-call frames, explicit modeled return widths, far
+indirect guard provenance and effective-width conversions. XCHG and low-result
+IMUL are supported; output exhaustion names the 32 MiB limit.
+
+Validation: 55 Python, 39 Node and 56 .NET tests pass in the canonical gate,
+with a zero-warning/error solution build. No original files are needed.
+The standards/protocol clarification is proposed in website PR 27; the current
+rules snapshots remain unchanged pending its review.

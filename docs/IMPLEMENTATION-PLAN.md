@@ -142,3 +142,20 @@ must put configurations and reports in `GAME_DIR` and keep each game's reporter
 request open until its own case passes. Adopt the toolkit's paired DS/SS
 acceptance regression. Exit: pin verification, section-link checks and the
 canonical validation gate pass; configured game repositories remain untouched.
+
+
+## Tooling refinement: game-case reporter verification
+
+Propagate the toolkit fixes verified against recorded restoration cases: explicit
+CFG operand discovery after unresolved calls, distinct unknown flag producers,
+push-CS/near-call far frames (including explicit modeled return widths), far
+indirect pointer provenance, effective-width conversions, XCHG and low-result
+IMUL. Adopt the exact committed toolkit source and acceptance tests through
+sync-x86.mjs. No proprietary code, reports or game-specific case data is copied.
+
+Acceptance: source pin verification, synthetic reporter/bridge tests and the
+canonical Invoke-Validation.ps1 gate pass. Document that CFG operands retain
+unknown value/segment state and conditional callee returns; supported arithmetic
+and frame shapes do not supply a complete reading. Standard/protocol wording is
+proposed separately and is not refreshed before it is reviewed and merged.
+Exit: tested tooling commit, separate handover and upstream propagation PR.
