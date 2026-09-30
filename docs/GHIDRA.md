@@ -275,3 +275,10 @@ Use [the evidence tooling guide](EVIDENCE-TOOLS.md) for MZ/FBOV operand
 resolution, explicit control-flow review, bounded tables and function inventory
 joins. Raw operands and analyzer boundaries remain observations to verify.
 The report tools do not promote spec status or establish native reachability.
+
+
+## Large memory maps and JVM diagnostics
+
+ReportMemoryBlocks.java accepts `page <zero-based-start> <count>` (count 1..512) or `name <exact-name>`. Page ordering is the current program's block order; repeat queries against the same unchanged analysis. The header reports total blocks, starting index, emitted count and whether the selection is partial; a page header also reports the requested count, so a page ending past the map is visibly clipped. Start equal to total emits an empty page. Whole-map requests above 512 fail rather than silently truncate. Exact names reject missing blocks, and ambiguous names list the matching indices to page to. Reports stay in GAME_DIR; no code or bytes are emitted.
+
+JVM fatal-error/replay logs and heap dumps (`*.hprof`) are ignored and rejected by repository policy (`deniedFileNamePatterns` in `tools/repository-policy.json`) even when force-staged, at any directory depth. Start analysis with `-XX:ErrorFile=<local-only-dir>/hs_err_pid%p.log`, `-XX:ReplayDataFile=<local-only-dir>/replay_pid%p.log` and, when heap dumps are enabled, `-XX:HeapDumpPath=<local-only-dir>` in the analysis JVM options (`JAVA_TOOL_OPTIONS` for that invocation); choose GAME_DIR/analysis or a unique temporary directory, never a tracked output. Logs do not prove task ownership or a live process; inspect PID, command line and task provenance before any cleanup.
