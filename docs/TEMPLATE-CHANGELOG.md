@@ -11,14 +11,17 @@ A project created from this template may delete this file.
 ## PE32/i386 bounded reports, 2026-09-30
 
 - **Reporters.** The reporter pin moves from `b51b0c0` (toolkit PR 16, see
-  "Reporter case-verification refinements") to toolkit `629e1b4`, where PR
-  [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) merged. The pin gains `x86/pe.py` and `tests/evidence/test_pe.py`.
+  "Reporter case-verification refinements") to toolkit `a0b91d6`, which
+  holds PRs [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15)
+  and [17](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/17). The pin
+  gains `x86/pe.py` and `tests/evidence/test_pe.py`.
   (`docs/BOUNDED-EVIDENCE-REPORTERS.md`.)
 - **PE32.** `sourceKind: "pe32"` derives preferred-base mappings from the
   source's section table and runs the ten existing reports under a flat
   32-bit model. Regions and entry/control sites are file offsets; memory query
-  offsets are VAs. PE32+, rebasing, imports and computed targets stay outside
-  the model.
+  offsets are VAs. Raw alignment padding past `VirtualSize` is not loaded
+  source, and malformed `regions` fail with a diagnosable error. PE32+,
+  rebasing, imports and computed targets stay outside the model.
 - **16-bit behaviour.** Shared changes reach MZ/FBOV reports: overlapping
   entry-path instructions become unresolved boundary gaps, and
   operand-size-prefixed control transfers and LEAVE stop the path. Every report
@@ -31,9 +34,6 @@ A project created from this template may delete this file.
   pass, and so do the Python reporter suites. The Node evidence, upstream,
   bridge and vendor tests pass apart from the bootstrap preservation test,
   which needs PowerShell.
-- **Follow-up.** Toolkit PR [17](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/17) keeps PE alignment padding past
-  `VirtualSize` out of loaded source and turns malformed `regions` into a
-  diagnosable error. Adopt it once merged.
 
 ## Pinned x86 reporters and website rules up to kibertoad/refurbished-dinosaurs@94f8f67, 2026-09-30
 
