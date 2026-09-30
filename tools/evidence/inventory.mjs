@@ -53,3 +53,36 @@ export function joinInventories(image, manifest, views) {
   return { tsv: "start\tsize\n" + [...output].sort((a, b) => a[0] - b[0]).map(([start, size]) => `${manifest}+${hex(start)}\t${size}\n`).join(""), views: summaries,
     limitation: "Analyzer-discovered starts in declared views; not a census of all original functions. Size counts body bytes, not contiguous span." };
 }
+
+// Validate committed rows, not rich analyzer exports; optional text is researcher-authored only.
+export function verifyInventory(image, build, manifest, text, path, { legacyPath, legacyEvidence } = {}) {
+  const destination = inventoryPath(build, manifest);
+  const safe = p => typeof p === 'string' && p.endsWith('.tsv') && !p.includes('\\') &&
+    p.split('/').every(part => part && part !== '.' && part !== '..' && !/[<>:"|?*\x00-\x1f]/.test(part) && !/[. ]$/.test(part) && !/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(part));
+  if (!safe(path)) throw new Error('Unsafe inventory destination');
+  if (legacyPath !== undefined && (!safe(legacyPath) || typeof legacyEvidence !== 'string' || !legacyEvidence.trim()))
+    throw new Error('Legacy inventory path requires a safe path and explicit evidence');
+  if (path !== destination && path !== legacyPath) throw new Error('Inventory destination does not match build/manifest identity');
+  if (typeof text !== 'string' || Buffer.byteLength(text) > 32 * 1024 * 1024) throw new Error('Inventory too large');
+  const lines = text.replace(/^\uFEFF/, '').replace(/(?:\r?\n)+$/, '').split(/\r?\n/);
+  const columns = lines.shift().split('\t');
+  if (columns[0] !== 'start' || columns[1] !== 'size' || new Set(columns).size !== columns.length ||
+      columns.some(c => !['start', 'size', 'name', 'out_of_scope'].includes(c))) throw new Error('Invalid committed inventory columns');
+  if (!lines.length || lines.length > 1000000) throw new Error('Invalid committed inventory row count');
+  const seen = new Set(), prefix = `${manifest}+`, capacity = image.ranges.reduce((n,r)=>n+r.end-r.start,0);
+  for (const line of lines) {
+    const cells = line.split('\t');
+    if (cells.length !== columns.length || cells.some(c=>c.length > 1024)) throw new Error('Invalid committed inventory row');
+    const [start,size] = cells;
+    if (!start.startsWith(prefix) || !/^0x[0-9A-Fa-f]+$/.test(start.slice(prefix.length)))
+      throw new Error('Inventory address has mismatched manifest prefix or noncanonical start');
+    const at = Number(start.slice(prefix.length));
+    if (!Number.isSafeInteger(at) || !image.ranges.some(r=>at>=r.start&&at<r.end)) throw new Error('Inventory start outside mapped source');
+    if (seen.has(at)) throw new Error('Duplicate or aliased inventory start'); seen.add(at);
+    if (!/^[1-9][0-9]*$/.test(size) || !Number.isSafeInteger(Number(size)) || Number(size)>capacity)
+      throw new Error('Invalid inventory body byte count');
+  }
+  return { rows:lines.length, destination, actualPath:path, manifest, build,
+    legacyPathEvidence:path===destination?null:legacyEvidence,
+    limitation:'Analyzer-discovered starts only; names/reasons require researcher provenance; body size is not a contiguous end.' };
+}
