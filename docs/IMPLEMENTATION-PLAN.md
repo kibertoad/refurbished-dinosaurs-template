@@ -179,7 +179,7 @@ Tooling batch. Outcome: shared tooling validates a committed coverage TSV agains
 
 ## Bounded string reporter adoption
 
-Adopt the reviewed toolkit bounded-string candidate by exact commit. Outcome: sequential MOVS/STOS/LODS, conditional direction and intact saved-flag provenance are available to template researchers. Acceptance: synthetic segmented/flat controls, zero/unknown/budget limits, overlapping copy, pointer wrap, segment overrides and flags corruption pass; pin integrity and canonical validation pass. No native execution, proprietary fixtures or game behavior changes. IRET remains unsupported and is a separate follow-up. Exit: source/guide/tests pinned together and canonical gate passes.
+Adopt the reviewed toolkit bounded-string candidate by exact commit. Outcome: sequential MOVS/STOS/LODS, conditional direction and intact saved-flag provenance are available to template researchers. Acceptance: synthetic segmented/flat controls, zero/unknown/budget limits, overlapping copy, pointer wrap, segment overrides and flags corruption pass; pin integrity and canonical validation pass. No native execution, proprietary fixtures or game behavior changes. IRET is out of this batch; the local-return adoption below covers it. Exit: source/guide/tests pinned together and canonical gate passes.
 
 ## Explicit overlapping local return adoption
 

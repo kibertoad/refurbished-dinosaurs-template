@@ -1,17 +1,32 @@
 # Handover
 
+Where the work outside any goal stands now. Rewrite this file at the end of
+every session that works under no goal; do not append to it. A session under a
+goal writes the same sections in its goal file's Handover instead, so two
+sessions running at once never write the same file. It is at most 200 lines.
+History is in git, open research questions are in `queue/`, the plan is in
+`docs/IMPLEMENTATION-PLAN.md`, the goals running are the files in
+`docs/goals/`, and the open live session requests are the files in
+`docs/live-sessions/`. Name items and entries by ID; what research found or
+tried belongs in the spec and the queue, never here.
+See the [work protocol](upstream/work-protocol.md#working-files) (lines 10-30).
+
 ## State
 
-Template tooling maintenance. Canonical Invoke-Validation.ps1 and full solution build pass on 2026-10-01; local logs in artifacts/operand-adoption-validation.log and artifacts/operand-adoption-build.log.
+- Stage: _Intake, Runtime access, Survey, Slices (which slice) or Audit._
+- Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
 
 ## Unfinished
 
-Template PR 34 awaits review alongside toolkit PR 19. No unfinished implementation in this checkout. Instruction-owned operand provenance, effect flags, explicit overlapping-entry and local IRET support are included with passing synthetic/source controls; external interrupts remain outside scope.
+_Anything left half done and left out of the batch commits, with where it
+stands, what finishes it, and its `wip/` branch where the working tree does not
+outlive the session. `None.` when the working tree is clean and every batch was
+committed._
 
 ## Blockers
 
-None preventing follow-up tooling work.
+None known.
 
 ## Next
 
-Review the exact toolkit pin and its accepted local-return/overlap controls; adopt reviewed upstream revisions in configured projects.
+_At most five items, each naming a queue item by its ID, a parity row or a slice._
