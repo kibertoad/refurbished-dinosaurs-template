@@ -150,8 +150,12 @@ Propagate the toolkit fixes verified against recorded restoration cases: explici
 CFG operand discovery after unresolved calls, distinct unknown flag producers,
 push-CS/near-call far frames (including explicit modeled return widths), far
 indirect pointer provenance, effective-width conversions, XCHG and low-result
-IMUL. Adopt the exact committed toolkit source and acceptance tests through
-sync-x86.mjs. No proprietary code, reports or game-specific case data is copied.
+IMUL. Operand discovery covers only the CFG reachable from a stopped trace, so
+fully traced accesses keep their values; LDS/LES count the full pointer, XLAT's
+implicit operand is a gap, and a four-byte call model reached without an
+executed push cs stops that path. Adopt the exact committed toolkit source and
+acceptance tests through sync-x86.mjs, pinned where toolkit PR 16 merged. No
+proprietary code, reports or game-specific case data is copied.
 
 Acceptance: source pin verification, synthetic reporter/bridge tests and the
 canonical Invoke-Validation.ps1 gate pass. Document that CFG operands retain

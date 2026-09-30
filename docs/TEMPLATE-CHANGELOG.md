@@ -605,7 +605,7 @@ are dropped, LDS/LES operands count four bytes and XLATB is reported as a gap.
 Modeled `returnBytes` are validated before tracing, and a four-byte model reached
 without an executed `push cs` stops that path instead of failing the report.
 
-Validation: 55 Python, 39 Node and 56 .NET tests pass in the canonical gate,
+Validation: 58 Python, 39 Node and 56 .NET tests pass in the canonical gate,
 with a zero-warning/error solution build. No original files are needed.
 The standards/protocol clarification is proposed in website PR 27; the current
 rules snapshots remain unchanged pending its review.
