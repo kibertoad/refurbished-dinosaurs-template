@@ -1,11 +1,16 @@
 import { hex } from "./legacy-image.mjs";
 
+// One path segment that every supported OS can store and Git can check out unchanged.
+const portableSegment = (x) => !!x && x !== "." && x !== ".." && !/[<>:"\\|?*\x00-\x1F]/.test(x) && !/[. ]$/.test(x) && !/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(x);
+// Default names analyzers invent; a committed name must be the researcher's own.
+const analyzerName = /^(?:thunk_|j_)?(?:FUN|SUB|LAB|DAT|LOC|nullsub)_[0-9A-Fa-f]+$/i;
+
 export function inventoryPath(build, manifest) {
   if (!/^BLD-[A-Z][A-Z0-9.-]*$/.test(build)) throw new Error("Invalid build ID");
   if (typeof manifest !== "string") throw new Error("Invalid manifest path");
   const disc = /^(CD\d*):(.+)$/.exec(manifest), path = disc ? `@${disc[1]}/${disc[2]}` : manifest;
   const parts = path.split("/");
-  if (parts.some((x) => !x || x === "." || x === ".." || /[<>:"\\|?*\x00-\x1F]/.test(x) || /[. ]$/.test(x) || /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(x)) || (!disc && parts[0].startsWith("@"))) throw new Error("Manifest path cannot be represented portably");
+  if (!parts.every(portableSegment) || (!disc && parts[0].startsWith("@"))) throw new Error("Manifest path cannot be represented portably");
   return `coverage/${build}/${path}.tsv`;
 }
 export function parseInventory(text) {
@@ -52,4 +57,40 @@ export function joinInventories(image, manifest, views) {
   }
   return { tsv: "start\tsize\n" + [...output].sort((a, b) => a[0] - b[0]).map(([start, size]) => `${manifest}+${hex(start)}\t${size}\n`).join(""), views: summaries,
     limitation: "Analyzer-discovered starts in declared views; not a census of all original functions. Size counts body bytes, not contiguous span." };
+}
+
+// Validate committed rows, not rich analyzer exports; optional text is researcher-authored only.
+export function verifyInventory(image, build, manifest, text, path, { legacyPath, legacyEvidence } = {}) {
+  const destination = inventoryPath(build, manifest);
+  const safe = p => typeof p === 'string' && p.endsWith('.tsv') && p.split('/').every(portableSegment);
+  if (!safe(path)) throw new Error('Unsafe inventory destination');
+  if (legacyPath !== undefined && (!safe(legacyPath) || typeof legacyEvidence !== 'string' || !legacyEvidence.trim()))
+    throw new Error('Legacy inventory path requires a safe path and explicit evidence');
+  if (path !== destination && path !== legacyPath) throw new Error('Inventory destination does not match build/manifest identity');
+  if (typeof text !== 'string' || Buffer.byteLength(text) > 32 * 1024 * 1024) throw new Error('Inventory too large');
+  const lines = text.replace(/^\uFEFF/, '').replace(/(?:\r?\n)+$/, '').split(/\r?\n/);
+  const columns = lines.shift().split('\t');
+  if (columns[0] !== 'start' || columns[1] !== 'size' || new Set(columns).size !== columns.length ||
+      columns.some(c => !['start', 'size', 'name', 'out_of_scope'].includes(c))) throw new Error('Invalid committed inventory columns');
+  if (!lines.length || lines.length > 1000000) throw new Error('Invalid committed inventory row count');
+  const seen = new Set(), prefix = `${manifest}+`, capacity = image.ranges.reduce((n,r)=>n+r.end-r.start,0);
+  for (const line of lines) {
+    const cells = line.split('\t');
+    if (cells.length !== columns.length || cells.some(c=>c.length > 1024)) throw new Error('Invalid committed inventory row');
+    const [start,size] = cells;
+    if (!start.startsWith(prefix) || !/^0x[0-9A-Fa-f]+$/.test(start.slice(prefix.length)))
+      throw new Error('Inventory address has mismatched manifest prefix or noncanonical start');
+    const at = Number(start.slice(prefix.length));
+    if (!Number.isSafeInteger(at) || !image.ranges.some(r=>at>=r.start&&at<r.end)) throw new Error('Inventory start outside mapped source');
+    // The standard pads file offsets to eight uppercase digits, exactly as joinInventories writes them.
+    if (start.slice(prefix.length) !== hex(at)) throw new Error('Inventory address has mismatched manifest prefix or noncanonical start');
+    if (seen.has(at)) throw new Error('Duplicate or aliased inventory start'); seen.add(at);
+    if (!/^[1-9][0-9]*$/.test(size) || !Number.isSafeInteger(Number(size)) || Number(size)>capacity)
+      throw new Error('Invalid inventory body byte count');
+    const name = cells[columns.indexOf('name')];
+    if (name !== undefined && analyzerName.test(name)) throw new Error('Inventory name is an analyzer default, not a researcher-authored name');
+  }
+  return { rows:lines.length, destination, actualPath:path, manifest, build,
+    legacyPathEvidence:path===destination?null:legacyEvidence,
+    limitation:'Analyzer-discovered starts only; names/reasons require researcher provenance; body size is not a contiguous end.' };
 }

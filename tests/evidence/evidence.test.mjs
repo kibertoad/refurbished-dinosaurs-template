@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { readMz, incomingCalls } from "../../tools/evidence/legacy-image.mjs";
 import { reviewFlow, boundedTable } from "../../tools/evidence/review.mjs";
-import { inventoryPath, parseInventory, joinInventories } from "../../tools/evidence/inventory.mjs";
+import { inventoryPath, parseInventory, joinInventories, verifyInventory } from "../../tools/evidence/inventory.mjs";
 import { run } from "../../tools/evidence/report.mjs";
 
 function synthetic() {
@@ -148,6 +148,13 @@ test("command interface checks identity and writes only the canonical inventory 
   assert.ok(existsSync(join(dir, "out", result.destination)));
   assert.match(readFileSync(join(dir, "out", result.destination), "utf8"), /CD:GAME.EXE/);
   assert.throws(() => run(["inventory", path]), /exist/);
+  cfg.inventory = { path: `out/${result.destination}`, repositoryPath: result.destination };
+  writeFileSync(path, JSON.stringify(cfg));
+  assert.equal(run(["inventory-check", path]).rows, 1);
+  cfg.inventory.repositoryPath = "wrong.tsv"; writeFileSync(path, JSON.stringify(cfg));
+  assert.throws(() => run(["inventory-check", path]), /repositoryPath/);
+  cfg.inventory = { path: `out/${result.destination}`, repositoryPath: "coverage/BLD-EXAMPLE/@CD/OTHER.EXE.tsv" }; writeFileSync(path, JSON.stringify(cfg));
+  assert.throws(() => run(["inventory-check", path]), /repositoryPath/);
   cfg.sha256 = "0".repeat(64); writeFileSync(path, JSON.stringify(cfg));
   assert.throws(() => run(["operand", path]), /baseline/);
   assert.throws(() => run(["unknown", path]), /Unknown/);
@@ -162,4 +169,28 @@ test("hardware and indirect boundaries prevent an unqualified local-path result"
   assert.equal(report.localPathsResolved, false);
   assert.equal(report.gaps.length, 2);
   assert.match(report.gaps[0].reason, /Hardware/);
+});
+
+test('committed inventory validates identity, columns, numeric aliases and explicit legacy paths',()=>{
+ const image=readMz(synthetic()),build='BLD-EXAMPLE',manifest='CD:GAME.EXE',path=inventoryPath(build,manifest);
+ const text='start\tsize\tname\tout_of_scope\nCD:GAME.EXE+0x00000040\t8\tneutralHelper\toutside selected slice\n';
+ const check=(t=text,p=path,options={})=>verifyInventory(image,build,manifest,t,p,options);
+ assert.equal(check().rows,1);
+ assert.equal(check(text.replace('outside selected slice','')).rows,1);
+ assert.throws(()=>check(text,'CON.tsv'),/Unsafe/);
+ assert.equal(check(text,'coverage/BLD-EXAMPLE/CD/GAME.EXE.tsv',{legacyPath:'coverage/BLD-EXAMPLE/CD/GAME.EXE.tsv',legacyEvidence:'documented historical path'}).legacyPathEvidence,'documented historical path');
+ assert.throws(()=>check(text,'coverage/BLD-EXAMPLE/CD/GAME.EXE.tsv'),/destination/);
+ assert.throws(()=>check(text,path,{legacyPath:'../bad.tsv',legacyEvidence:'bad'}),/Legacy/);
+ assert.throws(()=>check(text,path,{legacyPath:'safe.tsv'}),/Legacy/);
+ assert.throws(()=>check(text.replace('CD:GAME.EXE+','OTHER.EXE+')),/prefix/);
+ assert.throws(()=>check(text.replace('0x00000040','0x0000FFFF')),/outside/);
+ assert.throws(()=>check(text.replace('\t8\t','\t0\t')),/body/);
+ assert.throws(()=>check('start\tsize\nCD:GAME.EXE+0x00000040\t1\nCD:GAME.EXE+0x00000040\t1\n'),/Duplicate/);
+ assert.throws(()=>check(text.replace('0x00000040','0x0040')),/noncanonical/);
+ assert.throws(()=>check(text.replace('0x00000040','0x0000004a')),/noncanonical/);
+ assert.throws(()=>check(text.replace('neutralHelper','FUN_00000040')),/analyzer/);
+ assert.throws(()=>check(text.replace('out_of_scope','bytes')),/columns/);
+ assert.throws(()=>check(text.replace('name\tout_of_scope','name\tname')),/columns/);
+ assert.throws(()=>check('start\tsize\n'),/row count/);
+ assert.throws(()=>check(text,'/bad.tsv'),/Unsafe/);
 });

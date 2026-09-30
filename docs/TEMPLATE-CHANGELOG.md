@@ -665,3 +665,7 @@ rules snapshots remain unchanged pending its review.
 ## Bounded memory-map selection and JVM diagnostics
 
 Added ReportMemoryBlocks.java with capped page/exact-name selection, explicit total/requested/partial scope and diagnosed invalid selections. JVM crash/replay diagnostics and heap dumps are ignored and rejected by the `deniedFileNamePatterns` of `tools/repository-policy.json` even if force-staged. The Ghidra guide explains local-only JVM output redirection and separates diagnostic existence from process ownership. Synthetic scratch-Git and constructed 3,546-block Java tests exercise the contracts; read-only Ghidra map checks against a configured project's large map pass without exporting code or bytes. `./tools/Invoke-Validation.ps1` passes with a clean build.
+
+## Committed function-inventory identity checks
+
+Added hash-guarded inventory-check to validate committed TSVs against build/manifest prefixes, mapped source bounds, numeric start uniqueness, bounded body-byte counts, allowed optional researcher columns and portable destinations. Explicit evidenced legacy paths support configured projects without silently renaming historical inventories. Synthetic tests cover CLI/identity failures and empty optional cells. The actual Dark Sun installed 2,153-row inventory passes; shared export reproduces its retained mapped export and view join exactly. Canonical gate passes 92 Python, 40 Node and 56 .NET tests with a zero-warning/error build.
