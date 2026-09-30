@@ -13,12 +13,15 @@ See the [work protocol](upstream/work-protocol.md#working-files) (lines 10-30).
 
 ## State
 
-- Stage: unconfigured template; committed inventory tooling maintenance.
-- Last gate: 2026-09-30, canonical fast gate passes 92 Python, 40 Node and 56 .NET tests; zero-warning/error build.
+- Stage: _Intake, Runtime access, Survey, Slices (which slice) or Audit._
+- Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
 
 ## Unfinished
 
-None.
+_Anything left half done and left out of the batch commits, with where it
+stands, what finishes it, and its `wip/` branch where the working tree does not
+outlive the session. `None.` when the working tree is clean and every batch was
+committed._
 
 ## Blockers
 
@@ -26,4 +29,4 @@ None known.
 
 ## Next
 
-1. Review committed inventory identity verification in PR 33.
+_At most five items, each naming a queue item by its ID, a parity row or a slice._
