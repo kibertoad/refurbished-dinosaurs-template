@@ -50,3 +50,30 @@ test('documentation examples outside front matter do not create entries', t => {
 test('alphanumeric standard area IDs are tracked', t => {
   assert.deepEqual(checkResearchTracking(fixture(t, '\n', 'AREA2').root), []);
 });
+test('consecutive items, continued paragraphs and introduced readings are each tracked', t => {
+  const {root, write, queue} = fixture(t);
+  write('spec/rules/TEST_ENTRY.md', '---\nid: TEST_ENTRY\nsuperseded_by: []\n---\n\n## Open questions\n\nTwo readings remain:\n\n- Which branch? (Q-TEST-001)\n- Which order? (Q-TEST-002)\n');
+  write('queue/TEST.md', queue.replace('Q-TEST-002', 'Q-TEST-003').replace('Blocks: none.\n', 'Blocks: none.\n- Q-TEST-002. TEST_ENTRY: Which order?\n\n  Tried: nothing yet. Settles it: read the loop. Blocks: none.\n'));
+  assert.deepEqual(checkResearchTracking(root), []);
+});
+test('malformed items, stray area files and dotted build aliases are checked', t => {
+  const {root, write, queue} = fixture(t);
+  mkdirSync(join(root, 'spec/builds'));
+  write('spec/builds/BLD-GOG-EN-1.1.md', '---\nid: BLD-GOG-EN-1.1\nsuperseded_by: []\n---\n');
+  write('queue/TEST.md', queue.replace('TEST_ENTRY: Which', 'TEST_ENTRY, BLD-GOG-EN-1.1: Which').replace('None.\n\n## Agent run', '- Q-TEST-9: no period\n\n## Agent run'));
+  write('queue/OTHER.md', '# OTHER\n');
+  const errors = checkResearchTracking(root);
+  assert.ok(errors.some(e => e.includes('malformed queue item')));
+  assert.ok(errors.some(e => e.includes('queue/OTHER.md')));
+  assert.ok(!errors.some(e => e.includes('BLD-GOG-EN-1')), errors.join('\n'));
+});
+test('split area queues check section headings', t => {
+  const {root, write} = fixture(t);
+  rmSync(join(root, 'queue/TEST.md'));
+  mkdirSync(join(root, 'queue/TEST'));
+  write('queue/TEST/README.md', '# TEST\n\nNext ID: Q-TEST-002\n');
+  write('queue/TEST/static.md', '# TEST: Static\n\n- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n');
+  assert.deepEqual(checkResearchTracking(root), []);
+  write('queue/TEST/static.md', '# TEST: Statik\n\n- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n');
+  assert.ok(checkResearchTracking(root).some(e => e.includes('wrong section heading')));
+});

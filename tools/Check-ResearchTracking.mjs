@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Structural protocol checks; never upgrades evidence or declares a survey complete.
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdirSync, readFileSync, existsSync, realpathSync } from 'node:fs';
+import { resolve, join, relative } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 export function checkResearchTracking(root) {
   const errors = [], entries = new Map(), items = new Map(), next = new Map();
   const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '').replaceAll('\r\n', '\n');
@@ -18,40 +18,69 @@ export function checkResearchTracking(root) {
     entries.set(id, { path, body, superseded: /^status: superseded$/m.test(metadata) || !/^superseded_by: \[\]/m.test(metadata) });
   }
   const sections = ['Static', 'Emulated call', 'Agent run', 'Live session', 'Source', 'Blocked'];
+  const queueDir = join(root, 'queue');
+  if (existsSync(queueDir)) for (const e of readdirSync(queueDir, { withFileTypes: true })) {
+    const name = e.isDirectory() ? e.name : e.name.endsWith('.md') ? e.name.slice(0, -3) : null;
+    if (name && name !== 'README' && !name.startsWith('.') && !areas.includes(name))
+      errors.push(`queue/${e.name} is not an area listed in spec/README.md`);
+  }
+  // Entries use the standard's IDs; builds and sources take an alias that may hold dots.
+  const entryRef = /\b(?:(?:RULE|FMT|SCR|BUG|FND|EXP)-[A-Z][A-Z0-9]*-\d+|(?:BLD|SRC)-[A-Z](?:[A-Z0-9.-]*[A-Z0-9])?)/g;
+  const checkItem = (area, { qid, origin, number, section, lines }) => {
+    const text = lines.join(' ').replace(/\s+/g, ' ');
+    if (items.has(qid)) errors.push(`Duplicate queue item ${qid}`);
+    const refs = text.split(':')[0].match(entryRef) ?? [];
+    if (!refs.length) errors.push(`${qid}: no spec entries`);
+    for (const ref of refs) {
+      if (!entries.has(ref)) errors.push(`${qid}: missing spec entry ${ref}`);
+      else if (entries.get(ref).superseded) errors.push(`${qid}: superseded spec entry ${ref}`);
+    }
+    if (refs.length && /^(RULE|FMT|SCR|BUG|FND|EXP)-/.test(refs[0]) && refs[0].split('-')[1] !== area)
+      errors.push(`${qid}: first entry belongs to another area`);
+    if (!text.includes('?') || !text.includes('Settles it:') || !/Blocks:\s*\S/.test(text))
+      errors.push(`${qid}: missing question, evidence or blocking scope`);
+    if (section === 'Blocked' && !text.includes('Waiting on:')) errors.push(`${qid}: blocked item has no Waiting on`);
+    items.set(qid, { refs, origin, number: Number(number) });
+  };
   for (const area of areas) {
     const path = join(root, `queue/${area}.md`), split = join(root, `queue/${area}/README.md`);
-    if (!existsSync(path) && !existsSync(split)) { errors.push(`Missing queue for ${area}`); continue; }
-    const body = read(existsSync(path) ? path : split);
+    const flat = existsSync(path);
+    if (!flat && !existsSync(split)) { errors.push(`Missing queue for ${area}`); continue; }
+    const body = read(flat ? path : split);
     if (!body.startsWith(`# ${area}\n`)) errors.push(`Wrong queue heading for ${area}`);
     const id = body.match(/^Next ID: Q-([A-Z][A-Z0-9]*)-(\d+)$/m);
     if (!id || id[1] !== area) errors.push(`Missing or invalid Next ID for ${area}`);
     else next.set(area, Number(id[2]));
-    const sources = existsSync(path) ? [path] : files(join(root, `queue/${area}`)).filter(p => p !== split);
-    if (existsSync(path)) {
+    const sources = flat ? [path] : files(join(root, `queue/${area}`)).filter(p => p !== split);
+    if (flat) {
       const actual = [...body.matchAll(/^## (.+)$/gm)].map(m => m[1]);
       if (JSON.stringify(actual) !== JSON.stringify(sections)) errors.push(`Queue sections out of order for ${area}`);
     }
     for (const source of sources) {
       const content = read(source);
-      for (const match of content.matchAll(/^- (Q-([A-Z][A-Z0-9]*)-(\d+))\. ([\s\S]*?)(?=\n\n|\n## |$(?![\s\S]))/gm)) {
-        const [full, qid, origin, number, rawText] = match;
-        const text = rawText.replace(/\s+/g, ' ');
-        if (items.has(qid)) errors.push(`Duplicate queue item ${qid}`);
-        const refs = (text.split(':')[0].match(/(?:RULE|FMT|SCR|BUG|FND|EXP|BLD|SRC)-[A-Z0-9-]+/g) ?? []);
-        if (!refs.length) errors.push(`${qid}: no spec entries`);
-        for (const ref of refs) {
-          if (!entries.has(ref)) errors.push(`${qid}: missing spec entry ${ref}`);
-          else if (entries.get(ref).superseded) errors.push(`${qid}: superseded spec entry ${ref}`);
-        }
-        if (refs.length && /^(RULE|FMT|SCR|BUG|FND|EXP)-/.test(refs[0]) && refs[0].split('-')[1] !== area)
-          errors.push(`${qid}: first entry belongs to another area`);
-        if (!text.includes('?') || !text.includes('Settles it:') || !/Blocks:\s*\S/.test(text))
-          errors.push(`${qid}: missing question, evidence or blocking scope`);
-        const preceding = content.slice(0, match.index);
-        const section = [...preceding.matchAll(/^##? (?:[A-Z][A-Z0-9]*: )?(.+)$/gm)].at(-1)?.[1];
-        if (section === 'Blocked' && !text.includes('Waiting on:')) errors.push(`${qid}: blocked item has no Waiting on`);
-        items.set(qid, { refs, origin, number: Number(number) });
+      const shown = relative(root, source).replaceAll('\\', '/');
+      if (!flat) {
+        const heading = content.match(/^# ([A-Z][A-Z0-9]*): (.+)\n/);
+        if (!heading || heading[1] !== area || !sections.includes(heading[2])) errors.push(`${shown}: wrong section heading`);
       }
+      // One pass: a heading sets the section, a top-level bullet starts an item, and blank or
+      // indented lines continue it. Any other top-level line ends it.
+      let section, current = null;
+      const flush = () => { if (current) checkItem(area, current); current = null; };
+      for (const line of content.split('\n')) {
+        const heading = line.match(/^##? (?:[A-Z][A-Z0-9]*: )?(.+)$/);
+        if (heading) { flush(); section = heading[1]; continue; }
+        if (line.startsWith('- ')) {
+          flush();
+          const item = line.match(/^- (Q-([A-Z][A-Z0-9]*)-(\d+))\. (.*)$/);
+          if (item) current = { qid: item[1], origin: item[2], number: item[3], section, lines: [item[4]] };
+          else errors.push(`${shown}: malformed queue item: ${line}`);
+          continue;
+        }
+        if (current && (line.trim() === '' || /^\s/.test(line))) { current.lines.push(line); continue; }
+        flush();
+      }
+      flush();
     }
   }
   for (const [qid, item] of items) {
@@ -61,7 +90,9 @@ export function checkResearchTracking(root) {
     if (entry.superseded) continue;
     const open = entry.body.match(/^## Open questions\s*\n([\s\S]*?)(?=^## |$(?![\s\S]))/m)?.[1]?.trim();
     if (!open || /^(None\.?|None known\.)$/i.test(open)) continue;
-    const questions = open.split(/\n(?=- )/);
+    // Prose that introduces a list of readings is not a reading of its own.
+    let questions = open.split(/\n(?=- )/);
+    if (questions.length > 1 && !questions[0].startsWith('- ')) questions = questions.slice(1);
     for (const question of questions) {
       const qids = [...question.matchAll(/\bQ-[A-Z][A-Z0-9]*-\d+\b/g)].map(m => m[0]);
       if (!qids.length) errors.push(`${id}: untracked open question`);
@@ -73,7 +104,9 @@ export function checkResearchTracking(root) {
   }
   return errors;
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Compare real paths, as tools/upstream.mjs does, so a symlinked checkout still runs the check.
+const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();
+if (invokedDirectly) {
   const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
   const errors = checkResearchTracking(root);
   for (const error of errors) console.error(error);
