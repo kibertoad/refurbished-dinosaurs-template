@@ -4,11 +4,13 @@ Requires Node.js 22 or later. No npm install is needed. Run synthetic tests with
 `node --test tests/evidence/evidence.test.mjs`; the canonical validation gate
 runs them too. These tools read metadata and never run an original executable.
 They implement Standard v1 conventions; report schemas are tooling interfaces,
-not a new spec version. Keep reports/configs under ignored `analysis/original/`.
+not a new spec version. Keep reports and configurations in `GAME_DIR`; do not commit them.
 
 ## Identity and locations
 
-Run `node tools/evidence/report.mjs operand analysis/original/operand.json`.
+From PowerShell, run
+`node tools/evidence/report.mjs operand "$env:GAME_DIR/analysis/operand.json"`.
+Save redirected reports under `GAME_DIR` as well.
 A config names `source` relative to the config, its explicit `sha256` baseline,
 `loadSegment` (default 4096), numeric `site` at the segment operand, and numeric
 `targetOffset`. The SHA-256 guard binds the local tool input; retain the
@@ -87,3 +89,26 @@ nonportable manifest paths rather than silently renaming them. Commit only the
 permitted inventory columns; keep view reports/configs local. Document the
 selected views and exclusions in the build/Ghidra guide in project-authored words.
 Coverage describes analyzer-discovered functions, not every function that exists.
+
+## Instruction-derived reports
+
+The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
+`x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation` and `x86-dispatch`
+commands use the pinned toolkit reporter. Install its Python dependency with
+`python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
+See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
+In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
+to this template's `x86-` commands, and the requirements file lives in the
+`x86-reporter/` subdirectory. The Python executable can be selected with
+`EVIDENCE_PYTHON`.
+
+`tools/evidence/x86-lock.json` records the toolkit revision and exact hashes of
+its source, tests, documentation and license. `node tools/evidence/sync-x86.mjs
+--check` verifies them offline. To adopt a reviewed revision, run the same command
+with a clean local toolkit checkout path instead of `--check`, then run the full
+validation gate. The command reads committed blobs to avoid checkout line-ending
+differences. It does not fetch upstream or change the local methodology snapshots.
+`tools/evidence/legacy-image.mjs` re-exports the pinned MZ/FBOV reader, so the
+lightweight commands and the `x86-` commands share one parser.
+Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
+the instruction-derived variants supply the additional analysis.

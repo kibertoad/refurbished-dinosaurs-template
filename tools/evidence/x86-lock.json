@@ -1,0 +1,81 @@
+{
+  "repository": "kibertoad/refurbished-dinosaurs-toolkit",
+  "revision": "c2b21ee62fc404391e8dcfafd7029185f81241a9",
+  "files": [
+    {
+      "source": "tools/evidence/NOTICE.md",
+      "path": "tools/evidence/x86-reporter/NOTICE.md",
+      "sha256": "c2c476075c9cb17638033ff73ebf5ab21154b07a87d2a3119d0711fda3dd643b"
+    },
+    {
+      "source": "tools/evidence/legacy-image.mjs",
+      "path": "tools/evidence/x86-reporter/legacy-image.mjs",
+      "sha256": "30c0c4f7837ae9d36ca2d1f51032d6ec8e8176eeb583737b1399934e69d78057"
+    },
+    {
+      "source": "tools/evidence/report.mjs",
+      "path": "tools/evidence/x86-reporter/report.mjs",
+      "sha256": "75769d77705e79ec610e64630efd4437c65e8be3a6ad077fd202a711e33d8ac8"
+    },
+    {
+      "source": "tools/evidence/report.py",
+      "path": "tools/evidence/x86-reporter/report.py",
+      "sha256": "9ff10c0a40f9b63d3c864fa87a7423773832e73a9e1dd835a4cfece2c7cae7e4"
+    },
+    {
+      "source": "tools/evidence/requirements.txt",
+      "path": "tools/evidence/x86-reporter/requirements.txt",
+      "sha256": "6b8a703c0a562d2b528575457d1b76ae5decc8d4d53093ba6515a32137098d1b"
+    },
+    {
+      "source": "tools/evidence/x86/__init__.py",
+      "path": "tools/evidence/x86-reporter/x86/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "tools/evidence/x86/image.py",
+      "path": "tools/evidence/x86-reporter/x86/image.py",
+      "sha256": "041988d4437cfa07fe5f6a9756d76937d68d430668021a3b3907c5059f8602b0"
+    },
+    {
+      "source": "tools/evidence/x86/machine.py",
+      "path": "tools/evidence/x86-reporter/x86/machine.py",
+      "sha256": "ade8d1a661b0912f2f6548f41c6c328a2d5e8e8a6f4e2cda3aa511f39462d138"
+    },
+    {
+      "source": "tools/evidence/x86/reports.py",
+      "path": "tools/evidence/x86-reporter/x86/reports.py",
+      "sha256": "c2301718da9a16bd277785384975df70f9cc65693605872d54180a9946179d3e"
+    },
+    {
+      "source": "tools/evidence/x86/trace.py",
+      "path": "tools/evidence/x86-reporter/x86/trace.py",
+      "sha256": "cb18ab2db9c327ab62cde8c8411252ef36a41fa5a86c236d35f957ca977061f7"
+    },
+    {
+      "source": "tools/evidence/x86/values.py",
+      "path": "tools/evidence/x86-reporter/x86/values.py",
+      "sha256": "74047779f094510eca98c691688238c11e18da1c047165ca5aabc3417f4a2a96"
+    },
+    {
+      "source": "LICENSE",
+      "path": "tools/evidence/x86-reporter/LICENSE",
+      "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"
+    },
+    {
+      "source": "docs/bounded-evidence-reporters.md",
+      "path": "docs/BOUNDED-EVIDENCE-REPORTERS.md",
+      "sha256": "669dbea4bd3559d11406eb16e677d90547623f196cf1e0655e838f2f513175c9"
+    },
+    {
+      "source": "tests/evidence/test_x86.py",
+      "path": "tests/evidence/test_x86.py",
+      "sha256": "18f43fd7e690d0852fc9536b1ae043dab4ddf801af4b42e31629bf9c87f402b0"
+    },
+    {
+      "source": "tests/evidence/bridge.test.mjs",
+      "path": "tests/evidence/bridge.test.mjs",
+      "sha256": "f3d0e5fe67deccfb9dc7bd52a5297b5fa82efc7f669b8dd0858824de8b1cfd39"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { verify as verifyReporter } from "../../tools/evidence/sync-x86.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, cpSync, rmSync, existsSync } from "node:fs";
@@ -61,7 +62,7 @@ test("freshness distinguishes unchanged bytes, changed content and unavailable n
   await assert.rejects(checkUpstream(dir, async () => { throw Error("network unavailable"); }), /network unavailable/);
   verifySnapshot(dir);
 });
-test("project configuration preserves upstream bytes and licenses", t => {
+test("project configuration preserves upstream and reporter bytes and licenses", t => {
   const dir = fixture(t);
   copyWorkingTree(root, dir);
   // Upstream currently has no replaceable tokens. Make the scratch snapshots
@@ -76,12 +77,23 @@ test("project configuration preserves upstream bytes and licenses", t => {
   }
   writeFileSync(scratchLockPath, JSON.stringify(scratchLock));
   verifySnapshot(dir);
+  const reporterLockPath = resolve(dir, "tools/evidence/x86-lock.json");
+  const reporterLock = JSON.parse(readFileSync(reporterLockPath));
+  for (const path of ["tools/evidence/x86-reporter/NOTICE.md", "docs/BOUNDED-EVIDENCE-REPORTERS.md"]) {
+    const target = resolve(dir, path);
+    const bytes = Buffer.concat([readFileSync(target), Buffer.from("\n{{DISPLAY_NAME}}\n")]);
+    writeFileSync(target, bytes);
+    reporterLock.files.find(f => f.path === path).sha256 = createHash("sha256").update(bytes).digest("hex");
+  }
+  writeFileSync(reporterLockPath, JSON.stringify(reporterLock));
+  verifyReporter(dir);
   const configured = spawnSync("pwsh", ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"),
     "-ProjectName", "EvidenceSample", "-DisplayName", "Evidence Sample", "-AppId", "00000000-0000-0000-0000-000000000001",
     "-CopyrightYear", "2026", "-Force"], { cwd: dir, encoding: "utf8" });
   assert.equal(configured.status, 0, configured.error?.message ?? configured.stdout + configured.stderr);
   assert.equal(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))).projectName, "EvidenceSample");
   verifySnapshot(dir);
+  verifyReporter(dir);
 });
 
 test("configuration copy includes Git-visible files and excludes ignored or local output", t => {

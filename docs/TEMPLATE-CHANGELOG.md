@@ -8,6 +8,29 @@ not here.
 
 A project created from this template may delete this file.
 
+## Pinned x86 reporters and website rules up to kibertoad/refurbished-dinosaurs@94f8f67, 2026-09-30
+
+- **Reporters.** `tools/evidence/x86-reporter/` holds an exact copy of the
+  toolkit's bounded 16-bit x86 reporter at `c2b21ee`, with its tests, guide
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`) and license. `tools/evidence/report.mjs`
+  exposes it as the `x86-*` commands. `tools/evidence/x86-lock.json` records
+  the hashes, `node tools/evidence/sync-x86.mjs --check` verifies them offline,
+  and specialization leaves those bytes alone. (`docs/EVIDENCE-TOOLS.md`.)
+  `tools/evidence/legacy-image.mjs` now re-exports the pinned MZ/FBOV reader
+  instead of keeping a second copy.
+- **Validation.** The canonical gate, CI and the release test job install
+  `capstone==5.0.7` and run the Python reporter tests and the Node bridge and
+  pin tests.
+- **Website rules.** `docs/upstream/` is refreshed to `94f8f67`, which adds
+  the standard's bounded analysis report contracts and the protocol's rule for
+  reporter tooling batches. `docs/EVIDENCE-REVIEW.md` applies them, and section
+  links are regenerated. The vendored checker stays on toolkit `c361820`.
+- **Acceptance.** The following commands pass:
+  - `node tools/evidence/sync-x86.mjs --check`
+  - `node tools/upstream.mjs verify`
+  - `node tools/upstream.mjs links`
+  - `node tools/upstream.mjs docs --check`
+
 ## Website rules up to kibertoad/refurbished-dinosaurs@b923e85, 2026-09-30
 
 The local copy in `docs/upstream/` is refreshed to the core website's
@@ -286,7 +309,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 816-837)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 837-858)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

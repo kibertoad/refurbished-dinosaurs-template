@@ -6,6 +6,13 @@ rules it applies are the Standard and Protocol in the local
 reasoning in findings, complete-reading citations and Open questions using the
 existing v1 fields; do not add unsupported schema fields.
 
+Apply the [bounded analysis report contracts](upstream/documentation-standard.md#bounded-analysis-reports) (lines 183-202)
+to each supported query. Keep configurations and reports in `GAME_DIR` and out
+of commits. A report's complete-search claim covers only its stated domain and
+model. A game's request for reporter behaviour stays open until the reporter
+passes that request's own case; synthetic examples and adopted guidance alone
+do not close it.
+
 ## Locations and complete readings
 
 Identify the build and manifest file before interpreting a location. Distinguish
