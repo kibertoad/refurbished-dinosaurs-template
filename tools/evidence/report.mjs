@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Reports and configurations stay in GAME_DIR and are not committed.
 import { readFileSync, statSync, mkdirSync, writeFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { resolve, dirname, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { run as runX86 } from "./x86-reporter/report.mjs";
@@ -36,8 +36,12 @@ export function run(args) {
     if (command === "inventory-check") {
       const inventory = config.inventory;
       if (!inventory || typeof inventory !== 'object') throw new Error('Supply an inventory check contract');
+      // The file read must be the one at repositoryPath, not merely declared to be.
+      const file = local(inventory.path);
+      if (typeof inventory.repositoryPath !== 'string' || !file.split(sep).join('/').endsWith(`/${inventory.repositoryPath}`))
+        throw new Error('Inventory input path does not end with its declared repositoryPath');
       result = verifyInventory(image, config.build, config.manifest,
-        readBounded(local(inventory.path), 32 * 1024 * 1024).toString('utf8'),
+        readBounded(file, 32 * 1024 * 1024).toString('utf8'),
         inventory.repositoryPath, inventory);
     }
     if (command === "inventory") {
