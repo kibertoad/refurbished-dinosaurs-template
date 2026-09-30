@@ -31,7 +31,6 @@ if (-not $OutputRoot) {
 }
 
 Add-Type -AssemblyName System.Drawing
-Add-Type -AssemblyName System.Windows.Forms
 
 if (-not ('OriginalWindowCapture.NativeMethods' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -49,22 +48,11 @@ namespace OriginalWindowCapture
         public int Bottom;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Point
-    {
-        public int X;
-        public int Y;
-    }
-
     public static class NativeMethods
     {
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetClientRect(IntPtr window, out Rect rect);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool ClientToScreen(IntPtr window, ref Point point);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -136,15 +124,10 @@ function Find-TargetWindow {
     $matches[0]
 }
 
-function Get-ClientBounds([IntPtr] $Window) {
+function Get-ClientSize([IntPtr] $Window) {
     $rect = [OriginalWindowCapture.Rect]::new()
     if (-not [OriginalWindowCapture.NativeMethods]::GetClientRect($Window, [ref] $rect)) {
         throw "GetClientRect failed with Win32 error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())."
-    }
-
-    $origin = [OriginalWindowCapture.Point]::new()
-    if (-not [OriginalWindowCapture.NativeMethods]::ClientToScreen($Window, [ref] $origin)) {
-        throw "ClientToScreen failed with Win32 error $([Runtime.InteropServices.Marshal]::GetLastWin32Error())."
     }
 
     $width = $rect.Right - $rect.Left
@@ -153,7 +136,7 @@ function Get-ClientBounds([IntPtr] $Window) {
         throw "The target client area has invalid dimensions ${width}x${height}."
     }
 
-    [pscustomobject]@{ X = $origin.X; Y = $origin.Y; Width = $width; Height = $height }
+    [pscustomobject]@{ Width = $width; Height = $height }
 }
 
 function ConvertTo-SafeName([string] $Value, [string] $Fallback) {
@@ -180,8 +163,8 @@ function Send-CaptureAcknowledgement([bool] $Succeeded) {
     }
 }
 
-function Save-ScreenFrame([IntPtr] $Window, $Bounds, [string] $Path) {
-    $bitmap = [Drawing.Bitmap]::new($Bounds.Width, $Bounds.Height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
+function Save-ScreenFrame([IntPtr] $Window, $Size, [string] $Path) {
+    $bitmap = [Drawing.Bitmap]::new($Size.Width, $Size.Height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
     try {
         $graphics = [Drawing.Graphics]::FromImage($bitmap)
         try {
@@ -219,7 +202,7 @@ function New-Checkpoint([string] $Label) {
         throw 'The target window is minimized. Restore it before capturing.'
     }
 
-    $bounds = Get-ClientBounds $target.Handle
+    $clientSize = Get-ClientSize $target.Handle
     $safeExperiment = ConvertTo-SafeName $Experiment 'manual'
     $safeLabel = ConvertTo-SafeName $Label 'checkpoint'
     $experimentDirectory = Join-Path $OutputRoot $safeExperiment
@@ -235,7 +218,7 @@ function New-Checkpoint([string] $Label) {
         for ($index = 1; $index -le $BurstCount; $index++) {
             $fileName = 'frame-{0:D2}.png' -f $index
             $framePath = Join-Path $checkpointDirectory $fileName
-            Save-ScreenFrame $target.Handle $bounds $framePath
+            Save-ScreenFrame $target.Handle $clientSize $framePath
             $hash = (Get-FileHash -LiteralPath $framePath -Algorithm SHA256).Hash.ToLowerInvariant()
             $frames.Add([ordered]@{
                 file = $fileName
@@ -254,9 +237,8 @@ function New-Checkpoint([string] $Label) {
         throw
     }
 
-    $virtualScreen = [Windows.Forms.SystemInformation]::VirtualScreen
     $metadata = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = 2
         experiment = $Experiment
         label = $Label
         capturedAt = $capturedAt.ToString('o')
@@ -267,18 +249,10 @@ function New-Checkpoint([string] $Label) {
             processId = $target.Id
             processName = $target.ProcessName
             windowTitle = $target.Title
-            clientBounds = [ordered]@{
-                x = $bounds.X
-                y = $bounds.Y
-                width = $bounds.Width
-                height = $bounds.Height
+            clientSize = [ordered]@{
+                width = $clientSize.Width
+                height = $clientSize.Height
             }
-        }
-        virtualScreen = [ordered]@{
-            x = $virtualScreen.X
-            y = $virtualScreen.Y
-            width = $virtualScreen.Width
-            height = $virtualScreen.Height
         }
         burst = [ordered]@{
             count = $BurstCount

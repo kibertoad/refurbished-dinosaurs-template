@@ -116,7 +116,9 @@ interactive, one-shot, and hotkey (Ctrl+Shift+F12) modes, and `-ListWindows` to
 discover the correct process and title. The helper renders the window's client
 through `PrintWindow` with full-content rendering, rather than copying its
 rectangle from the desktop, so a hidden or covered window never produces pixels
-from another application. There is no desktop fallback. An unsupported window or
+from another application. Its `checkpoint.json` (schema version 2) records the
+target process, window title, and client size, but not the desktop layout,
+which does not affect the pixels. There is no desktop fallback. An unsupported window or
 a uniform frame fails the whole checkpoint and leaves no frames behind. A
 successful capture still needs inspection: a launcher or emulator shell frame
 does not prove that the game reached a requested state. It writes to
