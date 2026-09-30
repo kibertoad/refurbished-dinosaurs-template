@@ -109,21 +109,25 @@ cools the build of any open IDE. Avoid running raw `dotnet build` and
 
 ## Reference capture
 
-`tools/Capture-OriginalWindow.ps1` captures the original game's visible client
-area in burst frames with SHA-256 metadata into a `checkpoint.json` plus an
-`index.jsonl`, for evidence records rather than committed assets. It supports
+`tools/Capture-OriginalWindow.ps1` captures the selected original window's
+client area in burst frames with SHA-256 metadata into a `checkpoint.json` plus
+an `index.jsonl`, for evidence records rather than committed assets. It supports
 interactive, one-shot, and hotkey (Ctrl+Shift+F12) modes, and `-ListWindows` to
-discover the correct process and title. The helper deliberately captures the
-visible desktop client area because a legacy DirectDraw window may not produce
-reliable window-only captures on modern systems. It writes to
+discover the correct process and title. The helper renders the window's client
+through `PrintWindow` with full-content rendering, rather than copying its
+rectangle from the desktop, so a hidden or covered window never produces pixels
+from another application. There is no desktop fallback. An unsupported window or
+a uniform frame fails the whole checkpoint and leaves no frames behind. A
+successful capture still needs inspection: a launcher or emulator shell frame
+does not prove that the game reached a requested state. It writes to
 `reference/original/captures` unless `-OutputRoot` says otherwise; keep captured
 pixels under ignored `reference/original`, which the repository policy also
 denies, and never commit them.
 
 A capture that a test compares with the rebuild pixel for pixel has to be taken
 at the size of the screen entry's `resolution`, with no scaling, filtering, or
-aspect correction, and in the colors the game set in its palette. A desktop
-capture from this helper meets that only when the game runs unscaled in its
+aspect correction, and in the colors the game set in its palette. A capture
+from this helper meets that only when the game runs unscaled in its
 window, for example with DxWnd's scaling and filtering off. DOSBox's own
 screenshot saves the emulated video memory and meets it directly. The finding
 or experiment that cites a capture says which tool took it and with what

@@ -41,10 +41,3 @@ the installation's compatibility settings. Otherwise `none`._ See the
 protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 227-239).
 
 _Repeat the section for each build that will be run._
-
-The window capture helper renders the selected window's client through
-`PrintWindow`, rather than copying its rectangle from the desktop. A hidden,
-covered or minimized window must never produce pixels from another application.
-Unsupported and uniform results fail without writing a capture. A successful
-capture still needs inspection: a launcher or emulator shell frame does not
-prove that the game reached a requested state. There is no desktop fallback.

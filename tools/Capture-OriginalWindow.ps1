@@ -76,6 +76,28 @@ namespace OriginalWindowCapture
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool PrintWindow(IntPtr window, IntPtr deviceContext, uint flags);
+
+        // PW_CLIENTONLY | PW_RENDERFULLCONTENT: the client area, including
+        // DirectX/OpenGL content that WM_PRINTCLIENT alone renders black.
+        public const uint PrintClientFullContent = 0x1 | 0x2;
+
+        // True when every pixel of a locked, top-down bitmap equals the first.
+        public static bool IsUniform(IntPtr scan0, int stride, int width, int height, int bytesPerPixel)
+        {
+            int rowBytes = width * bytesPerPixel;
+            byte[] first = new byte[bytesPerPixel];
+            byte[] row = new byte[rowBytes];
+            Marshal.Copy(scan0, first, 0, bytesPerPixel);
+            for (int y = 0; y < height; y++)
+            {
+                Marshal.Copy(new IntPtr(scan0.ToInt64() + (long)y * stride), row, 0, rowBytes);
+                for (int x = 0; x < rowBytes; x++)
+                {
+                    if (row[x] != first[x % bytesPerPixel]) return false;
+                }
+            }
+            return true;
+        }
     }
 }
 '@
@@ -165,7 +187,7 @@ function Save-ScreenFrame([IntPtr] $Window, $Bounds, [string] $Path) {
         try {
             $deviceContext = $graphics.GetHdc()
             try {
-                if (-not [OriginalWindowCapture.NativeMethods]::PrintWindow($Window, $deviceContext, 1)) {
+                if (-not [OriginalWindowCapture.NativeMethods]::PrintWindow($Window, $deviceContext, [OriginalWindowCapture.NativeMethods]::PrintClientFullContent)) {
                     throw 'The selected window does not support direct capture. No desktop-copy fallback is permitted.'
                 }
             }
@@ -175,14 +197,15 @@ function Save-ScreenFrame([IntPtr] $Window, $Bounds, [string] $Path) {
             $graphics.Dispose()
         }
 
-        $first = $bitmap.GetPixel(0, 0).ToArgb()
-        $different = $false
-        for ($y = 0; $y -lt $bitmap.Height -and -not $different; $y++) {
-            for ($x = 0; $x -lt $bitmap.Width; $x++) {
-                if ($bitmap.GetPixel($x, $y).ToArgb() -ne $first) { $different = $true; break }
-            }
+        $pixels = $bitmap.LockBits(
+            [Drawing.Rectangle]::new(0, 0, $bitmap.Width, $bitmap.Height),
+            [Drawing.Imaging.ImageLockMode]::ReadOnly,
+            $bitmap.PixelFormat)
+        try {
+            $uniform = [OriginalWindowCapture.NativeMethods]::IsUniform($pixels.Scan0, $pixels.Stride, $pixels.Width, $pixels.Height, 3)
         }
-        if (-not $different) { throw 'Direct capture returned a uniform frame; renderer support and game state are unverified. No frame was saved.' }
+        finally { $bitmap.UnlockBits($pixels) }
+        if ($uniform) { throw 'Direct capture returned a uniform frame; renderer support and game state are unverified. No frame was saved.' }
         $bitmap.Save($Path, [Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
@@ -208,20 +231,27 @@ function New-Checkpoint([string] $Label) {
     [IO.Directory]::CreateDirectory($checkpointDirectory) | Out-Null
 
     $frames = [Collections.Generic.List[object]]::new()
-    for ($index = 1; $index -le $BurstCount; $index++) {
-        $fileName = 'frame-{0:D2}.png' -f $index
-        $framePath = Join-Path $checkpointDirectory $fileName
-        Save-ScreenFrame $target.Handle $bounds $framePath
-        $hash = (Get-FileHash -LiteralPath $framePath -Algorithm SHA256).Hash.ToLowerInvariant()
-        $frames.Add([ordered]@{
-            file = $fileName
-            sha256 = $hash
-            capturedAt = [DateTimeOffset]::Now.ToString('o')
-        })
+    try {
+        for ($index = 1; $index -le $BurstCount; $index++) {
+            $fileName = 'frame-{0:D2}.png' -f $index
+            $framePath = Join-Path $checkpointDirectory $fileName
+            Save-ScreenFrame $target.Handle $bounds $framePath
+            $hash = (Get-FileHash -LiteralPath $framePath -Algorithm SHA256).Hash.ToLowerInvariant()
+            $frames.Add([ordered]@{
+                file = $fileName
+                sha256 = $hash
+                capturedAt = [DateTimeOffset]::Now.ToString('o')
+            })
 
-        if ($index -lt $BurstCount -and $BurstIntervalMilliseconds -gt 0) {
-            Start-Sleep -Milliseconds $BurstIntervalMilliseconds
+            if ($index -lt $BurstCount -and $BurstIntervalMilliseconds -gt 0) {
+                Start-Sleep -Milliseconds $BurstIntervalMilliseconds
+            }
         }
+    }
+    catch {
+        # A rejected frame fails the whole checkpoint: keep no partial burst.
+        Remove-Item -LiteralPath $checkpointDirectory -Recurse -Force -ErrorAction SilentlyContinue
+        throw
     }
 
     $virtualScreen = [Windows.Forms.SystemInformation]::VirtualScreen
@@ -329,7 +359,7 @@ if ($HotKey) {
 }
 
 Write-Host "Reference capture is ready for experiment '$Experiment'."
-Write-Host 'Keep the original game visible and unobscured.'
+Write-Host 'Keep the original game window open and not minimized.'
 Write-Host 'Enter a checkpoint label and press Enter. Enter q to stop.'
 while ($true) {
     $label = Read-Host 'capture'
