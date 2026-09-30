@@ -184,3 +184,7 @@ Adopt the reviewed toolkit bounded-string candidate by exact commit. Outcome: se
 ## Explicit overlapping local return adoption
 
 Pin the follow-up toolkit candidate with verified direct-edge overlap proof and strictly local segmented16 IRET. Acceptance: preserve false-boundary rejection; saved/missing/corrupted/overwritten frame tests pass; source, guide and tests share one exact pin; canonical gate and build pass. External interrupts, hardware and flat IRET remain unsupported.
+
+## Instruction-owned operand adoption
+
+Pin the toolkit candidate with instruction-verified MOV/PUSH immediate ownership, declared segment provenance and effect-summary flag events. Exact guide/source/tests must share the pin; canonical gate proves synthetic boundary/width/CLI controls. Keep mapped addresses separate from native reachability and preserve unresolved raw words.

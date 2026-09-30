@@ -675,3 +675,5 @@ Added hash-guarded inventory-check to validate committed TSVs against build/mani
 Pinned toolkit 247e30c8cbdf9448901d39891512fb9c62364ae5 adds bounded sequential string operations with conditional direction provenance and intact saved-flag restoration. The matching synthetic controls and guide ship with the pin. IRET and native hardware/timing remain outside this model.
 
 Toolkit follow-up e08397283b9cc8271dba01019803d4571430f618 adds explicit overlapping-target proof and strictly local segmented16 IRET with validated saved flag frames. External and flat IRET remain unsupported.
+
+Toolkit candidate 2f864f21ec63139043d707fa8fbf401a9f624191 adds instruction-owned segment operand provenance and preserves flag/string events in effect summaries. Hash-guarded CLI and boundary/width controls ship with the pin.
