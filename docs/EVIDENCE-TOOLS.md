@@ -108,5 +108,7 @@ its source, tests, documentation and license. `node tools/evidence/sync-x86.mjs
 with a clean local toolkit checkout path instead of `--check`, then run the full
 validation gate. The command reads committed blobs to avoid checkout line-ending
 differences. It does not fetch upstream or change the local methodology snapshots.
+`tools/evidence/legacy-image.mjs` re-exports the pinned MZ/FBOV reader, so the
+lightweight commands and the `x86-` commands share one parser.
 Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
 the instruction-derived variants supply the additional analysis.

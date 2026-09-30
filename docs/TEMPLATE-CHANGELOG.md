@@ -11,11 +11,13 @@ A project created from this template may delete this file.
 ## Pinned x86 reporters and website rules up to kibertoad/refurbished-dinosaurs@94f8f67, 2026-09-30
 
 - **Reporters.** `tools/evidence/x86-reporter/` holds an exact copy of the
-  toolkit's bounded 16-bit x86 reporter at `2971101`, with its tests, guide
+  toolkit's bounded 16-bit x86 reporter at `b87e01d`, with its tests, guide
   (`docs/BOUNDED-EVIDENCE-REPORTERS.md`) and license. `tools/evidence/report.mjs`
   exposes it as the `x86-*` commands. `tools/evidence/x86-lock.json` records
   the hashes, `node tools/evidence/sync-x86.mjs --check` verifies them offline,
   and specialization leaves those bytes alone. (`docs/EVIDENCE-TOOLS.md`.)
+  `tools/evidence/legacy-image.mjs` now re-exports the pinned MZ/FBOV reader
+  instead of keeping a second copy.
 - **Validation.** The canonical gate, CI and the release test job install
   `capstone==5.0.7` and run the Python reporter tests and the Node bridge and
   pin tests.

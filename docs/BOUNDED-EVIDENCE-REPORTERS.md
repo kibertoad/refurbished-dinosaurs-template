@@ -64,7 +64,9 @@ call frame. Near returns occupy two bytes and far returns four; saved BP is
 accounted for by actual pushes. LDS/LES consuming four bytes establishes a far
 pointer grouping. Adjacent pushes alone do not. Register widening, frame cleanup,
 stack overwrites and unknown return addresses remain visible. A root query may
-set `returnBytes` to 4 for a far entry (default 2).
+set `returnBytes` to 4 for a far entry (default 2). The root return must use
+that width and leave SP where it was on entry; otherwise the path stops and the
+report is not complete within the model.
 
 Return snapshots retain full and partial registers. Optional `returnContracts`
 contain `entry`, `register`, `failures` (numeric encodings) and `evidence`. Only
@@ -144,7 +146,8 @@ Defaults cap each path at 512 instructions, the query at 20,000 steps, paths at
 maximum 1,048,576); use inventories stop after 64 entries (`entryLimit`, maximum
 256). `instructionLimit` bounds graph traversal; `limit` bounds search results.
 Caps, undecoded ranges and unsupported cases are explicit. Source size is capped
-at 256 MiB, config size at 1 MiB and each symbolic expression at 1,024 tuple nodes.
+at 256 MiB, config size at 1 MiB (16 MiB for the relocation-expanded config the
+Node wrapper pipes to Python) and each symbolic expression at 1,024 tuple nodes.
 The Node wrapper caps output at 32 MiB and execution at 120 seconds. A limit never
 turns a partial search into an absence claim. `completeWithinModel` means all
 explored paths reached a return within these assumptions, not a complete reading

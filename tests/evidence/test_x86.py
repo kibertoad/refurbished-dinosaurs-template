@@ -253,6 +253,16 @@ class ReporterTests(unittest.TestCase):
         with self.assertRaises(ValueError): report("c3", maxSteps=0)
         with self.assertRaises(ValueError): report("c3", returnBytes=3)
 
+    def test_entry_frame_return_requires_balanced_stack(self):
+        r = report("50 c3")
+        self.assertFalse(r["paths"][0]["returned"])
+        self.assertFalse(r["completeWithinModel"])
+
+    def test_entry_frame_return_width_must_match_return_bytes(self):
+        self.assertFalse(report("c3", returnBytes=4)["completeWithinModel"])
+        self.assertFalse(report("cb")["completeWithinModel"])
+        self.assertTrue(report("cb", returnBytes=4)["completeWithinModel"])
+
 
     def test_allocation_observed_header_extent_is_separate_from_request(self):
         c = Code().emit("b8 01 00").label("call").branch("e8", "allocator")
@@ -323,6 +333,55 @@ class ReporterTests(unittest.TestCase):
         access = events(r, "read")[0]
         self.assertEqual(r["paths"][0]["guards"][0]["left"]["bits"], 8)
         self.assertFalse(access["guards"][0]["samePointerValue"])
+
+    def test_complementary_branches_share_one_assumption(self):
+        c = (Code().emit("3d 00 00").branch("74", "zero").branch("75", "nonzero").emit("c3")
+             .label("zero").emit("c3").label("nonzero").emit("c3"))
+        r = report(c)
+        self.assertEqual(len(r["paths"]), 2)
+        self.assertEqual({tuple(g["taken"] for g in p["guards"]) for p in r["paths"]}, {(True,), (False, True)})
+
+    def test_self_comparison_resolves_zero_flag(self):
+        c = Code().emit("39 c0").branch("75", "done").emit("90").label("done").emit("c3")
+        r = report(c)
+        self.assertEqual(len(r["paths"]), 1)
+        self.assertFalse(r["paths"][0]["guards"][0]["taken"])
+
+    def test_far_call_to_undeclared_canonical_target_stops_path(self):
+        data = bytes.fromhex("9a 00 00 00 00 c3")
+        cfg = configuration(data, relocations=[{"site": 3, "segment": 0x2000, "target": 5, "evidence": "synthetic"}])
+        cfg["regions"][0]["end"] = 5
+        r = run_report(data, cfg, "trace")
+        self.assertEqual(r["paths"][0]["stop"], "call target outside declared code regions")
+
+    def test_call_at_region_end_returns_without_region_lookup(self):
+        data = bytes.fromhex("e8 fd 0f") + bytes(0x1000 - 3) + bytes.fromhex("c3")
+        cfg = {"entry": 0, "regions": [
+            {"name": "caller", "start": 0, "end": 3, "ip": 0, "segment": 0x1000, "entries": [0], "evidence": "synthetic"},
+            {"name": "callee", "start": 0x1000, "end": 0x1001, "ip": 0x1000, "segment": 0x1000, "entries": [0x1000], "evidence": "synthetic"}]}
+        r = run_report(data, cfg, "trace")
+        self.assertEqual(events(r, "call-return")[0]["callSite"], 0)
+        self.assertEqual(r["paths"][0]["stop"], "undecoded or unmapped instruction")
+
+    def test_steps_used_counts_shared_prefix_once(self):
+        c = Code().emit("90" * 20 + "3d 00 00").branch("74", "done").emit("90").label("done").emit("c3")
+        r = report(c)
+        self.assertEqual(sum(p["steps"] for p in r["paths"]), 47)
+        self.assertEqual(r["stepsUsed"], 25)
+
+    def test_raw_candidate_overlapping_query_from_below(self):
+        r = report("c3 a1 ff 01 c3", "uses", query={"offset": 0x200, "width": 1})
+        self.assertEqual([c["site"] for c in r["rawCandidates"]], [1])
+
+    def test_linear_write_invalidates_alias_under_its_last_byte(self):
+        r = report("b8 00 20 8e c0 26 c6 07 55 c7 06 0f 00 34 12 26 8a 07 c3", registers={"ds": 0x1fff})
+        write = [e for e in events(r, "write") if e["width"] == 2][0]
+        self.assertEqual(write["uncertainAliasesInvalidated"], 1)
+        self.assertIsNone(events(r, "read")[-1]["value"]["value"])
+
+    def test_unsupported_register_stops_path_with_reason(self):
+        r = report("0f 20 c0 c3")
+        self.assertEqual(r["paths"][0]["stop"], "Unsupported register: cr0")
 
     def test_cli_identity_and_errors(self):
         with tempfile.TemporaryDirectory() as folder:
