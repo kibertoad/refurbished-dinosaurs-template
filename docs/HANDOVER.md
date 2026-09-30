@@ -1,25 +1,32 @@
 # Handover
 
+Where the work outside any goal stands now. Rewrite this file at the end of
+every session that works under no goal; do not append to it. A session under a
+goal writes the same sections in its goal file's Handover instead, so two
+sessions running at once never write the same file. It is at most 200 lines.
+History is in git, open research questions are in `queue/`, the plan is in
+`docs/IMPLEMENTATION-PLAN.md`, the goals running are the files in
+`docs/goals/`, and the open live session requests are the files in
+`docs/live-sessions/`. Name items and entries by ID; what research found or
+tried belongs in the spec and the queue, never here.
+See the [work protocol](upstream/work-protocol.md#working-files) (lines 10-30).
+
 ## State
 
-Unconfigured restoration template. The bounded reporter candidate is pinned to
-toolkit `2b688e66ba34ee25d9882ea4938f95b5461b0ba4` (PR 16). Standards and
-checker snapshots are unchanged.
-
-Last gate: 2026-09-30, Invoke-Validation.ps1 passed 55 Python, 39 Node and
-56 .NET tests; the solution builds with zero warnings and errors. Reporter
-pins and configuration preservation checks pass without original content.
+- Stage: _Intake, Runtime access, Survey, Slices (which slice) or Audit._
+- Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
 
 ## Unfinished
 
-None.
+_Anything left half done and left out of the batch commits, with where it
+stands, what finishes it, and its `wip/` branch where the working tree does not
+outlive the session. `None.` when the working tree is clean and every batch was
+committed._
 
 ## Blockers
 
-None.
+None known.
 
 ## Next
 
-Review the reporter propagation PR with toolkit PR 16 and website PR 27. Refresh
-the rule snapshots only after the owner requests adoption of the merged change.
-Game-specific requests still require their own acceptance checks.
+_At most five items, each naming a queue item by its ID, a parity row or a slice._
