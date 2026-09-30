@@ -594,11 +594,16 @@ The checker and CI both include merged toolkit PR #11.
 
 ## Reporter case-verification refinements
 
-Pinned toolkit commit `2b688e66ba34ee25d9882ea4938f95b5461b0ba4` from
-toolkit PR 16. This refines entry-CFG use discovery after unread calls, unknown
+Pinned toolkit commit `b51b0c0cfe85205f054e03b0c030912e2507f377`, where
+toolkit PR 16 merged. This refines entry-CFG use discovery after unread calls, unknown
 flag generations, push-CS/near-call frames, explicit modeled return widths, far
 indirect guard provenance and effective-width conversions. XCHG and low-result
 IMUL are supported; output exhaustion names the 32 MiB limit.
+CFG operand discovery covers only code reachable from a stopped trace, so fully
+traced accesses are no longer repeated as unresolved; unmatched concrete operands
+are dropped, LDS/LES operands count four bytes and XLATB is reported as a gap.
+Modeled `returnBytes` are validated before tracing, and a four-byte model reached
+without an executed `push cs` stops that path instead of failing the report.
 
 Validation: 55 Python, 39 Node and 56 .NET tests pass in the canonical gate,
 with a zero-warning/error solution build. No original files are needed.
