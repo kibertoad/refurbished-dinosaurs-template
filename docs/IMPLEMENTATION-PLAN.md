@@ -143,6 +143,27 @@ request open until its own case passes. Adopt the toolkit's paired DS/SS
 acceptance regression. Exit: pin verification, section-link checks and the
 canonical validation gate pass; configured game repositories remain untouched.
 
+
+## Tooling refinement: game-case reporter verification
+
+Propagate the toolkit fixes verified against recorded restoration cases: explicit
+CFG operand discovery after unresolved calls, distinct unknown flag producers,
+push-CS/near-call far frames (including explicit modeled return widths), far
+indirect pointer provenance, effective-width conversions, XCHG and low-result
+IMUL. Operand discovery covers only the CFG reachable from a stopped trace, so
+fully traced accesses keep their values; LDS/LES count the full pointer, XLAT's
+implicit operand is a gap, and a four-byte call model reached without an
+executed push cs stops that path. Adopt the exact committed toolkit source and
+acceptance tests through sync-x86.mjs, pinned where toolkit PR 16 merged. No
+proprietary code, reports or game-specific case data is copied.
+
+Acceptance: source pin verification, synthetic reporter/bridge tests and the
+canonical Invoke-Validation.ps1 gate pass. Document that CFG operands retain
+unknown value/segment state and conditional callee returns; supported arithmetic
+and frame shapes do not supply a complete reading. Standard/protocol wording is
+proposed separately and is not refreshed before it is reviewed and merged.
+Exit: tested tooling commit, separate handover and upstream propagation PR.
+
 ## PE32 bounded reporter extension
 
-Adopt toolkit revision `629e1b477d4cdd95ce6a74f90225f5ae7bfb4dd4`, which merges PRs [16](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/16) and [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15), for Windows restoration research and the 16-bit refinements verified on restoration cases. Exact pin mappings add `x86/pe.py` and `tests/evidence/test_pe.py`. Acceptance covers all ten query interfaces, malformed source mappings, overlapping instruction paths, late/cross-region calls, stack cleanup, partial producers and exhausted limits. Existing rules/checker snapshots remain unchanged. PE32+ and unresolved imports/computed targets remain outside the declared model. Exit: reporter/rules pins, section links, synthetic acceptance and canonical validation pass.
+Adopt toolkit revision `629e1b477d4cdd95ce6a74f90225f5ae7bfb4dd4`, where toolkit PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) merged on top of PR 16, for Windows restoration research. Exact pin mappings add `x86/pe.py` and `tests/evidence/test_pe.py`. Acceptance covers all ten query interfaces, malformed source mappings, overlapping instruction paths, late/cross-region calls, stack cleanup, partial producers and exhausted limits. Existing rules/checker snapshots remain unchanged. PE32+ and unresolved imports/computed targets remain outside the declared model. Exit: reporter/rules pins, section links, synthetic acceptance and canonical validation pass.

@@ -8,23 +8,22 @@ not here.
 
 A project created from this template may delete this file.
 
-## PE32/i386 bounded reports and restoration-case refinements, 2026-09-30
+## PE32/i386 bounded reports, 2026-09-30
 
-- **Reporters.** The reporter pin moves from `c2b21ee` to toolkit `629e1b4`,
-  which merges PRs [16](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/16) and [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15). The pin gains `x86/pe.py` and
-  `tests/evidence/test_pe.py`. (`docs/BOUNDED-EVIDENCE-REPORTERS.md`.)
+- **Reporters.** The reporter pin moves from `b51b0c0` (toolkit PR 16, see
+  "Reporter case-verification refinements") to toolkit `629e1b4`, where PR
+  [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) merged. The pin gains `x86/pe.py` and `tests/evidence/test_pe.py`.
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`.)
 - **PE32.** `sourceKind: "pe32"` derives preferred-base mappings from the
   source's section table and runs the ten existing reports under a flat
   32-bit model. Regions and entry/control sites are file offsets; memory query
   offsets are VAs. PE32+, rebasing, imports and computed targets stay outside
   the model.
 - **16-bit behaviour.** Shared changes reach MZ/FBOV reports: overlapping
-  entry-path instructions become unresolved boundary gaps, operand-size-prefixed
-  control transfers and LEAVE stop the path, `push cs` plus a near call is a
-  four-byte frame, stopped traces still inventory reachable memory operands,
-  unmodelled flag producers no longer share branch outcomes, and XCHG and
-  low-result IMUL are decoded. Every report adds `instructionModel`,
-  `sourceMapping` and `declaredRegions`. (`docs/EVIDENCE-TOOLS.md`.)
+  entry-path instructions become unresolved boundary gaps, and
+  operand-size-prefixed control transfers and LEAVE stop the path. Every report
+  adds `instructionModel`, `sourceMapping` and `declaredRegions`.
+  (`docs/EVIDENCE-TOOLS.md`.)
 - **Validation.** The canonical gate, CI and release discover every Python
   reporter suite with `test*.py`, and bootstrap preserves the added pinned files.
 - **Acceptance.** `node tools/evidence/sync-x86.mjs --check`,
@@ -618,3 +617,22 @@ Added conditional evidence review examples and queue decomposition guidance.
 Pinned unchanged Standard v1, Protocol and checker snapshots with explicit
 freshness/refresh commands, digest verification and configuration preservation.
 The checker and CI both include merged toolkit PR #11.
+
+
+## Reporter case-verification refinements
+
+Pinned toolkit commit `b51b0c0cfe85205f054e03b0c030912e2507f377`, where
+toolkit PR 16 merged. This refines entry-CFG use discovery after unread calls, unknown
+flag generations, push-CS/near-call frames, explicit modeled return widths, far
+indirect guard provenance and effective-width conversions. XCHG and low-result
+IMUL are supported; output exhaustion names the 32 MiB limit.
+CFG operand discovery covers only code reachable from a stopped trace, so fully
+traced accesses are no longer repeated as unresolved; unmatched concrete operands
+are dropped, LDS/LES operands count four bytes and XLATB is reported as a gap.
+Modeled `returnBytes` are validated before tracing, and a four-byte model reached
+without an executed `push cs` stops that path instead of failing the report.
+
+Validation: 58 Python, 39 Node and 56 .NET tests pass in the canonical gate,
+with a zero-warning/error solution build. No original files are needed.
+The standards/protocol clarification is proposed in website PR 27; the current
+rules snapshots remain unchanged pending its review.
