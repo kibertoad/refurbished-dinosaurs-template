@@ -2,11 +2,11 @@
 
 ## State
 
-Template tooling maintenance. Canonical Invoke-Validation.ps1 and full solution build pass on 2026-09-30; local logs in artifacts/string-adoption-validation.log and artifacts/string-adoption-build.log.
+Template tooling maintenance. Canonical Invoke-Validation.ps1 and full solution build pass on 2026-09-30; local logs in artifacts/iret-adoption-validation.log and artifacts/iret-adoption-build.log.
 
 ## Unfinished
 
-Template PR 34 awaits review alongside toolkit PR 19. No unfinished implementation in this checkout. IRET and explicit overlapping-entry acceptance remain separate follow-up work.
+Template PR 34 awaits review alongside toolkit PR 19. No unfinished implementation in this checkout. Explicit overlapping-entry and local IRET support is included with passing synthetic/source controls; external interrupts remain outside scope.
 
 ## Blockers
 
@@ -14,4 +14,4 @@ None preventing follow-up tooling work.
 
 ## Next
 
-Review pinned reporter proposal, then add explicit overlapping local-return frames with synthetic and source-case acceptance.
+Review the exact toolkit pin and its accepted local-return/overlap controls; adopt reviewed upstream revisions in configured projects.
