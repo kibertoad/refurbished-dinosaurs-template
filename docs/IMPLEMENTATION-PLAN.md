@@ -46,17 +46,17 @@ breadth.
 
 | # | Slice | Player-visible outcome | Depends on | Status |
 |---|---|---|---|---|
-| 1 | _name_ | _what a player can do afterwards_ | â€” | planned |
+| 1 | _name_ | _what a player can do afterwards_ | — | planned |
 | 2 | | | | |
 
-### Slice 1 â€” _name_
+### Slice 1 — _name_
 
 - **Outcome.** _What the player can do when it is finished._
 - **Evidence.** _The manual sections, observations, or data-file facts it rests
   on, by their IDs in `spec/`._
-- **Acceptance â€” rules.** _Deterministic behavior that must hold._
-- **Acceptance â€” presentation.** _Resolution, scaling, timing, audio._
-- **Acceptance â€” original content.** _What is extracted, and how a missing or
+- **Acceptance — rules.** _Deterministic behavior that must hold._
+- **Acceptance — presentation.** _Resolution, scaling, timing, audio._
+- **Acceptance — original content.** _What is extracted, and how a missing or
   unsupported source behaves._
 - **Extractor boundary.** _Which exact licensed source is accepted, which bounded
   transformations produce the versioned local pack, how complete staged output is
@@ -82,7 +82,7 @@ by a plausible assumption in code.
 
 | ID | Question | Blocks | Owner | Status |
 |---|---|---|---|---|
-| Q1 | _â€¦_ | slice _n_ | _who_ | open |
+| Q1 | _…_ | slice _n_ | _who_ | open |
 
 ## Risks
 

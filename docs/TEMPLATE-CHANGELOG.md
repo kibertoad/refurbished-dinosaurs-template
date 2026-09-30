@@ -8,6 +8,27 @@ not here.
 
 A project created from this template may delete this file.
 
+## Pinned x86 reporters and website rules up to kibertoad/refurbished-dinosaurs@94f8f67, 2026-09-30
+
+- **Reporters.** `tools/evidence/x86-reporter/` holds an exact copy of the
+  toolkit's bounded 16-bit x86 reporter at `2971101`, with its tests, guide
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`) and license. `tools/evidence/report.mjs`
+  exposes it as the `x86-*` commands. `tools/evidence/x86-lock.json` records
+  the hashes, `node tools/evidence/sync-x86.mjs --check` verifies them offline,
+  and specialization leaves those bytes alone. (`docs/EVIDENCE-TOOLS.md`.)
+- **Validation.** The canonical gate, CI and the release test job install
+  `capstone==5.0.7` and run the Python reporter tests and the Node bridge and
+  pin tests.
+- **Website rules.** `docs/upstream/` is refreshed to `94f8f67`, which adds
+  the standard's bounded analysis report contracts and the protocol's rule for
+  reporter tooling batches. `docs/EVIDENCE-REVIEW.md` applies them, and section
+  links are regenerated. The vendored checker stays on toolkit `c361820`.
+- **Acceptance.** The following commands pass:
+  - `node tools/evidence/sync-x86.mjs --check`
+  - `node tools/upstream.mjs verify`
+  - `node tools/upstream.mjs links`
+  - `node tools/upstream.mjs docs --check`
+
 ## Website rules up to kibertoad/refurbished-dinosaurs@b923e85, 2026-09-30
 
 The local copy in `docs/upstream/` is refreshed to the core website's
