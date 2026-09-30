@@ -72,6 +72,10 @@ namespace OriginalWindowCapture
 
         [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(int virtualKey);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool PrintWindow(IntPtr window, IntPtr deviceContext, uint flags);
     }
 }
 '@
@@ -99,14 +103,7 @@ function Find-TargetWindow {
     })
 
     if ($matches.Count -eq 0) {
-        $available = if ($windows.Count -eq 0) {
-            'No top-level windows are visible to this process.'
-        }
-        else {
-            ($windows | ForEach-Object { "  PID $($_.Id) $($_.ProcessName): $($_.Title)" }) -join [Environment]::NewLine
-        }
-
-        throw "No window matched process '$ProcessName' and title '$WindowTitle'. Available windows:`n$available"
+        throw "No window matched process '$ProcessName' and title '$WindowTitle'. Use -ListWindows to inspect candidates explicitly."
     }
 
     if ($matches.Count -gt 1) {
@@ -161,23 +158,31 @@ function Send-CaptureAcknowledgement([bool] $Succeeded) {
     }
 }
 
-function Save-ScreenFrame($Bounds, [string] $Path) {
+function Save-ScreenFrame([IntPtr] $Window, $Bounds, [string] $Path) {
     $bitmap = [Drawing.Bitmap]::new($Bounds.Width, $Bounds.Height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
     try {
         $graphics = [Drawing.Graphics]::FromImage($bitmap)
         try {
-            $graphics.CopyFromScreen(
-                $Bounds.X,
-                $Bounds.Y,
-                0,
-                0,
-                [Drawing.Size]::new($Bounds.Width, $Bounds.Height),
-                [Drawing.CopyPixelOperation]::SourceCopy)
+            $deviceContext = $graphics.GetHdc()
+            try {
+                if (-not [OriginalWindowCapture.NativeMethods]::PrintWindow($Window, $deviceContext, 1)) {
+                    throw 'The selected window does not support direct capture. No desktop-copy fallback is permitted.'
+                }
+            }
+            finally { $graphics.ReleaseHdc($deviceContext) }
         }
         finally {
             $graphics.Dispose()
         }
 
+        $first = $bitmap.GetPixel(0, 0).ToArgb()
+        $different = $false
+        for ($y = 0; $y -lt $bitmap.Height -and -not $different; $y++) {
+            for ($x = 0; $x -lt $bitmap.Width; $x++) {
+                if ($bitmap.GetPixel($x, $y).ToArgb() -ne $first) { $different = $true; break }
+            }
+        }
+        if (-not $different) { throw 'Direct capture returned a uniform frame; renderer support and game state are unverified. No frame was saved.' }
         $bitmap.Save($Path, [Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
@@ -206,7 +211,7 @@ function New-Checkpoint([string] $Label) {
     for ($index = 1; $index -le $BurstCount; $index++) {
         $fileName = 'frame-{0:D2}.png' -f $index
         $framePath = Join-Path $checkpointDirectory $fileName
-        Save-ScreenFrame $bounds $framePath
+        Save-ScreenFrame $target.Handle $bounds $framePath
         $hash = (Get-FileHash -LiteralPath $framePath -Algorithm SHA256).Hash.ToLowerInvariant()
         $frames.Add([ordered]@{
             file = $fileName
@@ -225,7 +230,7 @@ function New-Checkpoint([string] $Label) {
         experiment = $Experiment
         label = $Label
         capturedAt = $capturedAt.ToString('o')
-        captureMethod = 'visible-client-area-desktop-copy'
+        captureMethod = 'selected-window-printwindow-client'
         acknowledgement = $Acknowledgement.ToLowerInvariant()
         evidencePolicy = 'Raw burst frames may contain modern-OS rendering glitches; use stable repeated state only.'
         target = [ordered]@{
