@@ -52,8 +52,10 @@ investigation unless the owner asks for it.
 game profile, the scope and non-goals, the ordered vertical slices with
 acceptance criteria, the risks, and the questions only the owner can answer.
 
+Plans document authorized work; they do not require a separate explicit owner approval before implementation or tooling proceeds. Ask only for missing owner decisions that block the requested scope.
+
 **2. Configure the project identity.** Fill in `tools/project-config.json` and
-run `./tools/Bootstrap-Project.ps1`; it enforces the plan and latest-version
+run `./tools/Bootstrap-Project.ps1`; it enforces the identity facts and latest-version
 gates, invokes configuration, and verifies the result.
 `docs/CUSTOMIZATION.md` documents every field and every derived default. Do not
 hand-edit placeholders the script can substitute.
@@ -381,6 +383,14 @@ parity row for that ID cannot be `complete` while it does. The parity matrix
 format, and screen entry that is not superseded, so behavior
 without a spec entry gets an `unknown` entry before any code. Manual play never
 counts as a test.
+
+## Durable narrative documentation
+
+Keep changing inventory totals out of narrative documentation: test-case, file,
+line and imported-asset counts belong in generated reports or validation logs.
+Keep numbers that define behavior, constrain validation, support evidence or
+justify a decision. A dated measurement belongs in prose only when that context
+needs it. Refer to the generating command instead of maintaining a copied total.
 
 ## Context and process hygiene
 
