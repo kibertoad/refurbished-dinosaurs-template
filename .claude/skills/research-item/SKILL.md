@@ -63,7 +63,7 @@ only the lines the link gives, and never a section already read this session.
    file exists, record the ID of every process the run starts in it, and if
    another agent holds it, do not wait). Never touch a process you did not
    start. Where `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 225-237):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 227-239):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -79,7 +79,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 251-287).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 253-289).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
@@ -117,7 +117,7 @@ only the lines the link gives, and never a section already read this session.
    memory nothing wrote, timing, or the operating system. List its findings in
    the entry's `complete_reading`. The standard's
    [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 137-181)
-   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 392-440)
+   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 413-461)
    sections list what that covers; the parts most often missed are the
    segment each access actually goes through, every part of a stored call
    target, the other byte of a word written a byte at a time, allocation

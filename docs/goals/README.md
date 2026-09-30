@@ -2,7 +2,7 @@
 
 One file per long-running goal while it runs, named after it:
 `docs/goals/combat-static.md`. The
-[work protocol](../upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 330-368)
+[work protocol](../upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 332-370)
 says how to write the condition. Delete the file in the commit that meets or
 drops the goal; git keeps it. The files here are the list of goals running.
 

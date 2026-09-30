@@ -46,17 +46,17 @@ breadth.
 
 | # | Slice | Player-visible outcome | Depends on | Status |
 |---|---|---|---|---|
-| 1 | _name_ | _what a player can do afterwards_ | — | planned |
+| 1 | _name_ | _what a player can do afterwards_ | â€” | planned |
 | 2 | | | | |
 
-### Slice 1 — _name_
+### Slice 1 â€” _name_
 
 - **Outcome.** _What the player can do when it is finished._
 - **Evidence.** _The manual sections, observations, or data-file facts it rests
   on, by their IDs in `spec/`._
-- **Acceptance — rules.** _Deterministic behavior that must hold._
-- **Acceptance — presentation.** _Resolution, scaling, timing, audio._
-- **Acceptance — original content.** _What is extracted, and how a missing or
+- **Acceptance â€” rules.** _Deterministic behavior that must hold._
+- **Acceptance â€” presentation.** _Resolution, scaling, timing, audio._
+- **Acceptance â€” original content.** _What is extracted, and how a missing or
   unsupported source behaves._
 - **Extractor boundary.** _Which exact licensed source is accepted, which bounded
   transformations produce the versioned local pack, how complete staged output is
@@ -82,7 +82,7 @@ by a plausible assumption in code.
 
 | ID | Question | Blocks | Owner | Status |
 |---|---|---|---|---|
-| Q1 | _…_ | slice _n_ | _who_ | open |
+| Q1 | _â€¦_ | slice _n_ | _who_ | open |
 
 ## Risks
 
@@ -105,10 +105,9 @@ no game behavior and retains documentation Standard v1.
 
 ## Bounded reporter tooling
 
-Implement the ten remaining reporter requests identified in the restoration gap
-review: variable uses (14), near-pointer segments (21), stack arguments (35),
-path effects (27), return widths (26), overlapping accesses (36), incoming calls
-(13), effective guards (32), allocation extents (42), and dispatch inputs (18).
+Integrate toolkit reports for variable uses, near-pointer segments, stack
+arguments, path effects, return widths, overlapping accesses, incoming calls,
+effective guards, allocation extents and dispatch inputs.
 This is research tooling; it changes no gameplay, evidence status or asset pack.
 
 The toolkit owns a bounded 16-bit x86 instruction reader and path reporter. The
@@ -135,3 +134,11 @@ produce explicit incomplete reports. Tests require no original files or runtime.
 Exit: all ten cases have executable reports and synthetic regressions, the
 command interface and limits are documented, repository gates pass, and linked
 PRs identify the exact delivered scope for review before propagation.
+
+Align this integration with standards PR 26 as merged at
+`94f8f678afb05171567f48d9fb19488e48309f12`. Adopt its exact rules snapshots,
+regenerate section links, and preserve the current checker revision. The guide
+must put configurations and reports in `GAME_DIR` and keep each game's reporter
+request open until its own case passes. Adopt the toolkit's paired DS/SS
+acceptance regression. Exit: pin verification, section-link checks and the
+canonical validation gate pass; configured game repositories remain untouched.

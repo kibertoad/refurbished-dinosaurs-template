@@ -6,7 +6,7 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 # Implementation batch
 
 The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
-and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 812-928).
+and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 833-949).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 
@@ -68,7 +68,7 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    shared value through input, `Core`, presentation and a save and restore,
    with distinct values per axis, and test what a second actor sees at each
    `# visible:` point. A checkpoint or replay change follows the protocol's
-   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 180-188).
+   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190).
    None of these tests validates a row.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.

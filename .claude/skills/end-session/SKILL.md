@@ -5,7 +5,7 @@ description: Close a work session on this restoration - stop processes the sessi
 
 # End a session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 205-213).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 207-215).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 

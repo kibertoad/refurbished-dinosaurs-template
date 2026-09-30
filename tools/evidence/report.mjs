@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Reports are local analysis artifacts. Redirect only into ignored analysis storage.
+// Reports and configurations stay in GAME_DIR and are not committed.
 import { readFileSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { createHash } from "node:crypto";

@@ -4,11 +4,13 @@ Requires Node.js 22 or later. No npm install is needed. Run synthetic tests with
 `node --test tests/evidence/evidence.test.mjs`; the canonical validation gate
 runs them too. These tools read metadata and never run an original executable.
 They implement Standard v1 conventions; report schemas are tooling interfaces,
-not a new spec version. Keep reports/configs under ignored `analysis/original/`.
+not a new spec version. Keep reports and configurations in `GAME_DIR`; do not commit them.
 
 ## Identity and locations
 
-Run `node tools/evidence/report.mjs operand analysis/original/operand.json`.
+From PowerShell, run
+`node tools/evidence/report.mjs operand "$env:GAME_DIR/analysis/operand.json"`.
+Save redirected reports under `GAME_DIR` as well.
 A config names `source` relative to the config, its explicit `sha256` baseline,
 `loadSegment` (default 4096), numeric `site` at the segment operand, and numeric
 `targetOffset`. The SHA-256 guard binds the local tool input; retain the
