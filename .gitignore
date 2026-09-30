@@ -26,3 +26,9 @@ coverage/
 __pycache__/
 *.pyc
 .venv/
+
+# JVM diagnostics may contain original-memory and local environment data.
+# Keep in step with deniedFileNamePatterns in tools/repository-policy.json.
+hs_err_pid*.log
+replay_pid*.log
+*.hprof

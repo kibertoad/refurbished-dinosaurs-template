@@ -179,9 +179,9 @@ and value in the experiment's Setup section.
 ## Repository policy
 
 `tools/Verify-Repository.ps1` applies `tools/repository-policy.json` to tracked
-files. It rejects local/imported roots, original-media extensions outside
-explicit clean-room or synthetic fixture roots, and unreviewed files larger
-than 1 MiB. The publisher scripts invoke the same check before deleting or
+files. It rejects local/imported roots, JVM crash, replay and heap-dump files
+at any depth, original-media extensions outside explicit clean-room or
+synthetic fixture roots, and unreviewed files larger than 1 MiB. The publisher scripts invoke the same check before deleting or
 creating package output.
 
 ## Installer acceptance

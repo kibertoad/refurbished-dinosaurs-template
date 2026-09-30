@@ -53,6 +53,12 @@ foreach ($path in $trackedPaths) {
         continue
     }
 
+    $fileName = [IO.Path]::GetFileName($path)
+    if (@($policy.deniedFileNamePatterns | Where-Object { $fileName -match $_ }).Count -gt 0) {
+        $violations.Add("local JVM diagnostic: $path")
+        continue
+    }
+
     $extension = [IO.Path]::GetExtension($path)
     $approvedRestrictedPath = Starts-WithRepositoryRoot $path $policy.approvedRestrictedRoots
     if ($restrictedExtensions.Contains($extension) -and -not $approvedRestrictedPath) {

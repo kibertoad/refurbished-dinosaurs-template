@@ -660,3 +660,8 @@ Validation: 58 Python, 39 Node and 56 .NET tests pass in the canonical gate,
 with a zero-warning/error solution build. No original files are needed.
 The standards/protocol clarification is proposed in website PR 27; the current
 rules snapshots remain unchanged pending its review.
+
+
+## Bounded memory-map selection and JVM diagnostics
+
+Added ReportMemoryBlocks.java with capped page/exact-name selection, explicit total/requested/partial scope and diagnosed invalid selections. JVM crash/replay diagnostics and heap dumps are ignored and rejected by the `deniedFileNamePatterns` of `tools/repository-policy.json` even if force-staged. The Ghidra guide explains local-only JVM output redirection and separates diagnostic existence from process ownership. Synthetic scratch-Git and constructed 3,546-block Java tests exercise the contracts; read-only Ghidra map checks against a configured project's large map pass without exporting code or bytes. `./tools/Invoke-Validation.ps1` passes with a clean build.
