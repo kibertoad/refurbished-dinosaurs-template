@@ -76,3 +76,8 @@ with a hyphen for the space: `queue/COMBAT/static.md`,
 `queue/COMBAT/agent-run.md`. Each opens with `# COMBAT: Static`. A section file
 that would still pass is split by the kind of the first entry each item names:
 `queue/COMBAT/static/RULE.md`.
+
+Run `node tools/Check-ResearchTracking.mjs` to check area files, stable IDs and
+links between active spec Open questions and their queue items. The canonical
+fast gate runs it. Passing this structural check does not prove a survey or
+research question complete.

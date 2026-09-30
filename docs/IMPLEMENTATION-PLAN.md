@@ -176,3 +176,14 @@ Tooling batch, 2026-09-30. Outcome: a researcher can select a bounded page or ex
 ## Verify committed function inventories
 
 Tooling batch. Outcome: shared tooling validates a committed coverage TSV against the selected build/manifest identity, mapped source ranges and portable destination, including documented configured-project legacy paths. Existing export/join preserves only start/size; committed format may additionally contain researcher-authored name and out_of_scope reason columns. Acceptance: require start/size plus only those optional columns; reject empty/duplicate/aliased starts, invalid sizes, mismatched manifest prefixes, unmapped source offsets, oversized body counts, wrong destination and undocumented legacy paths. An explicit legacyPath requires evidence and must be a safe repository-relative .tsv path; it never changes portable generation. CLI inventory-check reads bounded TSV data and uses the hash-guarded MZ/FBOV parser. Synthetic cases prove corruption/mapping/identity failures and optional columns. Actual Dark Sun shared export must reproduce the retained mapped export; joined output matches 2,153 rows, and the installed plus separately owned disc inventories pass with their own sources and documented CD path. No original contents or rich exports in Git. Exit: all controls, canonical gates, and source identity checks pass; upstream PR tracks shared delivery.
+
+## Research queue tracking
+
+Tooling batch. A spec can pass the documentation checker while its area queues
+are missing and its Open questions have no actionable queue references. Add a
+structural protocol check for area files, section order, stable allocators,
+entry ownership, duplicate IDs, dangling references and untracked questions.
+Blocked items require Waiting on. Empty RNG/SAVE scaffold queues allocate no
+questions. Acceptance: synthetic positive and negative fixtures, wrapped text
+and Windows line endings; the unconfigured scaffold passes. The check never
+promotes evidence or declares Survey complete. Include it in the fast gate.
