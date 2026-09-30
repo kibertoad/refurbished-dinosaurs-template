@@ -163,3 +163,7 @@ unknown value/segment state and conditional callee returns; supported arithmetic
 and frame shapes do not supply a complete reading. Standard/protocol wording is
 proposed separately and is not refreshed before it is reviewed and merged.
 Exit: tested tooling commit, separate handover and upstream propagation PR.
+
+## PE32 bounded reporter extension
+
+Adopt toolkit revision `a0b91d65031e360c6599bcd52cc2a1d3c732c258`, where PR [17](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/17) merged on top of PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) and PR 16, for Windows restoration research. Exact pin mappings add `x86/pe.py` and `tests/evidence/test_pe.py`. Acceptance covers all ten query interfaces, malformed source mappings and regions, alignment padding past VirtualSize, overlapping instruction paths, late/cross-region calls, stack cleanup, partial producers and exhausted limits. Existing rules/checker snapshots remain unchanged. PE32+ and unresolved imports/computed targets remain outside the declared model. Exit: reporter/rules pins, section links, synthetic acceptance and canonical validation pass.

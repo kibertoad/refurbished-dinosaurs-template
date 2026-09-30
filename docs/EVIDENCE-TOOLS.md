@@ -112,3 +112,7 @@ differences. It does not fetch upstream or change the local methodology snapshot
 lightweight commands and the `x86-` commands share one parser.
 Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
 the instruction-derived variants supply the additional analysis.
+
+## PE32 reporter adoption
+
+The pinned toolkit reporter now accepts `sourceKind: "pe32"` for i386 executables. Its loader derives preferred-base mappings from validated source sections. Regions and entry/control sites are file offsets; flat memory query offsets are VAs. The full guide documents 32-bit frames, scaled addressing, the flat-segment assumption and unsupported indirect/runtime routes. MZ/FBOV queries keep the segmented 16-bit model, but shared behaviour changes for them too: overlapping entry-path instructions become unresolved boundary gaps, operand-size-prefixed control transfers and LEAVE stop the path, an executed `push cs` before a near call makes a four-byte frame, stopped traces still inventory reachable memory operands as unresolved observations, separate unmodelled flag producers no longer share branch outcomes, XCHG and low-result IMUL are decoded, and every report adds `instructionModel`, `sourceMapping` and `declaredRegions`. Fast validation discovers both legacy and PE Python suites with `test*.py`. No game-specific question is closed by this adoption.
