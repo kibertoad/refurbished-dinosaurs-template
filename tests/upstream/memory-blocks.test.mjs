@@ -19,11 +19,11 @@ test('bounded memory map selection handles large maps and rejects invalid or amb
   const compile=spawnSync(javac,['-d',scratch,join(scratch,'ghidra/program/model/mem/MemoryBlock.java'),join(scratch,'ghidra/app/script/GhidraScript.java'),join(scratch,'ReportMemoryBlocks.java'),join(scratch,'Harness.java')],{encoding:'utf8'});assert.equal(compile.status,0,compile.stderr);
   const run=(...args)=>{const p=spawnSync(java,['-cp',scratch,'Harness',...args],{encoding:'utf8'});assert.equal(p.status,0,p.stderr);return p.stdout;};
   assert.match(run(),/maximum is 512/);
-  const tail=run('page','3538','16');assert.match(tail,/total=3546 start=3538 emitted=8 partial=true/);assert.equal(tail.trim().split(/\r?\n/).length,9);
+  const tail=run('page','3538','16');assert.match(tail,/total=3546 start=3538 emitted=8 partial=true requested=16 /);assert.equal(tail.trim().split(/\r?\n/).length,9);
   assert.match(run('page','3546','16'),/emitted=0/);
   assert.equal(run('page','0','512').trim().split(/\r?\n/).length,513);
   assert.match(run('name','block3545'),/emitted=1/);
-  assert.match(run('name','missing'),/No block/);assert.match(run('name','duplicate'),/Ambiguous/);
+  assert.match(run('name','missing'),/No block/);assert.match(run('name','duplicate'),/Ambiguous block name: 2 blocks at indices 0,1;/);
   for(const args of [['page','-1','1'],['page','3547','1'],['page','0','513'],['page','0','0']])assert.match(run(...args),/within/);
   assert.match(run('page','x','1'),/integers/);assert.match(run('bad'),/Usage/);
  }finally{rmSync(scratch,{recursive:true,force:true});}

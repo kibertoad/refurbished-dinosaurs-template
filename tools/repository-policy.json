@@ -1,5 +1,6 @@
 {
   "deniedRoots": ["UserContent/", "analysis/original/", "reference/original/"],
+  "deniedFileNamePatterns": ["^hs_err_pid.*\\.log$", "^replay_pid.*\\.log$", "\\.hprof$"],
   "restrictedExtensions": [
     ".666", ".bmp", ".csf", ".cue", ".dat", ".dib", ".exe", ".fnt", ".gob",
     ".gif", ".ico", ".iso", ".jpeg", ".jpg", ".low", ".mid", ".midi", ".mp3",

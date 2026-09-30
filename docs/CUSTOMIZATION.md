@@ -91,7 +91,8 @@ Configuration cannot decide these. Each one is also an item in
   supported original edition. Delete the sample; it is reported until it is gone.
 - `tools/repository-policy.json`: the restricted extensions list is a starting
   point aimed at a typical 1990s PC release. Add the extensions the original
-  game actually uses, and keep `deniedRoots` as it is.
+  game actually uses, and keep `deniedRoots` and `deniedFileNamePatterns` as
+  they are.
 - `packaging/windows/<Project>.iss`: original-installation discovery, validation,
   and the extraction step shown during Setup.
 - `tools/Build-LinuxInstaller.ps1`: Debian package name, dependencies, and
