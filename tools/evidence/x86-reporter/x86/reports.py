@@ -1,7 +1,10 @@
 """Focused reports derived from instruction paths and explicit source bounds."""
+from capstone import CS_AC_READ, CS_AC_WRITE
 from capstone.x86 import X86_OP_MEM
+from .machine import State, StopPath, REGISTERS, ALIASES, segment_register
+from .values import unknown
 from .image import Image, integer
-from .trace import trace, walk, call_target
+from .trace import trace, walk, call_target, unsupported_transfer, OVERLAP_REASON
 
 
 def entries(image):
@@ -36,10 +39,6 @@ def incoming(image, config):
             if ins is None or ins.mnemonic not in ("call", "lcall"):
                 continue
             resolved, provenance = call_target(image, at, ins)
-            if 0x66 in ins.prefix:
-                partial.append({"site": at, "target": None, "encoding": ins.mnemonic, "region": name,
-                                "classification": "unsupported operand-size call candidate"})
-                continue
             verified = at in seen
             row = {"site": at, "target": resolved, "encoding": ins.mnemonic,
                    "classification": "entry-path instruction" if verified else "raw byte candidate",
@@ -54,6 +53,11 @@ def incoming(image, config):
             continue
         region = image.region(at)
         if region["name"] not in scans:
+            continue
+        # A reached call can start with a prefix, so the raw E8/9A scan above never sees it.
+        if unsupported_transfer(image, ins):
+            partial.append({"site": at, "target": None, "encoding": ins.mnemonic, "region": region["name"],
+                            "classification": "unsupported control-transfer frame encoding"})
             continue
         resolved, provenance = call_target(image, at, ins)
         row = {"site": at, "target": resolved, "encoding": ins.mnemonic,
@@ -87,7 +91,7 @@ def incoming(image, config):
             "truncated": truncated, "controls": [scanned[at] for at in controls],
             "searched": [r for r in image.regions if r["name"] in scans], "undecodedRanges": undecoded, "gaps": gaps,
             "negativeUsable": bool(controls) and not (hits or candidates or partial or gaps or truncated or undecoded),
-            "exclusions": ["computed calls", "unrelocated far calls", "undeclared mappings", "prefix-started raw candidates"],
+            "exclusions": ["computed call targets", "unrelocated far calls", "undeclared mappings", "prefix-started raw candidates off the entry path"],
             "scope": "All bytes of declared search regions; verified calls follow established entries. Never proves universal absence."}
 
 
@@ -110,18 +114,25 @@ def uses(image, config):
         raise ValueError("Invalid positive controls")
     result_limit = integer(config.get("limit", 100), 1, 10000, "result limit")
     seen, gaps, _, undecoded = walk(image, entries(image), config.get("instructionLimit", 10000))
+    overlaps = {g["site"] for g in gaps if g.get("reason") == OVERLAP_REASON}
     matches, unresolved, unique = [], [], set()
     # Trace each established entry independently; never decode a whole segment as one stream.
     remaining = integer(config.get("totalSteps", 20000), 1, 100000, "totalSteps")
     entry_limit = integer(config.get("entryLimit", 64), 1, 256, "entryLimit")
-    for index, at in enumerate(entries(image)):
+    # CFG points where value propagation stopped (or never started); operands after them are inventoried below.
+    stopped_roots = []
+    established = entries(image)
+    for index, at in enumerate(established):
         if remaining <= 0 or index >= entry_limit:
             gaps.append({"entry": at, "reason": "entry or total instruction budget exhausted"})
+            stopped_roots.extend(established[index:])
             break
         report = trace(image, {**config, "entry": at, "totalSteps": remaining})
         remaining -= report["stepsUsed"]
         if not report["completeWithinModel"]:
             gaps.append({"entry": at, "reason": "incomplete path effects", "stops": list({p["stop"] for p in report["paths"] if p["stop"]})})
+        stopped_roots.extend(p["stopSite"] for p in report["paths"] if p["stop"] and p["stopSite"] is not None)
+        stopped_roots.extend(g["site"] for g in report["gaps"] if "site" in g)
         for path in report["paths"]:
             for e in path["events"]:
                 if e["kind"] not in ("read", "write") or mode not in ("both", e["kind"]):
@@ -129,7 +140,9 @@ def uses(image, config):
                 if e["site"] not in seen:
                     key = (e["site"], e["kind"], "unverified-boundary")
                     if key not in unique:
-                        unresolved.append({**e, "classification": "unverified overlapping instruction path"}); unique.add(key)
+                        classification = ("unverified overlapping instruction path" if e["site"] in overlaps
+                                          else "outside the bounded entry walk")
+                        unresolved.append({**e, "classification": classification}); unique.add(key)
                     continue
                 off, seg = e["offset"]["value"], e["segment"]["value"]
                 if off is None or ((segment is not None or image.flat) and seg is None):
@@ -148,6 +161,48 @@ def uses(image, config):
                     key = (e["site"], e["kind"], repr(e["value"]["expression"]))
                     if key not in unique:
                         matches.append(e); unique.add(key)
+    # Operand discovery is distinct from value propagation. An unread call stops
+    # trace effects, but it must not erase a later instruction reached by the CFG.
+    # Only the CFG reachable from a stop is inventoried; fully traced accesses keep their values.
+    reported = {(e["site"], e["kind"]) for e in matches + unresolved}
+    after_stop, stop_gaps, _, _ = walk(image, stopped_roots, config.get("instructionLimit", 10000)) if stopped_roots else ({}, [], None, None)
+    gaps.extend(g for g in stop_gaps if g["reason"] == "instruction limit")
+    for at, ins in sorted(after_stop.items()):
+        if ins.mnemonic == "lea":
+            continue  # Address formation is not a memory use.
+        if ins.mnemonic == "xlatb":
+            gaps.append({"site": at, "reason": "implicit DS:[(E)BX+AL] operand is not inventoried"}); continue
+        state = None
+        for operand in ins.operands:
+            if operand.type != X86_OP_MEM:
+                continue
+            kinds = [kind for flag, kind in ((CS_AC_READ, "read"), (CS_AC_WRITE, "write"))
+                     if operand.access & flag and mode in ("both", kind) and (at, kind) not in reported]
+            if not kinds:
+                continue
+            if state is None:
+                # Registers are unknown here; name them for this operand site so no entry value is implied.
+                state = State(at, image, {})
+                state.regs.update({r: unknown(f"CFG-operand:{at}:{r}", ALIASES[r][2]) for r in REGISTERS if r != "cs"})
+            try:
+                segment_value, offset_value = state.address(ins, operand)
+            except StopPath as error:
+                gaps.append({"site": at, "reason": str(error)}); continue
+            # Capstone reports the LDS/LES source as a word, but the load reads the full selector:offset pointer.
+            size = 2 + ins.operands[0].size if ins.mnemonic in ("lds", "les") else operand.size
+            off = offset_value.number
+            overlaps = off is not None and max(offset, off) < min(offset + width, off + size)
+            if off is not None and not overlaps:
+                continue
+            for kind in kinds:
+                event = {"site": at, "kind": kind, "width": size,
+                         "segment": segment_value.report(), "offset": offset_value.report(),
+                         "value": unknown(f"CFG-operand:{at}", size * 8).report(),
+                         "effectiveSegmentRegister": segment_register(ins, operand.mem),
+                         "classification": "entry-CFG operand; values and callee effects unresolved",
+                         "reachability": "conditional on encoded branch outcomes and returning callees"}
+                # A concrete segment query cannot bind an unpropagated DS/SS.
+                (matches if overlaps and segment is None else unresolved).append(event)
     for at in controls:
         if type(at) is not int or not any(e["site"] == at for e in matches):
             raise ValueError(f"Positive variable-use control {at} missed; negative result rejected")
@@ -244,6 +299,8 @@ def allocations(report, config):
     if not isinstance(requests, list) or not 1 <= len(requests) <= 64:
         raise ValueError("Declare 1..64 allocation call contracts")
     results = []
+    flat = config.get("addressModel") == "flat32"
+    paragraph = 1 if flat else 16
     for a in requests:
         site = integer(a.get("site"), 0, 0x7fffffff, "allocation site")
         unit = integer(a.get("unitBytes"), 1, 65536, "allocator unit bytes")
@@ -282,10 +339,10 @@ def allocations(report, config):
                         if value["value"] is not None:
                             capacity = value["value"] * unit_bytes
                     else:
-                        if config.get("addressModel") == "flat32" and observation.get("segmentRegister") is not None:
+                        if flat and observation.get("segmentRegister") is not None:
                             raise ValueError("Flat allocation pointer observations use only offsetRegister")
                         segment = ({"bits": 32, "expression": ("constant", 0), "value": 0, "producers": [],
-                                    "provenance": "PE32 flat base assumption"} if config.get("addressModel") == "flat32"
+                                    "provenance": "PE32 flat base assumption"} if flat
                                    else checkpoint["registers"].get(observation.get("segmentRegister")))
                         offset = checkpoint["registers"].get(observation.get("offsetRegister"))
                         if segment is None or offset is None:
@@ -297,7 +354,7 @@ def allocations(report, config):
                         if write["kind"] != "write":
                             continue
                         ws, wo = write["segment"]["value"], write["offset"]["value"]
-                        relative = None if None in (seg, off, ws, wo) else ws * (1 if config.get("addressModel") == "flat32" else 16) + wo - (seg * (1 if config.get("addressModel") == "flat32" else 16) + off)
+                        relative = None if None in (seg, off, ws, wo) else (ws - seg) * paragraph + wo - off
                         comparisons.append({"site": write["site"], "relativeStart": relative, "width": write["width"],
                                             "withinObservedExtent": None if relative is None else 0 <= relative and relative + write["width"] <= capacity,
                                             "association": "address comparison only; write ownership remains a reading"})

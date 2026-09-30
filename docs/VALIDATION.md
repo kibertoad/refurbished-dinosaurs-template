@@ -200,14 +200,3 @@ command legality, resolution/order, RNG, presentation-only, manual-versus-binary
 or intentional modernization leaking into compatibility mode. Reduce a failure
 to the earliest mismatching phase or fixture, and preserve the smallest replay
 and all source identities needed to reproduce it.
-
-## PE32 reporter adoption checks
-
-On 2026-09-30 the unconfigured template canonical gate passed repository and
-configuration shape checks, infrastructure, exact reporter/rules pins, section
-links and documentation, all 70 Python reporter tests, all 39 Node tests
-(including bootstrap byte preservation), zero-warning Release build and all
-56 .NET tests. Toolkit PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15)
-passed its upstream verify and both documentation-action jobs. No original game
-was used in template acceptance. PE capability and its limits are in the exact
-reporter guide; no project-specific question is closed by these checks.

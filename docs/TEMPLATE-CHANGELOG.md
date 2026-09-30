@@ -8,6 +8,34 @@ not here.
 
 A project created from this template may delete this file.
 
+## PE32/i386 bounded reports and restoration-case refinements, 2026-09-30
+
+- **Reporters.** The reporter pin moves from `c2b21ee` to toolkit `629e1b4`,
+  which merges PRs [16](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/16) and [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15). The pin gains `x86/pe.py` and
+  `tests/evidence/test_pe.py`. (`docs/BOUNDED-EVIDENCE-REPORTERS.md`.)
+- **PE32.** `sourceKind: "pe32"` derives preferred-base mappings from the
+  source's section table and runs the ten existing reports under a flat
+  32-bit model. Regions and entry/control sites are file offsets; memory query
+  offsets are VAs. PE32+, rebasing, imports and computed targets stay outside
+  the model.
+- **16-bit behaviour.** Shared changes reach MZ/FBOV reports: overlapping
+  entry-path instructions become unresolved boundary gaps, operand-size-prefixed
+  control transfers and LEAVE stop the path, `push cs` plus a near call is a
+  four-byte frame, stopped traces still inventory reachable memory operands,
+  unmodelled flag producers no longer share branch outcomes, and XCHG and
+  low-result IMUL are decoded. Every report adds `instructionModel`,
+  `sourceMapping` and `declaredRegions`. (`docs/EVIDENCE-TOOLS.md`.)
+- **Validation.** The canonical gate, CI and release discover every Python
+  reporter suite with `test*.py`, and bootstrap preserves the added pinned files.
+- **Acceptance.** `node tools/evidence/sync-x86.mjs --check`,
+  `node tools/upstream.mjs verify` and `node tools/upstream.mjs docs --check`
+  pass, and so do the Python reporter suites. The Node evidence, upstream,
+  bridge and vendor tests pass apart from the bootstrap preservation test,
+  which needs PowerShell.
+- **Follow-up.** Toolkit PR [17](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/17) keeps PE alignment padding past
+  `VirtualSize` out of loaded source and turns malformed `regions` into a
+  diagnosable error. Adopt it once merged.
+
 ## Pinned x86 reporters and website rules up to kibertoad/refurbished-dinosaurs@94f8f67, 2026-09-30
 
 - **Reporters.** `tools/evidence/x86-reporter/` holds an exact copy of the
@@ -590,7 +618,3 @@ Added conditional evidence review examples and queue decomposition guidance.
 Pinned unchanged Standard v1, Protocol and checker snapshots with explicit
 freshness/refresh commands, digest verification and configuration preservation.
 The checker and CI both include merged toolkit PR #11.
-
-## PE32/i386 bounded reports, 2026-09-30
-
-Toolkit PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) supplies source-derived PE32 mappings and bounded flat 32-bit reports for the ten existing interfaces. The exact reporter pin includes the new loader and 25 PE synthetic acceptance cases alongside 45 legacy cases. Local and CI/release gates discover both Python suites; bootstrap preserves the additional pinned files. No original behavior, Standard version or checker/rules snapshot changes.
