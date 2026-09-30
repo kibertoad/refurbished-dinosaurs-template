@@ -669,3 +669,7 @@ Added ReportMemoryBlocks.java with capped page/exact-name selection, explicit to
 ## Committed function-inventory identity checks
 
 Added hash-guarded inventory-check to validate committed TSVs against build/manifest prefixes, mapped source bounds, numeric start uniqueness, bounded body-byte counts, allowed optional researcher columns and portable destinations. Explicit evidenced legacy paths support configured projects without silently renaming historical inventories. Synthetic tests cover CLI/identity failures and empty optional cells. The actual Dark Sun installed 2,153-row inventory passes; shared export reproduces its retained mapped export and view join exactly. Canonical gate passes 92 Python, 40 Node and 56 .NET tests with a zero-warning/error build.
+
+## Bounded string effects and saved flags
+
+Pinned toolkit 247e30c8cbdf9448901d39891512fb9c62364ae5 adds bounded sequential string operations with conditional direction provenance and intact saved-flag restoration. The matching synthetic controls and guide ship with the pin. IRET and native hardware/timing remain outside this model.
