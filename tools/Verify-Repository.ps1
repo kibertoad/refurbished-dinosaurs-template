@@ -53,6 +53,11 @@ foreach ($path in $trackedPaths) {
         continue
     }
 
+    if ([IO.Path]::GetFileName($path) -match '^(hs_err_pid.*|replay_pid.*)\.log$') {
+        $violations.Add("local JVM diagnostic: $path")
+        continue
+    }
+
     $extension = [IO.Path]::GetExtension($path)
     $approvedRestrictedPath = Starts-WithRepositoryRoot $path $policy.approvedRestrictedRoots
     if ($restrictedExtensions.Contains($extension) -and -not $approvedRestrictedPath) {
