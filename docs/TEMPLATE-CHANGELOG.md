@@ -8,6 +8,43 @@ not here.
 
 A project created from this template may delete this file.
 
+## Call targets, function bounds, incoming coverage and carry arithmetic, 2026-10-01
+
+- **Reporters.** The reporter pin moves from `7da1b93` to toolkit `313bb7d`,
+  where the reporter work of toolkit PRs
+  [28](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/28),
+  [29](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/29),
+  [30](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/30) and
+  [31](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/31)
+  reached `main` through
+  [32](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/32).
+- **Behaviour.** `x86-target` reports one direct call's raw words, relocation or
+  FBOV fixup chain, trampoline, canonical target and citation, and compares an
+  analyzer's address with them. `x86-bounds` and `x86-owner` report an entry's
+  reached body, holes and exits, and which entries own a site, with an
+  analyzer's size compared as a body-byte count. `formatControls` rejects a
+  query whose table counts differ from a build's known counts. Incoming reports
+  label a search over part of an overlay, section or declared segment partial
+  and say where each unverified candidate sits. The path model tracks CF and
+  adds ADC/SBB, NEG/NOT, rotates, one-operand MUL/IMUL/DIV/IDIV, JCXZ and the
+  LOOP family, with `visitLimit` in place of the fixed four passes. Review
+  fixes in the merged stack: a site whose candidate owners overlap or whose
+  entries stopped at a gap is `unresolved` rather than `unowned`; a conditional
+  branch to another entry is a conditional tail transfer; repeat and BND
+  prefixes hide no return, port access or jump; a `scanLimit` that stops short
+  makes an incoming search partial; and a target whose loaded address the
+  loader cannot resolve keeps `targetError` and gets no target.
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
+- **Rules.** `docs/upstream/` moves from `82deb76` to `ca39d07`, where
+  [kibertoad/refurbished-dinosaurs#31](https://github.com/kibertoad/refurbished-dinosaurs/pull/31)
+  merged. It adds the call-target, boundary and ownership contracts, format-table
+  controls and the incoming-call coverage rule. Under these contracts a near
+  call takes the caller's segment, an unresolved computed jump is an exit with
+  unknown targets, a query that gives no table counts is reported as unchecked,
+  and a repeat limit and a division that may overflow are named. Section links
+  are rewritten to the new line ranges. The vendored checker stays on toolkit
+  `f7da132`.
+
 ## Addresses in code comments, and a pre-commit hook, 2026-10-01
 
 Adopts the parts of
@@ -388,7 +425,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 839-860)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 844-865)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

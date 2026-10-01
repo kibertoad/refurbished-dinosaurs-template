@@ -93,8 +93,9 @@ Coverage describes analyzer-discovered functions, not every function that exists
 ## Instruction-derived reports
 
 The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
-`x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation` and `x86-dispatch`
-commands use the pinned toolkit reporter. Install its Python dependency with
+`x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation`, `x86-dispatch`,
+`x86-operand`, `x86-target`, `x86-bounds` and `x86-owner` commands use the pinned
+toolkit reporter. Install its Python dependency with
 `python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
 See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
 In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
@@ -112,6 +113,17 @@ differences. It does not fetch upstream or change the local methodology snapshot
 lightweight commands and the `x86-` commands share one parser.
 Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
 the instruction-derived variants supply the additional analysis.
+
+Use `x86-target` before citing a far call's target: it keeps the raw operand,
+the relocation or FBOV fixup, the stored descriptor word and decoded index, the
+trampoline and the canonical target, and compares an analyzer's address with
+each instead of replacing them. Use `x86-bounds` and `x86-owner` before joining a
+call to its caller or bounding a reading by an analyzer's size: an analyzer's
+size is a body-byte count and is never added to a start to make an end. Give
+`formatControls` the build's known relocation, descriptor, overlay, fixup and
+trampoline counts so a misread table fails the query. Declare a resident
+segment's bounds from the build's code ranges in `segments` so an incoming
+search over part of it is reported as partial.
 
 ## PE32 reporter adoption
 
