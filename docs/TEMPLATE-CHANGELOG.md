@@ -8,6 +8,45 @@ not here.
 
 A project created from this template may delete this file.
 
+## Published toolkit packages replace the copies, 2026-10-01
+
+- **Reporters.** `tools/evidence/x86-reporter/`, `x86-lock.json`, `sync-x86.mjs`
+  and the copied toolkit tests (`test_x86.py`, `test_pe.py`, `test_dispatch.py`,
+  `bridge.test.mjs`, `vendor.test.mjs`) are gone. `x86-<command>` runs
+  `@scientific-method/executable-reader` 0.1.0 from npm, which drives
+  `scientific-method-engine` 0.4.0 from PyPI (`tools/evidence/requirements.txt`);
+  `legacy-image.mjs` re-exports the reader's parser. Report output is unchanged:
+  the packages carry the reporter as of toolkit `67340fc` and later.
+  `docs/BOUNDED-EVIDENCE-REPORTERS.md` is replaced by a link to the toolkit's guide.
+- **Documentation check.** `vendor/check-documentation.mjs` and its lock entries
+  are gone. `node tools/upstream.mjs docs` runs `@scientific-method/standard-checker`
+  0.1.0, and the CI action is pinned to the toolkit commit that released it
+  (`15ac5ee`). `refresh` takes only `--rules`; the checker is updated as a
+  dependency (`docs/UPSTREAM-RULES.md`). The pre-commit hook links the
+  checkout's `node_modules` into its staged copy.
+- **Ghidra.** The 23 scripts the engine package ships are deleted from
+  `tools/ghidra`; `scientific-method-engine ghidra-scripts` prints their
+  directory. The packaged versions carry the fixes of the other restorations'
+  copies (several addresses in ReportReferences, exact file-offset mapping in
+  ReportMemoryBlockForFileOffset, hex offsets in ReportFilePatternInMemory,
+  whole-body walks in ReportCallPaths). The four cross-edition exports and
+  ReportJumpTable stay local. `memory-blocks.test.mjs`, which tested a
+  packaged script, is removed.
+- **.NET.** The game's startup-failure log and message come from
+  `ScientificMethod.Core.Diagnostics.StartupFailure`, keeping the template's
+  rule that unattended runs never show a dialog, and the message now names the
+  asset pack it tried. `AssetPackInstaller` stages and swaps through
+  `ScientificMethod.Core.Assets.StagedAssetPack`. `Restoration.Resources` keeps
+  its own `OriginalContentSource`: the package's reads directories and
+  ISO-9660 images only, with no CUE/BIN source.
+- **Setup.** `package.json` and `pnpm-lock.yaml` pin the npm packages; CI and
+  the release workflow install them with pnpm on Node 24. Dependabot proposes
+  npm, pip and NuGet updates.
+- **Checks.** A synthetic `x86-returns` case runs the wrapper through the
+  installed reader and engine; a pack that fails verification leaves the
+  installed pack in place; `upstream.mjs` tests cover the action pin and the
+  installed checker version.
+
 ## Callee graph and near-pointer segment provenance, 2026-10-01
 
 - **Reporter.** The reporter pin moves from `1ef21ef` to toolkit `67340fc`

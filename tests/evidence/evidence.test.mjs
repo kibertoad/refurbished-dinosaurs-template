@@ -194,3 +194,21 @@ test('committed inventory validates identity, columns, numeric aliases and expli
  assert.throws(()=>check('start\tsize\n'),/row count/);
  assert.throws(()=>check(text,'/bad.tsv'),/Unsafe/);
 });
+
+test("x86- commands run the published reader and engine", t => {
+  const dir = mkdtempSync(join(tmpdir(), "x86-wrapper-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const data = Buffer.alloc(512);
+  data.write("MZ"); data.writeUInt16LE(1, 4); data.writeUInt16LE(4, 8);
+  data.writeUInt16LE(1, 6); data.writeUInt16LE(28, 24); data.writeUInt16LE(3, 28);
+  data.set([0x9a, 0x10, 0, 0, 0, 0xc3], 64);
+  data.set([0xb8, 0xff, 0xff, 0xcb], 80);
+  writeFileSync(join(dir, "source.bin"), data);
+  writeFileSync(join(dir, "config.json"), JSON.stringify({ source: "source.bin", sourceKind: "mz",
+    sha256: createHash("sha256").update(data).digest("hex"), entry: 64,
+    regions: [{ name: "resident", start: 64, end: 84, ip: 0, segment: 4096, entries: [64], evidence: "synthetic mapped MZ" }] }));
+  const report = run(["x86-returns", join(dir, "config.json")]);
+  assert.equal(report.completeWithinModel, true);
+  assert.equal(report.paths[0].registers.ax.value, 65535);
+  assert.throws(() => run(["x86-unknown", join(dir, "config.json")]));
+});

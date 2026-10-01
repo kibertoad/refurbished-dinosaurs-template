@@ -10,9 +10,8 @@ import { spawnSync } from "node:child_process";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export function checks(noKsy = false) {
   return [
-    ["Pinned documentation check", "tools/upstream.mjs", ["docs", "--check", ...(noKsy ? ["--no-ksy"] : [])]],
+    ["Documentation check", "tools/upstream.mjs", ["docs", "--check", ...(noKsy ? ["--no-ksy"] : [])]],
     ["Research queue tracking", "tools/Check-ResearchTracking.mjs", []],
-    ["Pinned x86 reporters against their adoption record", "tools/evidence/sync-x86.mjs", ["--check"]],
   ];
 }
 export function main(args, root = ROOT) {

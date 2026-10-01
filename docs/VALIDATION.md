@@ -58,8 +58,8 @@ runner could fetch it, so the marked tests skip there, and a skipped test does
 not fail the build. They run on a maintainer's machine with `GAME_DIR` set to a
 copy the maintainer owns. After a run of `./tools/Invoke-Validation.ps1` in
 which every test in every marked test file of a `validated` row passed and none
-was skipped, record the run with the documentation check from the pinned
-toolkit commit, naming the builds the run used, and commit the
+was skipped, record the run with the installed documentation check,
+naming the builds the run used, and commit the
 `VALIDATION.md` it writes:
 
 ```sh
@@ -146,8 +146,9 @@ settings, and gives its xxh3. A test reads a copy from
 
 ## Static binary research
 
-`tools/ghidra/` holds bounded, clean-room Ghidra scripts for navigating a
-legally owned original executable. `docs/GHIDRA.md` documents the headless
+The `scientific-method-engine` package ships the shared bounded, clean-room
+Ghidra scripts for navigating a legally owned original executable, and
+`tools/ghidra/` holds the ones specific to this repository. `docs/GHIDRA.md` documents the headless
 workflow and each script's arguments and output caps. Results are written up as
 finding entries in `spec/findings/`; decompiler output is never committed.
 
@@ -156,7 +157,10 @@ finding entries in `spec/findings/`; decompiler output is never committed.
 The `Documentation standard` job in `.github/workflows/ci.yml` runs the
 `check-documentation` action from
 [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
-pinned to a full commit SHA, on every pull request. It checks `spec/`, `parity/`
+pinned to a full commit SHA, on every pull request. Locally,
+`node tools/upstream.mjs docs` runs the same checker from the
+`@scientific-method/standard-checker` npm package; the action is pinned to the
+toolkit commit that released the version `package.json` installs. It checks `spec/`, `parity/`
 and `deviations/` against the standard's list of
 [checks](upstream/documentation-standard.md#checks) (lines 787-838), compiles each
 `.ksy` file with the Kaitai Struct compiler, checks that every spec and

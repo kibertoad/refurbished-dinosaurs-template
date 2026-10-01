@@ -3,6 +3,7 @@ using Restoration.Resources;
 
 // Read before the try so the failure path knows whether this launch is a person or a smoke test.
 var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
+string? assetPack = null;
 try
 {
     // Decided before the --smoke-test shortcut so that asking for software rendering in a mode
@@ -21,7 +22,7 @@ try
     if (softwareRendering.Enabled) SoftwareRenderer.Apply(softwareRendering.DriverPath!);
     if (!platformSmoke)
     {
-        var assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
+        assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
         var diagnostics = await OriginalContent.VerifyInstalledAsync(assetPack);
         if (diagnostics.Count != 0)
         {
@@ -39,7 +40,7 @@ try
 }
 catch (Exception exception)
 {
-    StartupFailureReporter.Report(exception, allowDialog: !platformSmoke);
+    StartupFailureReporter.Report(exception, assetPack, allowDialog: !platformSmoke);
     return 1;
 }
 static string? Option(string[] values, string name)
