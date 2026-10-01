@@ -449,7 +449,7 @@ and which of its returns come before the site.
 
 ## Evidenced indirect jump tables
 
-CFG discovery commands (`bounds`, `owner`, `incoming`, and entry-path queries)
+CFG discovery commands (`bounds`, `owner`, `callees`, `incoming`, and entry-path queries)
 accept `indirectJumps` for segmented16 computed near word jumps. Each declaration
 names `site`, consumer/mapping `evidence`, an explicit boolean `exhaustive`, and
 `table: { start, count, stride, fieldOffset, evidence }`. The target field is a
@@ -515,6 +515,39 @@ universal ownership; continuation assumptions stay explicit. The Node source
 loader derives export metadata from hash-guarded MZ/FBOV tables and rejects a
 caller-supplied copy. Body-byte size is never treated as a contiguous end.
 
+`callees` derives a bounded graph from `entry` and established region entries,
+read breadth-first so each node gets its shortest depth and `path` (the shortest
+read route to the caller) regardless of call order. Targets without an
+established entry remain unresolved. A non-tree edge whose target reaches its
+caller closes a cycle and is `recursivePath`, with `cyclePath` the shortest such
+route; any other edge to an already read node is `sharedNodeReuse`. These
+describe conditional entry-CFG structure, never runtime recursion. Incomplete or
+cross-entry contested cycle paths become `unresolvedBackEdge`. Calls and
+established tail transfers retain their kind. Each read node has one entry in
+`calleeSummaries`; every edge into it names that entry in `calleeSummary`, so
+each caller retains the node's reachable `entries` (whose explicit memory
+observations and continuation assumptions are listed on the nodes), the
+`dependencyEntries`, `dependencyEdges` (edge ids) and `omittedRoutes` (route
+ids) that remain unread, and observation/assumption counts, with output linear
+in the graph. `effectComplete` is always false because implicit,
+argument-sensitive and runtime effects are excluded. A missing write is never a
+read-only claim. Width/access, segment register and unresolved base/index
+operands accompany observations.
+`nodeLimit` (1..128, default 64), `edgeLimit` (1..2048, default 512), `depthLimit`
+(1..128, default 16) and `instructionLimit` (1..100000 per body) bound work.
+Omitted edges and capped/incomplete bodies remain dependencies;
+`completeWithinDeclaredGraph` qualifies only the declared conditional graph.
+`controls` may name known `sharedSites`, `recursiveSites` and explicit verified
+`writeSites`; a wrong classification or contested write fails the report.
+
+Declared entries left unread remain in `uncheckedEntries`; no memory or cycle
+boundary is usable until all declared entries have been checked for conflicts.
+A shared-node positive control also requires usable caller/callee boundaries,
+usable bodies for every node the reused node reaches, no reached node on the
+active path, and no limit-omitted or instruction-capped route beneath the reused
+node, any of which could lead back into the active path. x87 stores and loads
+take their access direction from the mnemonic, since Capstone misreports some.
+
 `operand-candidates` scans explicitly declared region starts for an encoded
 memory displacement or immediate matching `query.offset`; implicit operands and
 relative branch targets are not encoded literals and never match. It retains prefixes,
@@ -529,3 +562,21 @@ a raw or contested candidate fails that control. `scanLimit`, `limit`, coverage
 and partial-search flags bound the inventory. Implicit/computed uses, segment
 alias proofs and runtime reachability are excluded; counts never prove their
 absence or promote a candidate to original behavior.
+
+
+Argument and effect reports retain LEA `address-formation` events with the
+addressing segment register and its propagated value/producers. LEA's default
+segment never binds a near pointer. Consumed stack parameter reads add
+`nearPointerArgumentCandidates`; matching dereference offsets add
+`nearPointerAccessCandidates`, keeping formation and dereference segments,
+register choices, producers and offset relations together. Effect reports also
+retain these pointer-related reads. Only matching propagated segment expressions
+and identical or affine symbolic offsets permit `mayMergeStorage` within the
+model. Unknown segments remain unresolved possible aliases; producer ancestry
+alone never proves pointer identity. Concrete distinct segment values are labeled
+`differentWithinModel`, not a universal nonalias claim for arbitrary offsets.
+`pointerFormationLimit` (1..1024, default 128) bounds associations by keeping
+the most recent formations on each path and evicting the oldest; evicted
+formations remain explicit per path/event and refuse storage merging. Candidate
+lists are present only when non-empty. A complete
+or stopped trace never promotes a modeled association to runtime state evidence.

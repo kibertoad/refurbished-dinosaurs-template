@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "1ef21ef46567dd108ea082a0a493f7024ba79a07",
+  "revision": "67340fcb975449600c160ef5a4995119d4e8f127",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -25,7 +25,7 @@
     {
       "source": "tools/evidence/report.py",
       "path": "tools/evidence/x86-reporter/report.py",
-      "sha256": "0a3f5395aea18eec6210028d693cd3f344a78fb4380972c4567cc4aec9b2bebd"
+      "sha256": "90de12fb1c61a474bbfbb9903bc5f1f6f16071ce8c6bf844b681a7a651fce133"
     },
     {
       "source": "tools/evidence/requirements.txt",
@@ -55,12 +55,12 @@
     {
       "source": "tools/evidence/x86/machine.py",
       "path": "tools/evidence/x86-reporter/x86/machine.py",
-      "sha256": "75288ebf2bef3ffce3873e43fba93922d072e87e20278326ea251770eb34a395"
+      "sha256": "9086eac0520b2f2456fcba44171aa420541f29906cf2d025c8d87cc908f8d220"
     },
     {
       "source": "tools/evidence/x86/reports.py",
       "path": "tools/evidence/x86-reporter/x86/reports.py",
-      "sha256": "b434bc51ec457d7ca2adf3a79fb95cc1547749f44dc353550ff2f85b2f20730d"
+      "sha256": "272d71b0b7bf8fec795730449e5f9a649f06223c143c9d863605355fdb77dd46"
     },
     {
       "source": "tools/evidence/x86/trace.py",
@@ -80,12 +80,12 @@
     {
       "source": "docs/bounded-evidence-reporters.md",
       "path": "docs/BOUNDED-EVIDENCE-REPORTERS.md",
-      "sha256": "95e6469ef37865a9da7042ccf145c3557d91f22743ffce0fa0fd736befac4a1f"
+      "sha256": "2848a3ba956394a19119b8c8f39d04d9680415d0917c204134077694da108543"
     },
     {
       "source": "tests/evidence/test_x86.py",
       "path": "tests/evidence/test_x86.py",
-      "sha256": "75b9fd074a4439da7883d43898f363ccfd2cafd3bb23d144cd4bbce1d16d10b9"
+      "sha256": "3661bb03d5d7f528874254d327e7b2b0d00490bc8658d71f2a4cc74278a6d9a7"
     },
     {
       "source": "tests/evidence/test_pe.py",
@@ -100,7 +100,7 @@
     {
       "source": "tests/evidence/bridge.test.mjs",
       "path": "tests/evidence/bridge.test.mjs",
-      "sha256": "4504f3476f6245c69286891257340a8d40c448f9e2bc64f1cee6539b10e939cb"
+      "sha256": "eafd664583a6ba8c56fb43ce07b6e8c32bdc53956b263098fc4ffa1f7c3e3db5"
     }
   ]
 }
