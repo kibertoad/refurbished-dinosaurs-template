@@ -8,6 +8,27 @@ not here.
 
 A project created from this template may delete this file.
 
+## Indirect jump tables and relocated pointer inventories, 2026-10-01
+
+- **Reporters.** The reporter pin moves from `313bb7d` to toolkit `b870642`,
+  where toolkit PRs
+  [33](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/33) and
+  [34](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/34)
+  merged. The mapping adds `pointer-inventory.mjs`, `x86/dispatch.py` and
+  `tests/evidence/test_dispatch.py`.
+- **Behaviour.** CFG commands follow a segmented16 computed near word jump
+  through an `indirectJumps` table declared with consumer and layout evidence
+  and an explicit `exhaustive` flag; a non-exhaustive table keeps its
+  unresolved exit, supplied edges never prove an overlapping start, and path
+  reports still stop at the jump. `x86-pointers` inventories adjacent
+  segment:offset pairs at declared MZ relocations and FBOV fixups naming a query
+  target, as exact pairs, aliases, unresolved and excluded rows under one cap,
+  with positive controls. (`docs/BOUNDED-EVIDENCE-REPORTERS.md`,
+  `docs/EVIDENCE-TOOLS.md`.)
+- **Checks.** The pinned `test_dispatch.py` imports `x86` from the toolkit
+  layout, so `tools/Invoke-Validation.ps1` puts `tools/evidence/x86-reporter`
+  on `PYTHONPATH` for the Python suite only and restores it afterwards.
+
 ## Validation reruns without restore, 2026-10-01
 
 - **Behaviour.** `tools/Invoke-Validation.ps1 -NoRestore` skips only
