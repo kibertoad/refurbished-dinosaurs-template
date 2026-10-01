@@ -61,6 +61,293 @@ def events(result, kind):
     return [e for path in result["paths"] for e in path["events"] if e["kind"] == kind]
 
 
+class CalleeGraphTests(unittest.TestCase):
+    def graph(self, code, names, **extra):
+        data = code.bytes()
+        cfg = configuration(data, **extra)
+        cfg["regions"][0]["entries"] = [code.labels[n] for n in names]
+        return run_report(data, cfg, "callees")
+
+    def test_diamond_reuse_retains_conditional_writes_and_unresolved_calls_at_each_caller(self):
+        c = Code().label("root").branch("e8", "a").branch("e8", "b").emit("c3")
+        c.label("a").branch("e8", "common").emit("c3")
+        c.label("b").branch("e8", "common").emit("c3")
+        c.label("common").branch("74", "skip").emit("c7 06 20 00 01 00").label("skip").emit("ff d3 c3")
+        r = self.graph(c, ["root", "a", "b", "common"], controls={"sharedSites": [c.labels["b"]], "writeSites": [c.labels["common"] + 2]})
+        self.assertFalse(any(e["classification"] == "recursivePath" for e in r["edges"]))
+        common = [e for e in r["edges"] if e["target"] == c.labels["common"]]
+        self.assertEqual([e["classification"] for e in common], ["newNode", "sharedNodeReuse"])
+        summaries = {s["entry"]: s for s in r["calleeSummaries"]}
+        nodes = {n["entry"]: n for n in r["nodes"]}
+        for e in common:
+            s = summaries[e["calleeSummary"]]
+            observations = [o for at in s["entries"] for o in nodes[at]["memoryObservations"]]
+            self.assertTrue(any("write" in o["access"] for o in observations))
+            self.assertEqual(s["counts"]["writeObservations"], 1)
+            self.assertTrue(any(r["edges"][i]["target"] is None for i in s["dependencyEdges"]))
+            self.assertFalse(s["effectComplete"])
+        self.assertFalse(r["completeWithinDeclaredGraph"])
+
+    def test_cycle_is_only_an_edge_back_into_the_active_path(self):
+        c = Code().label("root").branch("e8", "a").emit("c3")
+        c.label("a").branch("e8", "root").emit("c3")
+        r = self.graph(c, ["root", "a"], controls={"recursiveSites": [c.labels["a"]]})
+        cycles = [e for e in r["edges"] if e["classification"] == "recursivePath"]
+        self.assertEqual(cycles[0]["cyclePath"], [0, c.labels["a"], 0])
+        self.assertTrue(r["completeWithinDeclaredGraph"])
+        with self.assertRaisesRegex(ValueError, "positive control"):
+            self.graph(c, ["root", "a"], controls={"sharedSites": [c.labels["a"]]})
+
+    def test_limits_and_unestablished_targets_remain_dependencies(self):
+        c = Code().label("root").branch("e8", "a").branch("e8", "b").emit("c3")
+        c.label("a").emit("c3").label("b").emit("c3")
+        for options in ({"depthLimit": 1}, {"nodeLimit": 1}, {"edgeLimit": 1}, {"instructionLimit": 1}):
+            r = self.graph(c, ["root", "a", "b"], **options)
+            self.assertFalse(r["completeWithinDeclaredGraph"])
+        r = self.graph(c, ["root"])
+        self.assertTrue(all(e["classification"] == "unresolved" for e in r["edges"]))
+
+    def test_unread_declared_entry_blocks_boundary_and_write_controls(self):
+        data = bytes.fromhex("c7 06 20 00 01 00 c3 90 c3")
+        cfg = configuration(data)
+        cfg["regions"][0]["entries"] = [0, 7]
+        r = run_report(data, cfg, "callees")
+        self.assertEqual(r["uncheckedEntries"], [7])
+        self.assertFalse(r["nodes"][0]["boundaryUsable"])
+        cfg["controls"] = {"writeSites": [0]}
+        with self.assertRaisesRegex(ValueError, "positive control"):
+            run_report(data, cfg, "callees")
+
+    def test_cross_entry_overlap_cannot_verify_a_cycle_or_write(self):
+        data = bytes.fromhex("66 90 e8 fc ff c3")
+        cfg = configuration(data)
+        cfg["regions"][0]["entries"] = [0, 1]
+        r = run_report(data, cfg, "callees")
+        self.assertTrue(any(e["classification"] == "unresolvedBackEdge" for e in r["edges"]))
+        self.assertTrue(all(not n["boundaryUsable"] for n in r["nodes"]))
+        self.assertFalse(r["completeWithinDeclaredGraph"])
+
+    def test_shared_tail_instruction_is_not_a_cross_entry_conflict(self):
+        c = Code().label("root").branch("e8", "a").branch("e8", "b").emit("c3")
+        c.label("a").emit("90").label("b").emit("c3")
+        r = self.graph(c, ["root", "a", "b"])
+        self.assertTrue(all(n["boundaryUsable"] and not n["contestedBy"] for n in r["nodes"]))
+        self.assertTrue(r["completeWithinDeclaredGraph"])
+
+    def test_every_summary_reaching_a_downgraded_back_edge_keeps_its_dependency(self):
+        data = bytes.fromhex("e8 01 00 c3 e8 f9 ff ff e0")
+        cfg = configuration(data)
+        cfg["regions"][0]["entries"] = [0, 4]
+        r = run_report(data, cfg, "callees")
+        back = next(e for e in r["edges"] if e["classification"] == "unresolvedBackEdge")
+        self.assertEqual([d["reason"] for d in back["dependencies"]].count("cycle path has an incomplete or contested body"), 1)
+        summaries = {s["entry"]: s for s in r["calleeSummaries"]}
+        for e in r["edges"]:
+            self.assertIn(back["id"], summaries[e["calleeSummary"]]["dependencyEdges"])
+
+    def test_reuse_over_a_limit_omitted_route_is_not_a_shared_control(self):
+        c = Code().label("root").branch("e8", "x").branch("e8", "y").emit("c3")
+        c.label("x").branch("e8", "y").emit("c3")
+        c.label("y").branch("e8", "x").emit("c3")
+        with self.assertRaisesRegex(ValueError, "positive control"):
+            self.graph(c, ["root", "x", "y"], depthLimit=2, controls={"sharedSites": [c.labels["y"]]})
+
+    def test_edge_closing_a_cycle_off_the_tree_path_is_recursion_not_reuse(self):
+        c = Code().label("root").branch("e8", "x").emit("c3")
+        c.label("x").branch("e8", "y").branch("e8", "z").emit("c3")
+        c.label("y").branch("e8", "x").emit("c3")
+        c.label("z").branch("e8", "y").emit("c3")
+        r = self.graph(c, ["root", "x", "y", "z"])
+        self.assertEqual([e["classification"] for e in r["edges"] if e["caller"] == c.labels["z"]], ["recursivePath"])
+        with self.assertRaisesRegex(ValueError, "positive control"):
+            self.graph(c, ["root", "x", "y", "z"], controls={"sharedSites": [c.labels["z"]]})
+
+    def test_reuse_over_an_instruction_capped_body_is_not_a_shared_control(self):
+        c = Code().label("root").branch("e8", "a").branch("e8", "b").emit("c3")
+        c.label("a").branch("e8", "common").emit("c3")
+        c.label("b").branch("e8", "common").emit("c3")
+        c.label("common").branch("e8", "deep").emit("c3")
+        c.label("deep").emit("90 90 90 90").branch("e8", "b").emit("c3")
+        with self.assertRaisesRegex(ValueError, "positive control"):
+            self.graph(c, ["root", "a", "b", "common", "deep"], instructionLimit=3, controls={"sharedSites": [c.labels["b"]]})
+
+    def test_classification_and_depth_limits_do_not_depend_on_read_order(self):
+        c = Code().label("root").branch("e8", "a").branch("e8", "t").emit("c3")
+        c.label("a").branch("e8", "t").emit("c3")
+        c.label("t").branch("e8", "u").emit("c3")
+        c.label("u").emit("c3")
+        r = self.graph(c, ["root", "a", "t", "u"], depthLimit=3, controls={"sharedSites": [c.labels["a"]]})
+        self.assertTrue(r["completeWithinDeclaredGraph"])
+        self.assertEqual(next(n for n in r["edges"] if n["target"] == c.labels["u"])["path"], [0, c.labels["t"]])
+
+    def test_both_edges_of_a_cycle_between_siblings_are_recursion(self):
+        c = Code().label("root").branch("e8", "x").branch("e8", "y").emit("c3")
+        c.label("x").branch("e8", "y").emit("c3")
+        c.label("y").branch("e8", "x").emit("c3")
+        r = self.graph(c, ["root", "x", "y"])
+        self.assertEqual([e["classification"] for e in r["edges"]], ["newNode", "newNode", "recursivePath", "recursivePath"])
+        self.assertEqual(r["edges"][2]["cyclePath"], [c.labels["y"], c.labels["x"], c.labels["y"]])
+
+    def test_each_node_has_one_summary_shared_by_every_caller(self):
+        c = Code().label("root")
+        names = [f"c{i}" for i in range(8)]
+        for n in names:
+            c.branch("e8", n)
+        c.emit("c3")
+        for n in names:
+            c.label(n).branch("e8", "leaf").emit("c3")
+        c.label("leaf").emit("c7 06 20 00 01 00 c3")
+        r = self.graph(c, ["root", *names, "leaf"])
+        self.assertEqual(len(r["calleeSummaries"]), len(r["nodes"]))
+        into = [e for e in r["edges"] if e["target"] == c.labels["leaf"]]
+        self.assertEqual(len(into), 8)
+        self.assertTrue(all(e["calleeSummary"] == c.labels["leaf"] for e in into))
+        self.assertNotIn("memoryObservations", r["calleeSummaries"][0])
+
+    def test_x87_stores_are_write_observations(self):
+        data = bytes.fromhex("d9 1e 20 00 d9 3e 22 00 dd 26 24 00 c3")
+        cfg = configuration(data, controls={"writeSites": [0, 4]})
+        r = run_report(data, cfg, "callees")
+        self.assertEqual([o["access"] for o in r["nodes"][0]["memoryObservations"]], [["write"], ["write"], ["read"]])
+
+
+class OperandCandidateTests(unittest.TestCase):
+    def test_prefix_width_and_overlap_candidates_do_not_invent_a_second_use(self):
+        data = bytes.fromhex("66 83 3e f6 02 00 c3")
+        cfg = configuration(data, query={"offset": 0x2f6}, controls=[0])
+        r = run_report(data, cfg, "operand-candidates")
+        actual = next(x for x in r["candidates"] if x["site"] == 0)
+        stripped = next(x for x in r["candidates"] if x["site"] == 1)
+        self.assertEqual((actual["width"], actual["prefixes"], actual["countedAsUse"]), (4, [0x66], True))
+        self.assertEqual((stripped["width"], stripped["classification"], stripped["countedAsUse"]), (2, "rejectedOverlap", False))
+        self.assertEqual(r["counts"]["verifiedMemoryUses"], 1)
+        self.assertTrue(any(len(g["members"]) >= 2 for g in r["overlapGroups"]))
+        cfg["controls"] = [1]
+        with self.assertRaisesRegex(ValueError, "positive control"):
+            run_report(data, cfg, "operand-candidates")
+
+    def test_truncated_groups_and_region_scan_coverage_remain_explicit(self):
+        data = bytes.fromhex("66 66 83 3e f6 02 00 c3")
+        cfg = configuration(data, query={"offset": 0x2f6}, limit=2)
+        r = run_report(data, cfg, "operand-candidates")
+        self.assertTrue(r["truncated"])
+        self.assertTrue(r["overlapGroups"])
+        self.assertTrue(all(not g["completeWithinSearch"] for g in r["overlapGroups"]))
+        self.assertEqual(sum(r["counts"].values()), 3)
+        cfg["scanLimit"] = 1
+        r = run_report(data, cfg, "operand-candidates")
+        self.assertEqual(r["regionCoverage"][0]["unsearched"], [{"start": 1, "end": len(data)}])
+        self.assertTrue(r["partialSearch"])
+
+    def test_candidate_inside_addition_and_following_jump_is_rejected(self):
+        data = bytes.fromhex("05 c7 06 eb 5e eb 00 c3")
+        r = run_report(data, configuration(data, query={"offset": 0x5eeb}), "operand-candidates")
+        row = next(x for x in r["candidates"] if x["site"] == 1)
+        self.assertEqual(row["classification"], "rejectedOverlap")
+        self.assertFalse(row["countedAsUse"])
+        self.assertGreaterEqual(len(row["overlapsVerified"]), 2)
+
+    def test_only_encoded_literals_match_and_one_instruction_is_not_an_overlap(self):
+        # call rel16 to 0x2f6, mov word [0x2f6],0x2f6, lss si,[0x2f6], 66 66 cmp dword [0x2f6],0, ret
+        data = bytes.fromhex("e8 f3 02 c7 06 f6 02 f6 02 0f b2 36 f6 02 66 66 83 3e f6 02 00 c3")
+        r = run_report(data, configuration(data, query={"offset": 0x2f6}), "operand-candidates")
+        self.assertNotIn(0, [x["site"] for x in r["candidates"]])
+        both = [x for x in r["candidates"] if x["site"] == 3]
+        self.assertEqual(len(both), 2)
+        self.assertTrue(all(x["overlapsVerified"] == [] for x in both))
+        self.assertFalse(any({m["site"] for m in g["members"]} == {3} for g in r["overlapGroups"]))
+        self.assertEqual(next(x for x in r["candidates"] if x["site"] == 9)["width"], 4)
+        self.assertEqual(next(x for x in r["candidates"] if x["site"] == 14)["prefixes"], [0x66, 0x66])
+        shift = bytes.fromhex("d1 e0 c3")
+        self.assertEqual(run_report(shift, configuration(shift, query={"offset": 1}), "operand-candidates")["candidates"], [])
+
+    def test_ambiguous_prefix_entries_remain_unresolved_and_caps_remain_partial(self):
+        data = bytes.fromhex("66 83 3e f6 02 00 c3")
+        cfg = configuration(data, query={"offset": 0x2f6})
+        cfg["regions"][0]["entries"] = [0, 1]
+        r = run_report(data, cfg, "operand-candidates")
+        self.assertTrue(any(x["classification"] == "unresolvedBoundary" for x in r["candidates"]))
+        cfg["regions"][0]["entries"] = [0]
+        cfg["limit"] = 1
+        self.assertTrue(run_report(data, cfg, "operand-candidates")["truncated"])
+        cfg["scanLimit"] = 1
+        self.assertTrue(run_report(data, cfg, "operand-candidates")["partialSearch"])
+
+
+class NearPointerSegmentTests(unittest.TestCase):
+    def caller(self, before="", helper="", **extra):
+        c = Code().emit("55 89 e5 83 ec 04 " + before + " 8d 46 fc 50").branch("e8", "callee").emit("83 c4 02 83 c4 04 5d c3")
+        c.label("callee").emit("55 89 e5 8b 5e 04 " + helper + " 89 07 5d c3")
+        return c, configuration(c.bytes(), **extra)
+
+    def test_argument_and_effect_reports_retain_ss_formation_and_unresolved_ds_alias(self):
+        c, cfg = self.caller()
+        a = run_report(c.bytes(), cfg, "arguments")
+        self.assertTrue(events(a, "address-formation"))
+        args = [e for e in events(a, "read") if e.get("nearPointerArgumentCandidates")]
+        self.assertTrue(args)
+        self.assertEqual(args[0]["nearPointerArgumentCandidates"][0]["formationSegmentRegister"], "ss")
+        e = run_report(c.bytes(), cfg, "effects")
+        access = next(x for x in events(e, "write") if x.get("nearPointerAccessCandidates"))
+        candidate = access["nearPointerAccessCandidates"][0]
+        self.assertEqual(access["effectiveSegmentRegister"], "ds")
+        self.assertEqual(candidate["segmentRelationship"], "unresolved")
+        self.assertFalse(candidate["mayMergeStorage"])
+
+    def test_effect_report_retains_pointer_parameter_reads_and_dereference_reads(self):
+        c, cfg = self.caller(helper="8b 17")
+        r = run_report(c.bytes(), cfg, "effects")
+        self.assertTrue(any(e.get("nearPointerArgumentCandidates") for e in events(r, "read")))
+        self.assertTrue(any(e.get("nearPointerAccessCandidates") for e in events(r, "read")))
+
+    def test_propagated_ds_ss_equality_and_affine_field_offset_can_merge_within_model(self):
+        c, cfg = self.caller(before="16 1f", helper="83 c3 02")
+        r = run_report(c.bytes(), cfg, "effects")
+        links = [p for e in events(r, "write") for p in e.get("nearPointerAccessCandidates", [])]
+        self.assertTrue(any(p["mayMergeStorage"] and p["segmentRelationship"] == "sameWithinModel" and p["offsetRelation"] == "affineFieldOffset" and p["offsetDeltaModulo"] == 2 for p in links))
+        self.assertTrue(any(p["dereferenceSegment"]["producers"] for p in links))
+
+    def test_distinct_and_rebound_segments_never_merge(self):
+        for before, helper in (("", ""), ("16 1f", "b8 00 20 8e d8")):
+            c, cfg = self.caller(before=before, helper=helper, registers={"ss": 0x3000, "ds": 0x2000})
+            r = run_report(c.bytes(), cfg, "effects")
+            links = [p for e in events(r, "write") for p in e.get("nearPointerAccessCandidates", [])]
+            self.assertTrue(links)
+            self.assertTrue(all(p["segmentRelationship"] == "differentWithinModel" and not p["mayMergeStorage"] for p in links))
+
+    def test_erased_value_producer_ancestry_does_not_prove_pointer_identity(self):
+        c, cfg = self.caller(before="16 1f", helper="31 db")
+        r = run_report(c.bytes(), cfg, "effects")
+        links = [p for e in events(r, "write") for p in e.get("nearPointerAccessCandidates", [])]
+        self.assertTrue(links)
+        self.assertTrue(all(p["offsetRelation"] == "producerOnly" and not p["mayMergeStorage"] for p in links))
+
+    def test_formation_caps_prevent_storage_merging(self):
+        # An earlier unrelated LEA is evicted; the pointer's own, newer LEA stays linkable.
+        c, cfg = self.caller(before="16 1f 8d 56 fe", pointerFormationLimit=1)
+        r = run_report(c.bytes(), cfg, "effects")
+        self.assertTrue(all(p["nearPointerProvenance"]["formationsOmitted"] for p in r["paths"]))
+        links = [p for e in events(r, "write") for p in e.get("nearPointerAccessCandidates", [])]
+        self.assertTrue(links)
+        self.assertTrue(all(p["segmentRelationship"] == "sameWithinModel" and not p["mayMergeStorage"] for p in links))
+        args = [e for e in events(run_report(c.bytes(), cfg, "arguments"), "read") if e.get("argument")]
+        self.assertTrue(any(e.get("nearPointerArgumentCandidates") for e in args))
+
+    def test_argument_reads_without_formation_links_omit_candidate_key(self):
+        c, cfg = self.caller(helper="8b 4e 06")
+        args = [e for e in events(run_report(c.bytes(), cfg, "arguments"), "read") if e.get("argument")]
+        linked = [e for e in args if "nearPointerArgumentCandidates" in e]
+        self.assertTrue(linked and len(linked) < len(args))
+        self.assertTrue(all(e["nearPointerArgumentCandidates"] for e in linked))
+
+    def test_string_destination_retains_es_dereference_register(self):
+        c, cfg = self.caller(before="16 07", helper="8b 7e 04 fc ab")
+        r = run_report(c.bytes(), cfg, "effects")
+        links = [p for e in events(r, "write") if e["role"] == "string-destination" for p in e.get("nearPointerAccessCandidates", [])]
+        self.assertTrue(links)
+        self.assertTrue(all(p["dereferenceSegmentRegister"] == "es" and p["segmentRelationship"] == "sameWithinModel" for p in links))
+
+
 class ReporterTests(unittest.TestCase):
     def test_register_parts_preserve_neighbor(self):
         r = report("b8 34 12 b0 00 c3")

@@ -94,8 +94,9 @@ Coverage describes analyzer-discovered functions, not every function that exists
 
 The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
 `x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation`, `x86-dispatch`,
-`x86-operand`, `x86-target`, `x86-bounds`, `x86-owner` and `x86-pointers`
-commands use the pinned toolkit reporter. Install its Python dependency with
+`x86-operand`, `x86-operand-candidates`, `x86-target`, `x86-bounds`,
+`x86-owner`, `x86-callees` and `x86-pointers` commands use the pinned toolkit
+reporter. Install its Python dependency with
 `python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
 See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
 In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
@@ -133,7 +134,7 @@ search over part of it is reported as partial.
 A computed near word jump (segmented16 only) can be followed through a table
 declared in `indirectJumps`, with the consumer and table-layout evidence and an
 explicit `exhaustive` flag; the CFG commands (`x86-bounds`, `x86-owner`,
-`x86-incoming` and the entry-path queries) follow its words, while `x86-trace`
+`x86-callees`, `x86-incoming` and the entry-path queries) follow its words, while `x86-trace`
 and the other path reports still stop there. `x86-pointers` inventories the
 declared MZ relocations and FBOV fixups whose preceding word forms an adjacent
 segment:offset pair naming a query target, split into exact pairs, aliases,
@@ -148,3 +149,24 @@ The pinned toolkit reporter now accepts `sourceKind: "pe32"` for i386 executable
 ## Committed inventory verification
 
 `inventory-check` uses the ordinary hash-guarded MZ/FBOV source, `build` and `manifest`. Its `inventory` object names a local input `path` and `repositoryPath`, which must match the generated portable coverage destination; the local `path` must end with that `repositoryPath`, so the file read is the one the destination check names. Every start must carry the same manifest prefix, be written as the standard's eight-digit uppercase file offset (as `inventory` writes it), be unique and lie in mapped source. Body byte counts are positive/bounded and are never interpreted as end addresses. Committed TSV columns are start, size, optional researcher-authored name and out_of_scope. No analyzer names/code/bytes belong there; analyzer default names such as `FUN_0040` are rejected. A configured project retaining a historical path supplies `legacyPath` plus nonempty `legacyEvidence`; the checker validates that exact safe path but continues to report the portable canonical destination. A legacy allowance is an explicit research input, not proof of an arbitrary path's provenance.
+
+`x86-operand-candidates` inventories encoded displacement/immediate matches with
+prefix order/repeats, widths and overlap groups. Verified entry-path memory uses,
+rejected overlaps and unresolved boundaries remain distinct. Relative branches
+and implicit operands never match. Controls, scan caps and result caps keep
+partial search and incomplete groups explicit; see the pinned guide.
+
+`x86-callees` reads a bounded call graph from the entry and established region
+entries. An edge back into the active path is `recursivePath`; an edge to an
+already read node is `sharedNodeReuse` and still carries that node's memory
+observations, continuation assumptions and unread dependencies. It describes
+conditional entry-CFG structure, never runtime recursion, and a missing write is
+never a read-only claim. Node, edge, depth and instruction limits keep omitted
+work unresolved.
+
+`x86-arguments` and `x86-effects` retain LEA address formations and link consumed
+near-pointer arguments and later dereferences to them, with the formation and
+dereference segments and registers. LEA's default segment never binds a pointer;
+storage merges only for propagated equal segments and identical or affine
+offsets. `pointerFormationLimit` keeps the most recent formations, and evicted
+ones stay counted and refuse merging; see the pinned guide.

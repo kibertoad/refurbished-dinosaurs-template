@@ -8,6 +8,35 @@ not here.
 
 A project created from this template may delete this file.
 
+## Callee graph and near-pointer segment provenance, 2026-10-01
+
+- **Reporter.** The reporter pin moves from `1ef21ef` to toolkit `67340fc`
+  (toolkit PRs 39 and 40); adopt exact source/tests/guide.
+- **Callee graph.** New `x86-callees` reads a bounded graph from the entry and
+  established region entries. Edges back into the active path are
+  `recursivePath`; edges to an already read node are `sharedNodeReuse` and keep
+  that node's memory observations, continuation assumptions and unread
+  dependencies. Node, edge, depth and instruction limits keep omitted work
+  unresolved; a missing write is never a read-only claim.
+- **Near-pointer provenance.** `x86-arguments` and `x86-effects` retain LEA
+  address formations and link consumed near-pointer arguments and later
+  dereferences to them, keeping formation and dereference segments and
+  registers. Storage merges only for propagated equal segments and identical or
+  affine offsets. `pointerFormationLimit` keeps the most recent formations;
+  evicted ones stay counted and refuse merging.
+- **Checks.** Synthetic diamond, recursion, conditional-write, cap, DS/SS,
+  rebinding, field-offset and string-destination controls accompany the pin.
+
+## Overlapping operand candidate inventory, 2026-10-01
+
+- **Reporter.** Toolkit PR 38 merged at `1ef21ef`; adopt exact source/tests/guide.
+- **Behavior.** Encoded literal candidates retain prefix order/repeats, operand
+  widths, intersecting spans and entry-path classifications. Only verified memory
+  starts count; rejected or unresolved boundaries remain explicit. Implicit
+  operands and relative branches are excluded. Caps qualify groups and coverage.
+- **Checks.** Synthetic prefix, preceding/interior overlap, literal-only, repeated
+  prefix, cap and source-bridge controls accompany the pinned reporter.
+
 ## Indirect jump tables, relocated pointer inventories and ownership ranges, 2026-10-01
 
 - **Reporters.** The reporter pin moves from `313bb7d` to toolkit `c133cd4`,

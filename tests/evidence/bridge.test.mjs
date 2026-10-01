@@ -263,3 +263,57 @@ test('owner reports source-derived exported entries and rejects supplied export 
   assert.deepEqual(r.checkedEntries.find(e=>e.entry===532).overlayExports,[]);
   assert.throws(()=>prepare({...config,overlayExports:[]},dir),/source-derived/);
 });
+
+
+test("callee graph through the source bridge keeps a reused node distinct from recursion", t => {
+  const { dir, data, config } = fixture(t);
+  data.writeUInt16LE(0, 6);
+  data.set([0xe8, 4, 0, 0xe8, 1, 0, 0xc3, 0xc7, 0x06, 0x20, 0, 1, 0, 0xc3], 64);
+  writeFileSync(join(dir, "source.bin"), data);
+  const cfg = { ...config, sha256: createHash("sha256").update(data).digest("hex"),
+    regions: [{ ...config.regions[0], entries: [64, 71] }], controls: { sharedSites: [67], writeSites: [71] } };
+  writeFileSync(join(dir, "config.json"), JSON.stringify(cfg));
+  const r = run(["callees", join(dir, "config.json")]);
+  assert.deepEqual(r.edges.map(e => e.classification), ["newNode", "sharedNodeReuse"]);
+  const summary = r.calleeSummaries.find(s => s.entry === 71), node = r.nodes.find(n => n.entry === 71);
+  assert.ok(r.edges.every(e => e.calleeSummary === 71));
+  assert.deepEqual(summary.entries, [71]);
+  assert.equal(summary.counts.writeObservations, 1);
+  assert.ok(node.memoryObservations.some(o => o.site === 71 && o.access.includes("write")));
+  assert.equal(summary.effectComplete, false);
+  assert.equal(r.completeWithinDeclaredGraph, true);
+});
+
+test("operand candidates preserve prefixed widths and reject interior starts through the source bridge", t => {
+  const { dir, data, config } = fixture(t);
+  data.writeUInt16LE(0, 6);
+  data.set([0x66, 0x83, 0x3e, 0xf6, 0x02, 0, 0xc3], 64);
+  writeFileSync(join(dir, "source.bin"), data);
+  const cfg = { ...config, sha256: createHash("sha256").update(data).digest("hex"), query: { offset: 0x2f6 }, controls: [64] };
+  writeFileSync(join(dir, "config.json"), JSON.stringify(cfg));
+  const r = run(["operand-candidates", join(dir, "config.json")]);
+  const actual = r.candidates.find(c => c.site === 64), stripped = r.candidates.find(c => c.site === 65);
+  assert.equal(actual.width, 4); assert.deepEqual(actual.prefixes, [0x66]); assert.equal(actual.countedAsUse, true);
+  assert.equal(stripped.width, 2); assert.equal(stripped.classification, "rejectedOverlap"); assert.equal(stripped.countedAsUse, false);
+  assert.ok(r.overlapGroups.some(g => g.members.some(m => m.site === 64) && g.members.some(m => m.site === 65)));
+  writeFileSync(join(dir, "config.json"), JSON.stringify({ ...cfg, controls: [65] }));
+  assert.throws(() => run(["operand-candidates", join(dir, "config.json")]), /positive control/);
+});
+
+
+test("near-pointer arguments and DS dereferences retain caller SS provenance through the source bridge", t => {
+  const { dir, data, config } = fixture(t);
+  data.writeUInt16LE(0, 6);
+  data.set([0x55,0x89,0xe5,0x83,0xec,4,0x8d,0x46,0xfc,0x50,0xe8,8,0,0x83,0xc4,2,0x83,0xc4,4,0x5d,0xc3,
+            0x55,0x89,0xe5,0x8b,0x5e,4,0x8b,0x17,0x89,0x07,0x5d,0xc3],64);
+  writeFileSync(join(dir, "source.bin"), data);
+  const cfg = { ...config, sha256: createHash("sha256").update(data).digest("hex"), regions: [{ ...config.regions[0], end: 97 }] };
+  writeFileSync(join(dir, "config.json"), JSON.stringify(cfg));
+  for (const command of ["arguments", "effects"]) {
+    const r = run([command, join(dir, "config.json")]), events = r.paths.flatMap(p => p.events);
+    assert.ok(events.some(e => e.kind === "address-formation" && e.addressingSegmentRegister === "ss"));
+    assert.ok(events.some(e => e.nearPointerArgumentCandidates?.length));
+    const link = events.flatMap(e => e.nearPointerAccessCandidates ?? []).find(c => c.dereferenceSegmentRegister === "ds" && c.offsetRelation === "sameOffset");
+    assert.ok(link); assert.equal(link.segmentRelationship, "unresolved"); assert.equal(link.mayMergeStorage, false);
+  }
+});

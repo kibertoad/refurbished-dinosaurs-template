@@ -240,3 +240,25 @@ tests unchanged, with no module-path override. Existing source identity, caps,
 partial-search and unresolved-flow safeguards remain intact. No original
 content, game claims or runtime access. Exit: exact pin, synthetic reporter
 checks and canonical template validation pass; publish a reviewable template PR.
+
+## Reviewed overlapping operand candidate reporter adoption
+
+Adopt toolkit PR 38's exact merged revision 1ef21ef46567dd108ea082a0a493f7024ba79a07.
+Outcome: encoded literal candidates retain widths, ordered/repeated prefixes and
+overlap groups with verified, rejected and unresolved entry-path classifications.
+Acceptance: exact source/test/guide hashes, source bridge, literal/width/overlap
+controls and every canonical validation check. Preserve configured identity and
+NoRestore behavior. No game claims or proprietary fixtures. Exit: template gate
+passes and reviewed adoption PR is published. No owner decision needed.
+
+## Reviewed callee graph and near-pointer provenance adoption
+
+Adopt toolkit PRs 39 and 40 at exact merged revision 67340fcb975449600c160ef5a4995119d4e8f127.
+Outcome: `x86-callees` separates shared-node reuse from active-path recursion
+with explicit limits and unread dependencies; argument and effect reports retain
+caller-formed near-pointer segment provenance without binding LEA defaults.
+Acceptance: exact source/test/guide hashes, source bridge, callee-graph and
+pointer-provenance controls and every canonical validation check. Preserve
+configured identity and NoRestore behavior. No game claims or proprietary
+fixtures. Exit: template gate passes and the adoption PR is updated. No owner
+decision needed.
