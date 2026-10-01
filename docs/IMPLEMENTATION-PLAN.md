@@ -210,3 +210,7 @@ Blocked items require Waiting on. Empty RNG/SAVE scaffold queues allocate no
 questions. Acceptance: synthetic positive and negative fixtures, wrapped text
 and Windows line endings; the unconfigured scaffold passes. The check never
 promotes evidence or declares Survey complete. Include it in the fast gate.
+
+## Release signing safeguards
+
+Tooling batch, comparing New Chrome commit 88f4112791db0caaf488b5bcd906cabd842bd4e1. Restrict release preparation to main, bound job durations, require the expected timestamped Authenticode certificate, and safely reuse a tag only when it resolves to the prepared commit. Preserve existing signing defaults and project-neutral packaging. Synthetic tests cover tag lookup/create/error paths and certificate rejection without contacting signing services. Exit: canonical validation passes and workflow checks cover every job and signature boundary.
