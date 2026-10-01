@@ -177,6 +177,17 @@ Tooling batch, 2026-09-30. Outcome: a researcher can select a bounded page or ex
 
 Tooling batch. Outcome: shared tooling validates a committed coverage TSV against the selected build/manifest identity, mapped source ranges and portable destination, including documented configured-project legacy paths. Existing export/join preserves only start/size; committed format may additionally contain researcher-authored name and out_of_scope reason columns. Acceptance: require start/size plus only those optional columns; reject empty/duplicate/aliased starts, invalid sizes, mismatched manifest prefixes, unmapped source offsets, oversized body counts, wrong destination and undocumented legacy paths. An explicit legacyPath requires evidence and must be a safe repository-relative .tsv path; it never changes portable generation. CLI inventory-check reads bounded TSV data and uses the hash-guarded MZ/FBOV parser. Synthetic cases prove corruption/mapping/identity failures and optional columns. Actual Dark Sun shared export must reproduce the retained mapped export; joined output matches 2,153 rows, and the installed plus separately owned disc inventories pass with their own sources and documented CD path. No original contents or rich exports in Git. Exit: all controls, canonical gates, and source identity checks pass; upstream PR tracks shared delivery.
 
+## Isolated original-window capture
+
+Tooling batch. A window hidden behind another application previously captured
+that application's desktop pixels. Render the selected client with PrintWindow,
+reject unsupported or uniform output before writing, and remove automatic dumps
+of unrelated window titles. No desktop fallback. Acceptance: an offscreen
+synthetic window yields its own known painted colors; blank and invalid windows
+write no output. The fast gate includes that Windows regression. An inspected
+DOSBox client frame proves transport only, not gameplay-state control. Original
+pixels and runtime artifacts remain local. No game evidence status changes.
+
 ## Bounded string reporter adoption
 
 Adopt the reviewed toolkit bounded-string candidate by exact commit. Outcome: sequential MOVS/STOS/LODS, conditional direction and intact saved-flag provenance are available to template researchers. Acceptance: synthetic segmented/flat controls, zero/unknown/budget limits, overlapping copy, pointer wrap, segment overrides and flags corruption pass; pin integrity and canonical validation pass. No native execution, proprietary fixtures or game behavior changes. IRET is out of this batch; the local-return adoption below covers it. Exit: source/guide/tests pinned together and canonical gate passes.

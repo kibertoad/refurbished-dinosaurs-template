@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "2f864f21ec63139043d707fa8fbf401a9f624191",
+  "revision": "92a182333e4c4c24a91024c16d4427f84c6269cb",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -45,22 +45,22 @@
     {
       "source": "tools/evidence/x86/machine.py",
       "path": "tools/evidence/x86-reporter/x86/machine.py",
-      "sha256": "55e6bfa2a0c3387fe8f878b89f730b0b0cec8aa89c0baf58223b952b320a62a3"
+      "sha256": "8f7ccac0e264c6bc8d1e8a1fcc87ea7eef6778968203a9de0bfb70404ececdf3"
     },
     {
       "source": "tools/evidence/x86/reports.py",
       "path": "tools/evidence/x86-reporter/x86/reports.py",
-      "sha256": "2030ddac62b3bb080a10d860bb27b537e8653a723618a45a32c0762a25d2e4e4"
+      "sha256": "c651007926d3ec5fd37b499545927128149a67d75df5a076234179440cff70a6"
     },
     {
       "source": "tools/evidence/x86/trace.py",
       "path": "tools/evidence/x86-reporter/x86/trace.py",
-      "sha256": "5919a96e21394b1c1d069a13018159d386984d0472a4223a1df55c5113388e5d"
+      "sha256": "341c4dde0d76a2ddaccccd92ee88158a4747cffb511432f3425bf6f747e4afa3"
     },
     {
       "source": "tools/evidence/x86/values.py",
       "path": "tools/evidence/x86-reporter/x86/values.py",
-      "sha256": "74047779f094510eca98c691688238c11e18da1c047165ca5aabc3417f4a2a96"
+      "sha256": "5e0e5eaa7ed597fece6c5f437da7212c9114838ab559553946756830c8086a84"
     },
     {
       "source": "LICENSE",
@@ -75,7 +75,7 @@
     {
       "source": "tests/evidence/test_x86.py",
       "path": "tests/evidence/test_x86.py",
-      "sha256": "e1913cd2c28f1c81640e2d366098c039517c95842c93dbf4a4ed41469111bb03"
+      "sha256": "87843c07b4fe706b19fe4d5462c67af31d4a88290f01a4d4b878d1e4ff3416a1"
     },
     {
       "source": "tests/evidence/test_pe.py",

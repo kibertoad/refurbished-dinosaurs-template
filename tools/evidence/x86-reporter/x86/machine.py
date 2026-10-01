@@ -51,6 +51,8 @@ class State:
                 raise ValueError("Invalid initial register value")
             self.setreg(r, const(n, ALIASES[r][2]), None)
         self.memory = {}
+        # Keys grouped by (segment, base) so a write scans only groups that can alias it.
+        self.memory_groups = {}
         self.memory_epoch = 0
         self.events = []
         self.guards = []
@@ -104,6 +106,11 @@ class State:
                    direction=self.direction_flag.report(), interrupt=self.interrupt_flag.report(),
                    arithmeticProducerRestored=saved is not None)
 
+    def clear_memory(self):
+        self.memory.clear()
+        self.memory_groups.clear()
+        self.memory_epoch += 1
+
     def reg(self, name):
         root, low, bits = alias(name)
         return extract(self.regs[root], low, bits)
@@ -137,11 +144,19 @@ class State:
         base, delta = address_parts(offset)
         return segment.term, base, delta
 
-    def access(self, segment, offset, width, write=None, role=None):
+    def keys(self, segment, offset, width):
         if offset.number is not None and offset.number + width > 1 << self.bits:
             raise StopPath("Memory access crosses the address boundary")
         seg, base, delta = self.location(segment, offset)
-        keys = [(seg, base, (delta + i) if seg == ("linear",) else (delta + i) % (1 << self.bits)) for i in range(width)]
+        return seg, base, delta, [(seg, base, (delta + i) if seg == ("linear",) else (delta + i) % (1 << self.bits)) for i in range(width)]
+
+    def peek(self, segment, offset, width):
+        """Inspect modeled memory without reporting an access the program never performed."""
+        _, _, _, keys = self.keys(segment, offset, width)
+        return join([self.memory.get(key, unknown(f"memory:{self.memory_epoch}:{key}", 8, self.at)) for key in keys])
+
+    def access(self, segment, offset, width, write=None, role=None):
+        seg, base, delta, keys = self.keys(segment, offset, width)
         uncertain = []
         if write is not None:
             write = Value(write.bits, write.term, sources(write, site=self.at))
@@ -156,16 +171,22 @@ class State:
                 return None
             # A concrete write covers every byte it stores, not only its first byte.
             written = (keys[0][2], keys[-1][2] + 1) if seg == ("linear",) else domain(keys[0])
-            for key in list(self.memory):
-                if key not in keys and (key[0], key[1]) != (seg, base):
+            for group, members in list(self.memory_groups.items()):
+                if group == (seg, base):
+                    continue
+                for key in list(members):
                     # Different symbolic segments/bases may alias. Concrete linear locations do not.
                     a, b = domain(key), written
                     disjoint = a is not None and b is not None and (a[1] <= b[0] or b[1] <= a[0])
                     if not disjoint:
                         uncertain.append(key)
                         del self.memory[key]
+                        members.discard(key)
+                if not members:
+                    del self.memory_groups[group]
             for i, key in enumerate(keys):
                 self.memory[key] = extract(write, i * 8, 8)
+            self.memory_groups.setdefault((seg, base), set()).update(keys)
             value = write
             missing = []
         else:
@@ -409,21 +430,24 @@ def ordinary(state, ins, image):
 
 
 def string_instruction(ins):
-    return bool(ins.bytes) and ins.bytes[-1] in (0xA4, 0xA5, 0xAA, 0xAB, 0xAC, 0xAD) and ins.mnemonic.split()[-1] in (
-        "movsb", "movsw", "movsd", "stosb", "stosw", "stosd", "lodsb", "lodsw", "lodsd")
+    # Match the one-byte opcode, not the last encoded byte: SSE MOVSD (F2 0F 10 /r) can end in A5.
+    return ins.opcode[0] in (0xA4, 0xA5, 0xAA, 0xAB, 0xAC, 0xAD) and ins.opcode[1] == 0
 
 
 def string_count(state, ins):
     return state.reg("ecx" if state.flat else "cx") if 0xF3 in ins.prefix else const(1, state.bits)
 
 
-def string_effect(state, ins, remaining):
+def check_string_form(state, ins):
     if ins.addr_size != state.bits // 8:
         raise StopPath("Address-size override on string operation is outside the selected model")
     if 0xF2 in ins.prefix:
         raise StopPath("REPNE string form is not supported")
-    count = string_count(state, ins)
-    width = 1 if ins.bytes[-1] % 2 == 0 else (4 if (0x66 in ins.prefix) != state.flat else 2)
+
+
+def string_effect(state, ins, count, remaining):
+    """Apply a string form already accepted by check_string_form with its string_count."""
+    width = 1 if ins.opcode[0] % 2 == 0 else (4 if (0x66 in ins.prefix) != state.flat else 2)
     operation = ins.mnemonic.split()[-1][:4]
     state.event("string-operation", operation=operation, width=width, repetitions=count.report(),
                 direction=state.direction_flag.report(), repeat=0xF3 in ins.prefix,
@@ -436,7 +460,8 @@ def string_effect(state, ins, remaining):
         return 0
     if state.direction_flag.number is None:
         raise StopPath("Direction flag unresolved; conditional string paths required")
-    source_name = next((name for prefix, name in ((0x26,"es"),(0x2e,"cs"),(0x36,"ss"),(0x3e,"ds"),(0x64,"fs"),(0x65,"gs")) if prefix in ins.prefix), "ds")
+    # MOVS/LODS decode their source as the second memory operand, carrying any segment override.
+    source_name = segment_register(ins, ins.operands[1].mem) if operation in ("movs", "lods") else None
     si, di = ("esi", "edi") if state.flat else ("si", "di")
     delta = -width if state.direction_flag.number else width
     for _ in range(count.number):
