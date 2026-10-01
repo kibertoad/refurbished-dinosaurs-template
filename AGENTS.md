@@ -502,7 +502,7 @@ to fail when discovery drops below an expected count.
 Enable the pre-commit hook once in each clone, before the first commit, with
 `git config core.hooksPath .githooks`, and do not bypass it with
 `--no-verify`. It runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
-on the staged tree in under a second, so a spec, queue or reporter-pin problem
+on the staged tree in under a second, so a spec or queue problem
 fails before the commit instead of in CI.
 
 ## Definition of done

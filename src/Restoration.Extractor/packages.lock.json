@@ -15,6 +15,12 @@
           "SabreTools.IO": "2.3.0"
         }
       },
+      "ScientificMethod.Core": {
+        "type": "Direct",
+        "requested": "[0.1.0, 0.1.0]",
+        "resolved": "0.1.0",
+        "contentHash": "AcrEvWI3LccboiPRbucYmimcF7SFvFInxkj2BCxmGfBqa8dbxzrV6NOfuRLsH06wTtzAexMfmOHHJddqBlHEXA=="
+      },
       "Blake3": {
         "type": "Transitive",
         "resolved": "3.0.2",

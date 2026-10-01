@@ -1,32 +1,33 @@
 using System.Runtime.InteropServices;
+using ScientificMethod.Core.Diagnostics;
 
 namespace Restoration.Game;
 
 internal static class StartupFailureReporter
 {
+    private static readonly StartupFailureOptions Options = new(
+        "{{DISPLAY_NAME}}",
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "{{APP_DATA_DIRECTORY}}", "Logs"),
+        "If the asset pack is missing or damaged, run {{PROJECT_NAME}}.Extractor again.",
+        "Asset pack");
+
+    /// <param name="assetPack">The asset pack this launch tried, or <c>null</c> when it tried none.</param>
     /// <param name="allowDialog">
     /// Whether this launch may block on a modal dialog. A smoke test or any other unattended run
     /// passes <c>false</c>: there is nobody to dismiss a message box, so showing one replaces a
     /// diagnosable non-zero exit with a hang that hides the very error it is reporting.
     /// </param>
-    public static void Report(Exception exception, bool allowDialog = true)
+    public static void Report(Exception exception, string? assetPack, bool allowDialog = true)
     {
-        var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "{{APP_DATA_DIRECTORY}}", "Logs");
-        string? log = null;
-        try
-        {
-            Directory.CreateDirectory(root);
-            log = Path.Combine(root, "startup-error.log");
-            File.WriteAllText(log, $"{DateTimeOffset.UtcNow:O}{Environment.NewLine}{exception}");
-        }
-        catch { }
-        var message = $"{{DISPLAY_NAME}} could not start.{Environment.NewLine}{Environment.NewLine}" +
-            exception.Message + (log is null ? "" : $"{Environment.NewLine}{Environment.NewLine}Technical details: {log}");
+        // StartupFailure.Report always shows the dialog on Windows, so only its log and message are
+        // used here and the dialog stays behind allowDialog.
+        var log = StartupFailure.TryWriteLog(Options, exception, assetPack);
+        var message = StartupFailure.BuildMessage(Options, exception, assetPack, log);
         Console.Error.WriteLine(message);
         Console.Error.WriteLine(exception);
         if (allowDialog && OperatingSystem.IsWindows() && !IsAutomated())
-            _ = MessageBoxW(IntPtr.Zero, message, "{{DISPLAY_NAME}}", 0x10);
+            _ = MessageBoxW(IntPtr.Zero, message, Options.ApplicationTitle, 0x10);
     }
 
     // Deliberately only an explicit signal. This process is a WinExe, so a person launching it from

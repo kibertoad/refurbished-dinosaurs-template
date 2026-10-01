@@ -29,8 +29,17 @@ must not be redistributed.
 Build and test the complete solution with:
 
 ```powershell
+pnpm install
+python -m pip install -r tools/evidence/requirements.txt
 ./tools/Invoke-Validation.ps1
 ```
+
+The gate needs Node.js 22 or newer with pnpm, Python 3.10 or newer and
+PowerShell 7. The first two commands install the research tooling the toolkit
+publishes: the documentation checker and the executable reader from npm
+(`package.json`), and the instruction engine and shared Ghidra scripts from PyPI.
+The game and the Extractor use the `ScientificMethod.Core` NuGet package. Each is
+pinned to an exact version; Dependabot proposes updates.
 
 The default gate skips tests tagged `Category=LongRunning`; pass
 `-IncludeLongRunningTests` to run them, `-TestFilter` to narrow a run, and

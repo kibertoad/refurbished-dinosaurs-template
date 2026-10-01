@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="../Restoration.Resources/Restoration.Resources.csproj" />
     <PackageReference Include="SabreTools.Serialization" Version="[3.2.0]" />
+    <PackageReference Include="ScientificMethod.Core" Version="[0.1.0]" />
     <EmbeddedResource Include="source-manifests/*.json" />
   </ItemGroup>
 </Project>

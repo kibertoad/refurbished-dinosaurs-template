@@ -62,7 +62,7 @@ $ErrorActionPreference = 'Stop'
 # solution file. Configuring a repository twice renames from the previously
 # configured name instead, so a project can still be renamed later.
 $templateName = 'Restoration'
-$excludedDirectories = @('.git', 'bin', 'obj', 'artifacts', 'TestResults', 'UserContent', 'analysis', 'reference')
+$excludedDirectories = @('.git', 'node_modules', 'bin', 'obj', 'artifacts', 'TestResults', 'UserContent', 'analysis', 'reference')
 $textExtensions = @('.cs', '.csproj', '.slnx', '.md', '.json', '.ps1', '.bat', '.iss', '.yml', '.yaml', '.props', '.targets')
 $textFileNames = @('LICENSE', 'NOTICE')
 
@@ -93,8 +93,7 @@ function Test-IncludedPath([string] $root, [string] $fullName) {
     if (-not $normalizedName.StartsWith($normalizedRoot + [IO.Path]::DirectorySeparatorChar,
             [StringComparison]::OrdinalIgnoreCase)) { return $false }
     $relative = $normalizedName.Substring($normalizedRoot.Length + 1).Replace('\', '/')
-    if ($relative -match '^(docs/upstream|vendor|tools/evidence/x86-reporter)(/|$)' -or
-        $relative -eq 'docs/BOUNDED-EVIDENCE-REPORTERS.md') { return $false }
+    if ($relative -match '^docs/upstream(/|$)') { return $false }
     return -not ($relative.Split('/') | Where-Object { $excludedDirectories -contains $_ })
 }
 

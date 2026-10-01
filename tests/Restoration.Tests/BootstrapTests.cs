@@ -138,6 +138,32 @@ public sealed class BootstrapTests
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
 
+    [Fact]
+    public async Task AssetPackThatFailsVerificationLeavesTheInstalledPack()
+    {
+        var root = TestRoot();
+        var output = Path.Combine(root, "pack");
+        Directory.CreateDirectory(output);
+        await File.WriteAllTextAsync(Path.Combine(output, "installed.bin"), "installed",
+            TestContext.Current.CancellationToken);
+        try
+        {
+            await Assert.ThrowsAsync<InvalidDataException>(() => AssetPackInstaller.InstallAsync(output,
+                staging => Task.FromResult(new AssetPackManifest(
+                    OriginalContent.AssetPackFormatVersion,
+                    OriginalContent.GameId,
+                    "synthetic-edition",
+                    new string('b', 64),
+                    "test",
+                    [new("images/missing.bin", 2, new string('c', 64), "SOURCE.GFF",
+                        "application/octet-stream", "synthetic-test")]))));
+
+            Assert.True(File.Exists(Path.Combine(output, "installed.bin")));
+            Assert.Equal(["pack"], Directory.GetFileSystemEntries(root).Select(Path.GetFileName));
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
+
     private static string TestRoot() => Path.Combine(
         Path.GetTempPath(), "restoration-template-tests", Guid.NewGuid().ToString("N"));
 

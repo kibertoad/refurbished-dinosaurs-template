@@ -61,8 +61,21 @@ New-Item -ItemType Directory -Path $analysisRoot | Out-Null
 ```
 
 Reuse the local project with `-process <executable-name> -noanalysis` and a
-small script under `tools/ghidra`. Never redirect broad output into the
-repository.
+small script. The shared scripts ship with the `scientific-method-engine` Python
+package (installed from `tools/evidence/requirements.txt`), which prints their
+directory; scripts specific to this repository stay in `tools/ghidra`. Pass both
+directories to `-scriptPath`, separated by `;`:
+
+```powershell
+$sharedScripts = scientific-method-engine ghidra-scripts
+& "$projectGhidraHome\support\analyzeHeadless.bat" `
+  $analysisRoot RestorationAnalysis `
+  -process $(Split-Path -Leaf $ownedExecutable) -noanalysis `
+  -scriptPath "$sharedScripts;$PWD\tools\ghidra" `
+  -postScript ReportReferences.java 0x00401000
+```
+
+Never redirect broad output into the repository.
 
 ## Bounded query pattern
 
@@ -84,8 +97,7 @@ inspect bounded instruction context when a conclusion depends on those details.
 
 ## Bounded reporting scripts
 
-Every script under `tools/ghidra` is a navigation aid for a small, reviewable
-question. Each caps its output so a mistake cannot dump the whole executable.
+Every script below is a navigation aid for a small, reviewable question. Each caps its output so a mistake cannot dump the whole executable.
 Their output is navigation metadata, never proof of a rule; trace each finding
 and confirm it against controlled original-game observations before changing
 compatibility logic. Never redirect broad output into the repository.
@@ -114,13 +126,19 @@ compatibility logic. Never redirect broad output into the repository.
 | `ReportMemoryBlockForFileOffset.java` | executable file offset | the matching loaded block and translated address, if any |
 | `ReportJumpTable.java` | NE16 table address, count (1-128), optional dispatch | bounded word-indexed segmented jump targets |
 
+`ReportJumpTable.java` is in `tools/ghidra`; the others come from the engine
+package, whose
+[README](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/tree/main/packages/scientific-method-engine#readme)
+lists every packaged script and its arguments, including ones not shown here.
+Fix or extend a packaged script in the toolkit, not with a local copy.
+
 Use the narrow scripts to locate line numbers and addresses, then request only
 the explicitly selected decompiler or instruction windows. Do not stitch
 adjacent windows together to reconstruct or retain a complete function.
 
 ### Cross-edition comparison
 
-The four `Export*.java` scripts support reproducible local comparison of two
+The four `Export*.java` scripts in `tools/ghidra` support reproducible local comparison of two
 legally owned executable editions:
 
 - `ExportEditionAnalysis.java` writes deterministic function, instruction, and
