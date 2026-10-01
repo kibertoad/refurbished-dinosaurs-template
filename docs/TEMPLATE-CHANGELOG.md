@@ -8,6 +8,34 @@ not here.
 
 A project created from this template may delete this file.
 
+## Addresses in code comments, and a pre-commit hook, 2026-10-01
+
+Adopts the parts of
+[kibertoad/chaos-overlords-new-chrome#268](https://github.com/kibertoad/chaos-overlords-new-chrome/pull/268)
+that apply to every restoration.
+
+- **Checker.** `vendor/check-documentation.mjs` and the CI pin move from
+  toolkit `f5e62e0` to `f7da132`, where
+  [toolkit PR 23](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/23)
+  merged.
+  An address a code comment gives must be recorded in an entry the comment
+  cites, or in the evidence of a cited entry. Neutral names (`fn_…`, `g_…`) are
+  always checked; plain `0x…` values only once the CI step gives `images`,
+  which `ci.yml` explains how to add.
+- **Local runs match CI.** `tools/upstream.mjs docs` passes the checker the
+  inputs the CI step gives under `with:`; a command-line option still wins.
+- **Pre-commit hook.** `.githooks/pre-commit` runs the gate's node checks on
+  the staged tree. The checks are listed once, in `tools/Invoke-NodeChecks.mjs`,
+  which `tools/Invoke-Validation.ps1` also runs. `tools/evidence/sync-x86.mjs`
+  now compares real paths before running, so a symlinked path (macOS's
+  temporary directory) no longer skips its check with exit 0.
+- **Rules.** `AGENTS.md`: evidence lives in the spec and is recorded before a
+  comment, test or commit message gives it; look for a new ID on the open pull
+  request branches too; enable the hook and do not bypass it.
+- **Acceptance.** `node tools/upstream.mjs verify`, `node tools/upstream.mjs links`
+  and `node tools/Invoke-NodeChecks.mjs` pass, and so does the upstream Node
+  suite apart from the bootstrap preservation test, which needs PowerShell.
+
 ## Variable uses past a stop, and website rules up to kibertoad/refurbished-dinosaurs@3b4e6fc, 2026-09-30
 
 - **Reporters.** The reporter pin moves from `a0b91d6` to toolkit `926e287`,

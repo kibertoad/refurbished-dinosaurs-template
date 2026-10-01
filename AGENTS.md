@@ -347,6 +347,22 @@ decompiler, instruction, or Version Tracking exports. The function inventories
 in `coverage/` are the one export that is committed, and only with the columns
 the planning section above allows.
 
+Evidence lives in the spec, not in the code that relies on it. An address,
+offset or constant that a code comment, test or commit message gives as evidence
+must already be recorded in an entry it cites, directly or in the evidence of an
+entry that one cites; when none records it, write that finding first, in the
+same research batch. The documentation check enforces this for the neutral
+names (`fn_…`, `g_…`) a code comment gives, and for plain `0x…` addresses once
+the CI job gives the image's range (see `docs/VALIDATION.md`). Before taking a
+new ID, look for it on the open pull request branches as well as `main`,
+because parallel branches each take the next free number and the check sees
+only one branch:
+
+```sh
+git fetch origin
+git grep -l <ID> $(git for-each-ref --format='%(refname)' refs/remotes/origin)
+```
+
 ## Fidelity
 
 The spec records the original exactly, bugs included. The rebuild keeps the
@@ -482,6 +498,12 @@ default fast gate skips tests tagged `Category=LongRunning`; run
 `-IncludeLongRunningTests` only when the user asks for it or a change to that
 coverage needs it. Add `-TestFilter` to narrow a run and `-MinimumExpectedTests`
 to fail when discovery drops below an expected count.
+
+Enable the pre-commit hook once in each clone, before the first commit, with
+`git config core.hooksPath .githooks`, and do not bypass it with
+`--no-verify`. It runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
+on the staged tree in under a second, so a spec, queue or reporter-pin problem
+fails before the commit instead of in CI.
 
 ## Definition of done
 

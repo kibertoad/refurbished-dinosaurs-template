@@ -56,7 +56,13 @@ jobs:
           # when it deletes a spec ID, area or deviation that exists there.
           fetch-depth: 0
       # The toolkit publishes no tags, and its setup guide pins a commit on its main branch.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@f5e62e083eda1aac202695682f8299dc681e4fd4 # zizmor: ignore[stale-action-refs]
+      # A plain 0x address in a code comment is checked only inside the original's image, which the
+      # template cannot know. Once a finding records the image's base and size (for a PE, its
+      # ImageBase and SizeOfImage), add them to this step, and cite that finding here:
+      #   with:
+      #     images: 0x00400000..0x004C9000
+      # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@f7da1328b2adc0a45865de45b35d42c88afdbc6b # zizmor: ignore[stale-action-refs]
   installer:
     name: Windows installer
     needs: verify

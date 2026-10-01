@@ -7,9 +7,10 @@ import { tmpdir } from "node:os";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream } from "../../tools/upstream.mjs";
+import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream, ciCheckerArgs, main } from "../../tools/upstream.mjs";
 import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
 import { checkLinks, linkFile, sections } from "../../tools/upstream-sections.mjs";
+import { checks, main as runNodeChecks } from "../../tools/Invoke-NodeChecks.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const lock = JSON.parse(readFileSync(resolve(root, "tools/upstream-lock.json")));
 function fixture(t) {
@@ -37,6 +38,30 @@ test("CI drift is rejected", t => {
   const sha = lock.files.find(f => f.path.includes("check-documentation")).revision;
   writeFileSync(path, readFileSync(path, "utf8").replace(sha, "b".repeat(40)));
   assert.throws(() => verifySnapshot(dir), /CI checker revision/);
+});
+test("local runs take the checker inputs the CI step gives", () => {
+  const step = `      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${"a".repeat(40)}\n`;
+  assert.deepEqual(ciCheckerArgs(step + "  next:\n"), []);
+  assert.deepEqual(ciCheckerArgs(step + [
+    "        with:", "          # From the finding that records the image.",
+    "          images: 0x00400000..0x004C9000 # the image finding", "          references: \"multiplayer\"",
+    "          code: ''", "          max-range: \"\"", "          base: main", "          kaitai-version: '0.11'",
+    "      - run: echo", "        with:", "          images: 0x00000000..0x00000010"].join("\n")),
+    ["--images", "0x00400000..0x004C9000", "--references", "multiplayer", "--code", ""]);
+  assert.throws(() => ciCheckerArgs(step + "        with: { images: x }\n"), /block of key: value/);
+  assert.throws(() => ciCheckerArgs(step + "        with:\n          images: |\n"), /Unsupported/);
+  assert.deepEqual(ciCheckerArgs(readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8")), []);
+});
+test("docs passes CI's images to the checker, and a command-line value wins", async t => {
+  const dir = fixture(t), ci = resolve(dir, ".github/workflows/ci.yml");
+  for (const path of ["spec", "parity", "deviations", "PARITY.md"]) cpSync(resolve(root, path), resolve(dir, path), { recursive: true });
+  mkdirSync(resolve(dir, "src"), { recursive: true });
+  writeFileSync(resolve(dir, "src/Bad.cs"), "// The entry point is at 0x00401000.\nclass Bad {}\n");
+  const run = (...args) => main(["docs", "--check", "--no-ksy", ...args], dir);
+  assert.equal(await run(), 0);
+  writeFileSync(ci, readFileSync(ci, "utf8").replace(/(check-documentation@[0-9a-f]{40}.*\n)/, "$1        with:\n          images: 0x00400000..0x004C9000\n"));
+  assert.notEqual(await run(), 0);
+  assert.equal(await run("--images", ""), 0);
 });
 test("refresh stages exact explicit revisions and rejects lost v1 declaration or failed download", async () => {
   const rules = "a".repeat(40), toolkit = "b".repeat(40);
@@ -146,4 +171,12 @@ test("link check reports misplaced, missing or stale ranges and rewrites them", 
   assert.equal(written.text, "[B](docs/upstream/work-protocol.md#batches) (lines 10-20) and [B](docs/upstream/work-protocol.md#batches) (lines 10-20).");
   assert.deepEqual(written.problems, []);
   assert.match(linkFile(root, "docs/upstream/methodology.md", "[x](/work-protocol/#batchez)", pages).problems[0], /names no heading/);
+});
+
+test("the gate and the pre-commit hook run one list of node checks", () => {
+  assert.deepEqual(checks().map(([, script]) => script), ["tools/upstream.mjs", "tools/Check-ResearchTracking.mjs", "tools/evidence/sync-x86.mjs"]);
+  assert.deepEqual(checks(true)[0][2], ["docs", "--check", "--no-ksy"]);
+  assert.throws(() => runNodeChecks(["--check"]), /Usage/);
+  assert.match(readFileSync(resolve(root, "tools/Invoke-Validation.ps1"), "utf8"), /tools\/Invoke-NodeChecks\.mjs'\)/);
+  assert.match(readFileSync(resolve(root, ".githooks/pre-commit"), "utf8"), /tools\/Invoke-NodeChecks\.mjs" --no-ksy$/m);
 });
