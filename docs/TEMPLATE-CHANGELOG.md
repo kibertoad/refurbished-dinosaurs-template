@@ -10,13 +10,14 @@ A project created from this template may delete this file.
 
 ## Call targets, function bounds, incoming coverage and carry arithmetic, 2026-10-01
 
-- **Reporters.** The reporter pin moves from `7da1b93` to toolkit `415cdca`, the
-  head of the stacked toolkit PRs
+- **Reporters.** The reporter pin moves from `7da1b93` to toolkit `313bb7d`,
+  where the reporter work of toolkit PRs
   [28](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/28),
   [29](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/29),
   [30](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/30) and
-  [31](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/31).
-  Re-pin to the merged revision before this merges.
+  [31](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/31)
+  reached `main` through
+  [32](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/32).
 - **Behaviour.** `x86-target` reports one direct call's raw words, relocation or
   FBOV fixup chain, trampoline, canonical target and citation, and compares an
   analyzer's address with them. `x86-bounds` and `x86-owner` report an entry's
@@ -26,7 +27,13 @@ A project created from this template may delete this file.
   label a search over part of an overlay, section or declared segment partial
   and say where each unverified candidate sits. The path model tracks CF and
   adds ADC/SBB, NEG/NOT, rotates, one-operand MUL/IMUL/DIV/IDIV, JCXZ and the
-  LOOP family, with `visitLimit` in place of the fixed four passes.
+  LOOP family, with `visitLimit` in place of the fixed four passes. Review
+  fixes in the merged stack: a site whose candidate owners overlap or whose
+  entries stopped at a gap is `unresolved` rather than `unowned`; a conditional
+  branch to another entry is a conditional tail transfer; repeat and BND
+  prefixes hide no return, port access or jump; a `scanLimit` that stops short
+  makes an incoming search partial; and a target whose loaded address the
+  loader cannot resolve keeps `targetError` and gets no target.
   (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
 - **Rules.** `docs/upstream/` moves from `82deb76` to `ca39d07`, where
   [kibertoad/refurbished-dinosaurs#31](https://github.com/kibertoad/refurbished-dinosaurs/pull/31)

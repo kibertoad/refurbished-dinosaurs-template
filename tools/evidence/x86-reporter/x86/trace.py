@@ -30,13 +30,21 @@ def call_target(image, site, ins):
 
 
 OVERLAP_REASON = "overlapping entry-path instructions; boundary unresolved"
+RETURNS = {"ret": "near return", "retf": "far return", "iret": "interrupt return", "iretd": "interrupt return"}
+INTERRUPTS = ("int", "int1", "int3", "into")
+PORTS = ("in", "out", "insb", "insw", "insd", "outsb", "outsw", "outsd")
+
+
+def base_mnemonic(ins):
+    # Capstone names REP/REPNE/BND prefixes in the mnemonic ("repz ret", "rep insb", "bnd jmp").
+    return ins.mnemonic.split()[-1]
 CONTESTED_REASON = "reached only through a rejected overlapping start"
 
 
 def unsupported_transfer(image, ins):
     """Operand-size overrides and flat-model far transfers fall outside the frame model."""
-    m = ins.mnemonic
-    return ((0x66 in ins.prefix and (m in ("call", "lcall", "ret", "retf", "jmp", "ljmp") or m.startswith("j")))
+    m = base_mnemonic(ins)
+    return ((0x66 in ins.prefix and (m in ("call", "lcall", "ret", "retf", "jmp", "ljmp") or m.startswith(("j", "loop"))))
             or (image.flat and m in ("lcall", "ljmp", "retf")))
 
 
@@ -84,11 +92,11 @@ def walk(image, entries, limit=10000):
             continue
         seen[at] = ins
         successors[at] = following_sites = []
-        m, following = ins.mnemonic, at + ins.size
+        m, following = base_mnemonic(ins), at + ins.size
         if unsupported_transfer(image, ins):
             gaps.append({"site": at, "reason": "unsupported control-transfer frame encoding"})
             continue
-        if m in ("ret", "retf", "iret", "iretd"):
+        if m in RETURNS:
             continue
         if m in ("call", "lcall", "jmp", "ljmp") or m.startswith("j") or m.startswith("loop"):
             target, provenance = call_target(image, at, ins)
@@ -100,7 +108,7 @@ def walk(image, entries, limit=10000):
                 following_sites.append(target)
             if m in ("jmp", "ljmp"):
                 continue
-        if m in ("int", "int3", "into", "hlt", "in", "out", "insb", "insw", "outsb", "outsw"):
+        if m in INTERRUPTS or m == "hlt" or m in PORTS:
             gaps.append({"site": at, "reason": "hardware or interrupt boundary"})
             continue
         if m in ("call", "lcall") and following not in following_sites:
@@ -179,16 +187,24 @@ def walk(image, entries, limit=10000):
     intervals = sorted((at, at + ins.size) for at, ins in seen.items())
     undecoded = []
     for r in image.regions:
-        cursor = r["start"]
-        for start, end in intervals:
-            if start < r["start"] or start >= r["end"]:
-                continue
-            if start > cursor:
-                undecoded.append({"start": cursor, "end": start, "region": r["name"]})
-            cursor = max(cursor, end)
-        if cursor < r["end"]:
-            undecoded.append({"start": cursor, "end": r["end"], "region": r["name"]})
+        inside = [(start, end) for start, end in intervals if r["start"] <= start < r["end"]]
+        undecoded.extend({**hole, "region": r["name"]} for hole in uncovered(r["start"], r["end"], inside))
     return seen, gaps, edges, undecoded, contested
+
+
+def uncovered(start, end, spans):
+    """The ranges of start..end that no span covers; spans are clipped to the bounds."""
+    missing, cursor = [], start
+    for a, b in sorted(spans):
+        a, b = max(a, start), min(b, end)
+        if a >= b:
+            continue
+        if a > cursor:
+            missing.append({"start": cursor, "end": a})
+        cursor = max(cursor, b)
+    if cursor < end:
+        missing.append({"start": cursor, "end": end})
+    return missing
 
 
 def snapshot(state):
@@ -272,7 +288,7 @@ def trace(image, config):
                 is_string = string_instruction(ins)
                 if (0xf2 in ins.prefix or 0xf3 in ins.prefix) and not is_string:
                     raise StopPath("repeat prefix requires a separate bounded string-operation reading")
-                if 0x66 in ins.prefix and (m in ("call", "lcall", "ret", "retf", "jmp", "ljmp") or m.startswith("j")):
+                if 0x66 in ins.prefix and (m in ("call", "lcall", "ret", "retf", "jmp", "ljmp") or m.startswith(("j", "loop"))):
                     raise StopPath("Operand-size control transfer override is outside the selected frame model")
                 if image.flat and m in ("lcall", "ljmp"):
                     raise StopPath("Far transfer is outside the PE32 flat model")
@@ -474,7 +490,11 @@ def trace(image, config):
                     else:
                         answer, info = predicate(state, m)
                         condition, negated = BRANCH_CONDITIONS.get(m, (m, False))
-                        key = repr((condition, state.flags if state.flags is not None else ("unresolved", state.flag_epoch)))
+                        if condition == "c":
+                            # CF can outlive its producer (INC/DEC, CLC/STC, shifts), so key it by its own value.
+                            key = repr((condition, state.carry_value().term))
+                        else:
+                            key = repr((condition, state.flags if state.flags is not None else ("unresolved", state.flag_epoch)))
                     if answer is None and key in state.assumptions:
                         answer = state.assumptions[key] != negated
                     choices = [answer] if answer is not None else [False, True]

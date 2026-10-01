@@ -236,6 +236,23 @@ class ReporterTests(unittest.TestCase):
         cfg["query"]["site"] = 4
         self.assertIn("unverified", run_report(data, cfg, "target")["boundary"])
 
+    def test_target_keeps_an_instruction_limit_stop_beside_an_unverified_boundary(self):
+        c = Code().branch("e8", "a").emit("c3").label("a").branch("e8", "b").emit("c3").label("b").emit("c3")
+        data = c.bytes()
+        r = run_report(data, configuration(data, query={"site": 4}, instructionLimit=1), "target")
+        self.assertIn("instruction limit", r["boundary"])
+        self.assertFalse(r["walkComplete"])
+        self.assertTrue(any(g["reason"] == "instruction limit" for g in r["gaps"]))
+        self.assertTrue(run_report(data, configuration(data, query={"site": 4}), "target")["walkComplete"])
+
+    def test_target_assigns_no_target_when_the_source_loader_could_not_resolve_it(self):
+        data = bytes.fromhex("9a 05 00 00 00 c3")
+        cfg = configuration(data, query={"site": 0}, relocations=[{"site": 3, "raw": 0, "segment": 0x1000, "evidence": "synthetic",
+                                                                    "targetError": "Segmented address is outside the resident load image"}])
+        r = run_report(data, cfg, "target")
+        self.assertEqual((r["relocated"], r["canonicalTarget"], r["target"]), (True, None, None))
+        self.assertIn("outside the resident", r["targetError"])
+
     def test_target_marks_supplied_relocation_metadata_and_analyzer_identity(self):
         data = bytes.fromhex("9a 05 00 00 00 c3")
         cfg = configuration(data, query={"site": 0, "analyzerAddress": {"segment": 0x1000, "offset": 5, "evidence": "synthetic"}},
@@ -371,6 +388,105 @@ class ReporterTests(unittest.TestCase):
         self.assertIn("divide by zero", report("b8 01 00 31 d2 31 db f7 f3 c3")["paths"][0]["stop"])
         unknown_divisor = report("f7 f3 c3")
         self.assertEqual(unknown_divisor["paths"][0]["conditionalModels"][0]["assumption"], "no divide error")
+
+    def test_carry_review_regressions(self):
+        # A wide rotate of an unknown value stays a bounded expression.
+        self.assertIsNone(report("c1 c0 08 c3")["paths"][0]["stop"])
+        self.assertIsNone(report("c1 d0 0c c3")["paths"][0]["stop"])
+        # ROL by the operand width keeps the value but still sets CF from its low bit.
+        r = report("f9 b8 00 00 c1 c0 10 72 01 c3 c3")
+        self.assertFalse(events(r, "branch")[0]["taken"])
+        # A known zero divisor stops even when the dividend is unknown.
+        self.assertIn("divide by zero", report("31 db f7 f3 c3")["paths"][0]["stop"])
+        # One unknown carry decides both branches around INC.
+        self.assertEqual(len(report("d1 e8 72 00 43 72 00 c3")["paths"]), 2)
+        self.assertEqual(len(report("39 d8 72 00 43 72 00 c3")["paths"]), 2)
+        # Logic operations clear CF whatever their operands.
+        self.assertEqual(report("ba 05 00 21 d8 83 d2 00 c3")["paths"][0]["registers"]["dx"]["value"], 5)
+        self.assertIn("Operand-size", report("b9 02 00 66 e2 fd c3")["paths"][0]["stop"])
+
+    def test_incoming_coverage_counts_straddled_segments_scan_limits_and_contested_starts(self):
+        data = bytes.fromhex("e8 01 00 c3 c3 e8 fc ff c3")
+        cfg = configuration(data, target=4, controls=[5], segments=[{"name": "code", "start": 0, "end": 6, "evidence": "synthetic segment"}])
+        cfg["regions"] = [{**cfg["regions"][0], "name": "first", "end": 5, "entries": [0]},
+                          {**cfg["regions"][0], "name": "second", "start": 5, "ip": 5, "entries": [5]}]
+        cfg["searchRegions"] = ["second"]
+        straddle = run_report(data, cfg, "incoming")
+        self.assertEqual(straddle["coverage"][0]["unsearched"], [{"start": 0, "end": 5}])
+        self.assertTrue(straddle["partialSearch"])
+        cfg.update(searchRegions=["first", "second"], controls=[0], scanLimit=7)
+        limited = run_report(data, cfg, "incoming")
+        self.assertEqual(limited["coverage"][0]["unsearched"], [])
+        self.assertEqual(run_report(data, {**cfg, "scanLimit": 3}, "incoming")["coverage"][0]["unsearched"], [{"start": 3, "end": 6}])
+        for bad in ([{"name": 5, "start": 0, "end": 6, "evidence": "x"}], [{"name": "code", "start": 0, "end": 6}]):
+            with self.assertRaises(ValueError):
+                run_report(data, {**cfg, "segments": bad}, "incoming")
+        with self.assertRaises(ValueError):
+            run_report(data, {**cfg, "regions": [{**cfg["regions"][0], "container": {"view": "overlay", "start": 1, "end": 9}}, cfg["regions"][1]]}, "incoming")
+        contested = bytes.fromhex("b8 90 90 e8 04 00 c7 06 00 02 90 c3 c3")
+        cfg = configuration(contested, target=10, controls=[])
+        cfg["regions"][0]["entries"] = [0, 1]
+        self.assertEqual(run_report(contested, cfg, "incoming")["contested"][0]["position"]["meaning"], "start of a contested instruction")
+
+    def test_bounds_read_prefixed_returns_ports_and_conditional_tail_transfers(self):
+        # F3 C3 decodes as "repz ret" and F3 6C as "rep insb"; neither may fall through into the next entry.
+        data = bytes.fromhex("f3 6c 74 01 f3 c3 c3")
+        cfg = configuration(data)
+        cfg["regions"][0]["entries"] = [0, 5]
+        r = run_report(data, cfg, "bounds")
+        self.assertEqual(r["exits"], [{"site": 2, "kind": "tail transfer", "target": 5, "conditional": True},
+                                      {"site": 4, "kind": "near return", "cleanupBytes": 0}])
+        self.assertEqual([a["site"] for a in r["assumedContinuations"]], [0])
+        self.assertEqual(r["sharedEntries"], [])
+        cfg["instructionLimit"] = "many"
+        with self.assertRaisesRegex(ValueError, "instruction limit"):
+            run_report(data, cfg, "bounds")
+
+    def test_owner_does_not_call_a_site_unowned_past_a_gap_or_entry_limit(self):
+        data = bytes.fromhex("ff e0 c3 90 c3")
+        cfg = configuration(data, query={"site": 3}, analyzerFunction={"start": 3, "evidence": "synthetic analyzer function"})
+        cfg["regions"][0]["entries"] = [0, 2, 3]
+        r = run_report(data, cfg, "owner")
+        self.assertEqual([o["entry"] for o in r["owners"]], [3])
+        self.assertTrue(r["analyzer"]["agrees"])
+        cfg["entryLimit"] = 2
+        limited = run_report(data, cfg, "owner")
+        self.assertEqual(limited["owners"], [])
+        self.assertEqual([e["entry"] for e in limited["incompleteEntries"]], [0])
+        self.assertTrue(limited["verdict"].startswith("unresolved"))
+        self.assertTrue(limited["analyzer"]["agrees"])
+
+    def test_owner_leaves_a_site_unresolved_when_owners_decode_overlapping_instructions(self):
+        # Entry 0 decodes "mov ax, 0xc390" over bytes 0..2; entry 1 decodes "nop; ret" inside it.
+        data = bytes.fromhex("b8 90 c3 c3")
+        cfg = configuration(data, query={"site": 3}, analyzerFunction={"start": 0, "evidence": "synthetic analyzer function"})
+        cfg["regions"][0]["entries"] = [0, 1]
+        r = run_report(data, cfg, "owner")
+        self.assertEqual([o["entry"] for o in r["owners"]], [0])
+        self.assertEqual(r["owners"][0]["contestedBy"], [{"entry": 1, "site": 0, "otherSite": 1},
+                                                         {"entry": 1, "site": 0, "otherSite": 2}])
+        self.assertEqual(r["contestedOwners"], [0])
+        self.assertTrue(r["verdict"].startswith("unresolved"))
+        self.assertTrue(r["analyzer"]["contested"])
+        cfg["regions"][0]["entries"] = [0]
+        alone = run_report(data, cfg, "owner")
+        self.assertEqual((alone["owners"][0]["contestedBy"], alone["contestedOwners"]), ([], []))
+        self.assertEqual(alone["verdict"], "one established entry reaches this site")
+
+    def test_walk_reads_prefixed_returns_ports_and_jumps(self):
+        # "repz ret" and "rep insb" end the walk, "bnd jmp" is followed like a plain jmp, and int1 is a boundary.
+        def run(code):
+            data = bytes.fromhex(code)
+            return walk(Image(data, configuration(data)), [0])
+        seen, gaps, _, _, _ = run("f3 c3 cc")
+        self.assertEqual((sorted(seen), gaps), ([0], []))
+        _, gaps, _, _, _ = run("f3 6c cc")
+        self.assertEqual(gaps, [{"site": 0, "reason": "hardware or interrupt boundary"}])
+        seen, gaps, edges, _, _ = run("f2 e9 01 00 cc c3")
+        self.assertEqual((sorted(seen), gaps), ([0, 5], []))
+        self.assertEqual((edges[0]["kind"], edges[0]["target"]), ("jmp", 5))
+        _, gaps, _, _, _ = run("f1 c3")
+        self.assertEqual(gaps, [{"site": 0, "reason": "hardware or interrupt boundary"}])
 
     def test_dispatch_normalization_and_rejection(self):
         c = Code().emit("83 e0 7f 83 f8 02").branch("73", "reject").emit("89 c3 d1 e3").label("dispatch").emit("ff 27").label("reject").emit("c3")
