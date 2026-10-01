@@ -669,3 +669,9 @@ Added ReportMemoryBlocks.java with capped page/exact-name selection, explicit to
 ## Committed function-inventory identity checks
 
 Added hash-guarded inventory-check to validate committed TSVs against build/manifest prefixes, mapped source bounds, numeric start uniqueness, bounded body-byte counts, allowed optional researcher columns and portable destinations. Explicit evidenced legacy paths support configured projects without silently renaming historical inventories. Synthetic tests cover CLI/identity failures and empty optional cells. The actual Dark Sun installed 2,153-row inventory passes; shared export reproduces its retained mapped export and view join exactly. Canonical gate passes 92 Python, 40 Node and 56 .NET tests with a zero-warning/error build.
+
+## Selected-window capture isolation
+
+Use selected-client PrintWindow capture, fail on unsupported or uniform results,
+and never fall back to desktop pixels. Add an offscreen Windows regression and
+document the distinction between captured client pixels and a verified game state.
