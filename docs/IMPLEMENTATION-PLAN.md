@@ -210,3 +210,16 @@ Blocked items require Waiting on. Empty RNG/SAVE scaffold queues allocate no
 questions. Acceptance: synthetic positive and negative fixtures, wrapped text
 and Windows line endings; the unconfigured scaffold passes. The check never
 promotes evidence or declares Survey complete. Include it in the fast gate.
+
+## Exact dispatch and pointer reporter adoption
+
+Tooling outcome: adopt merged toolkit b87064216317eeee0ac991a8b154d5b58a46534c
+including evidenced near-jump tables, canonical relocated-pointer exact/alias
+inventories and bounded pointer-domain exclusions. Evidence: merged toolkit
+PRs 33/34 and the configured-project source controls recorded separately.
+Acceptance: source/guide/tests remain exact and hashed; the mapping includes
+both new modules and dispatch tests; normal template validation runs the pinned
+tests with the vendored Python module path. Existing source identity, caps,
+partial-search and unresolved-flow safeguards remain intact. No original
+content, game claims or runtime access. Exit: exact pin, synthetic reporter
+checks and canonical template validation pass; publish a reviewable template PR.

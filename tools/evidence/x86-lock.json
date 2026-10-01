@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "313bb7d8baa238b5934e5ddf3f60cb2d5f4887ed",
+  "revision": "b87064216317eeee0ac991a8b154d5b58a46534c",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -10,12 +10,17 @@
     {
       "source": "tools/evidence/legacy-image.mjs",
       "path": "tools/evidence/x86-reporter/legacy-image.mjs",
-      "sha256": "2ef15f7836395d48cc56d3fe57daea635d281bd3c5e9bcaae0478ac1945d4a5b"
+      "sha256": "2ca03396a87d42adbc7e8af8ada7362f1ec1d2c3fd906ebabe93397d3666d97c"
+    },
+    {
+      "source": "tools/evidence/pointer-inventory.mjs",
+      "path": "tools/evidence/x86-reporter/pointer-inventory.mjs",
+      "sha256": "cf2a97247cdab05596879d51d2e0e70417951f364f8afc6cf82dc0105210788b"
     },
     {
       "source": "tools/evidence/report.mjs",
       "path": "tools/evidence/x86-reporter/report.mjs",
-      "sha256": "c7beb24c54d95ccf7e9509938b14d04485a39c867f8d438b22290b1b7d0bacbe"
+      "sha256": "71fa9f3963cc1e45d3955fc62d5bf72a6f5fc215566da071c5c1851d1493efa6"
     },
     {
       "source": "tools/evidence/report.py",
@@ -33,6 +38,11 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
+      "source": "tools/evidence/x86/dispatch.py",
+      "path": "tools/evidence/x86-reporter/x86/dispatch.py",
+      "sha256": "00f7940ecb50a8511e56ead5b41c833dbf4dfc84c3d429009a650e63293c0984"
+    },
+    {
       "source": "tools/evidence/x86/pe.py",
       "path": "tools/evidence/x86-reporter/x86/pe.py",
       "sha256": "0239bf94184f533aa1cb41e1bd4f85dd8b5ec92d2f7e544e47644a5e0a5ebd33"
@@ -40,7 +50,7 @@
     {
       "source": "tools/evidence/x86/image.py",
       "path": "tools/evidence/x86-reporter/x86/image.py",
-      "sha256": "a12063f9e4b9124903643db39ccb960f2e935bf1c147bed4fae91f0b90be10e9"
+      "sha256": "5fdc5eaef9f56f863cc7688a022216daf18d26c6843546e0e98c741c62822b52"
     },
     {
       "source": "tools/evidence/x86/machine.py",
@@ -50,12 +60,12 @@
     {
       "source": "tools/evidence/x86/reports.py",
       "path": "tools/evidence/x86-reporter/x86/reports.py",
-      "sha256": "c60ff754ef5185113cae056503fcda7e66621ba3faeb832079dc21be061aa06b"
+      "sha256": "20816065c9f194c83f63310616b323aaab03163ba55e997599f2bbe79117e56b"
     },
     {
       "source": "tools/evidence/x86/trace.py",
       "path": "tools/evidence/x86-reporter/x86/trace.py",
-      "sha256": "f859a225322507f5df30d56fef26512eaf8749e8b9c99570e668bf28659e1d3e"
+      "sha256": "2a5165e22c87839bbeca1e0974e8e3079640d1757e742418458f8e20aca6c65f"
     },
     {
       "source": "tools/evidence/x86/values.py",
@@ -70,7 +80,7 @@
     {
       "source": "docs/bounded-evidence-reporters.md",
       "path": "docs/BOUNDED-EVIDENCE-REPORTERS.md",
-      "sha256": "5753c698cf6f195c27c9f370989c61bab6bb6a57ac88724355658610aa60cf45"
+      "sha256": "af844334ac7305d595492b6055aa020c36156b9f2ace267be82e04550f03e218"
     },
     {
       "source": "tests/evidence/test_x86.py",
@@ -83,9 +93,14 @@
       "sha256": "d502389728fbda7c012336289c73d87689ce1fc4895d1a7dc5df5788558c922e"
     },
     {
+      "source": "tests/evidence/test_dispatch.py",
+      "path": "tests/evidence/test_dispatch.py",
+      "sha256": "84827efe5505fabd31a1284f2b481e653f78ac6480f9c0ee27cd94a86f9e45e1"
+    },
+    {
       "source": "tests/evidence/bridge.test.mjs",
       "path": "tests/evidence/bridge.test.mjs",
-      "sha256": "a9e0f2112b22dad364d3846ecfbdff7bf1e2f15eb1c789abb5a75e204d552de6"
+      "sha256": "f22cf90ebc06ec68a6d3bc8fe60fef8844b6fcf7e737b2c4f4ea6c509468ae85"
     }
   ]
 }
