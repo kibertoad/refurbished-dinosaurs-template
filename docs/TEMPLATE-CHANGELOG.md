@@ -675,3 +675,13 @@ Added hash-guarded inventory-check to validate committed TSVs against build/mani
 Use selected-client PrintWindow capture, fail on unsupported or uniform results,
 and never fall back to desktop pixels. Add an offscreen Windows regression and
 document the distinction between captured client pixels and a verified game state.
+
+## Bounded string effects and saved flags
+
+Pinned toolkit 247e30c8cbdf9448901d39891512fb9c62364ae5 adds bounded sequential string operations with conditional direction provenance and intact saved-flag restoration. The matching synthetic controls and guide ship with the pin. IRET and native hardware/timing remain outside this model.
+
+Toolkit follow-up e08397283b9cc8271dba01019803d4571430f618 adds explicit overlapping-target proof and strictly local segmented16 IRET with validated saved flag frames. External and flat IRET remain unsupported.
+
+Toolkit candidate 2f864f21ec63139043d707fa8fbf401a9f624191 adds instruction-owned segment operand provenance and preserves flag/string events in effect summaries. Hash-guarded CLI and boundary/width controls ship with the pin.
+
+Re-pinned toolkit 92a182333e4c4c24a91024c16d4427f84c6269cb after review: string operations are matched by opcode rather than final byte, the unknown-direction split reuses the current path and reserves iterations only when they fit, zero counts complete regardless of budget, unsupported string forms stop before any split, local flag-frame checks no longer report a read, and an overlap proof must be reachable without its own target. Non-object operand queries are rejected.
