@@ -95,7 +95,10 @@ export function checkResearchTracking(root) {
     if (questions.length > 1 && !questions[0].startsWith('- ')) questions = questions.slice(1);
     for (const question of questions) {
       const qids = [...question.matchAll(/\bQ-[A-Z][A-Z0-9]*-\d+\b/g)].map(m => m[0]);
-      if (!qids.length) errors.push(`${id}: untracked open question`);
+      // Content no queue item can settle (a neutral name, an observation no run can make yet) says why.
+      const exemption = question.match(/\(No item:([^)]*)\)/);
+      if (exemption && !exemption[1].trim()) errors.push(`${id}: open question exempted with no reason`);
+      else if (!qids.length && !exemption) errors.push(`${id}: untracked open question`);
       for (const qid of qids) {
         if (!items.has(qid)) errors.push(`${id}: missing queue item ${qid}`);
         else if (!items.get(qid).refs.includes(id)) errors.push(`${id}: ${qid} does not name this entry`);

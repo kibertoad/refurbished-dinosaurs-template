@@ -151,7 +151,9 @@ only the lines the link gives, and never a section already read this session.
    and `docs/RUNTIME.md` allows a run, add an `Agent run` or `Live session`
    item for the experiment that would confirm it; where no run is possible,
    say in the entry's Open questions which observation of the original would
-   confirm it, so that a tester's capture can later.
+   confirm it, so that a tester's capture can later, ending that bullet with
+   `(No item: no run possible)`. Every Open questions bullet cites its item or
+   carries such an exemption with its reason.
    Remove the `Spec gap (Q-...)` note of every item you closed.
 7. **Keep the check passing, and change nothing else outside `spec/`,
    `queue/` and `tools/`:**

@@ -77,3 +77,11 @@ test('split area queues check section headings', t => {
   write('queue/TEST/static.md', '# TEST: Statik\n\n- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n');
   assert.ok(checkResearchTracking(root).some(e => e.includes('wrong section heading')));
 });
+test('open questions exempted with a reason pass and empty exemptions fail', t => {
+  const {root, write} = fixture(t);
+  const entry = body => write('spec/rules/TEST_ENTRY.md', `---\nid: TEST_ENTRY\nsuperseded_by: []\n---\n\n## Open questions\n\n- Which branch? (Q-TEST-001)\n${body}`);
+  entry('- FUN_1A2B: purpose unknown. (No item: needs a tester capture of the title screen.)\n');
+  assert.deepEqual(checkResearchTracking(root), []);
+  entry('- FUN_1A2B: purpose unknown. (No item: )\n');
+  assert.ok(checkResearchTracking(root).some(e => e.includes('exempted with no reason')));
+});
