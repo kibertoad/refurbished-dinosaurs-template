@@ -188,6 +188,18 @@ write no output. The fast gate includes that Windows regression. An inspected
 DOSBox client frame proves transport only, not gameplay-state control. Original
 pixels and runtime artifacts remain local. No game evidence status changes.
 
+## Bounded string reporter adoption
+
+Adopt the reviewed toolkit bounded-string candidate by exact commit. Outcome: sequential MOVS/STOS/LODS, conditional direction and intact saved-flag provenance are available to template researchers. Acceptance: synthetic segmented/flat controls, zero/unknown/budget limits, overlapping copy, pointer wrap, segment overrides and flags corruption pass; pin integrity and canonical validation pass. No native execution, proprietary fixtures or game behavior changes. IRET is out of this batch; the local-return adoption below covers it. Exit: source/guide/tests pinned together and canonical gate passes.
+
+## Explicit overlapping local return adoption
+
+Pin the follow-up toolkit candidate with verified direct-edge overlap proof and strictly local segmented16 IRET. Acceptance: preserve false-boundary rejection; saved/missing/corrupted/overwritten frame tests pass; source, guide and tests share one exact pin; canonical gate and build pass. External interrupts, hardware and flat IRET remain unsupported.
+
+## Instruction-owned operand adoption
+
+Pin the toolkit candidate with instruction-verified MOV/PUSH immediate ownership, declared segment provenance and effect-summary flag events. Exact guide/source/tests must share the pin; canonical gate proves synthetic boundary/width/CLI controls. Keep mapped addresses separate from native reachability and preserve unresolved raw words.
+
 ## Research queue tracking
 
 Tooling batch. A spec can pass the documentation checker while its area queues
