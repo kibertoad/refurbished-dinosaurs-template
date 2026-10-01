@@ -8,6 +8,33 @@ not here.
 
 A project created from this template may delete this file.
 
+## Call targets, function bounds, incoming coverage and carry arithmetic, 2026-10-01
+
+- **Reporters.** The reporter pin moves from `7da1b93` to toolkit `415cdca`, the
+  head of the stacked toolkit PRs
+  [28](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/28),
+  [29](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/29),
+  [30](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/30) and
+  [31](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/31).
+  Re-pin to the merged revision before this merges.
+- **Behaviour.** `x86-target` reports one direct call's raw words, relocation or
+  FBOV fixup chain, trampoline, canonical target and citation, and compares an
+  analyzer's address with them. `x86-bounds` and `x86-owner` report an entry's
+  reached body, holes and exits, and which entries own a site, with an
+  analyzer's size compared as a body-byte count. `formatControls` rejects a
+  query whose table counts differ from a build's known counts. Incoming reports
+  label a search over part of an overlay, section or declared segment partial
+  and say where each unverified candidate sits. The path model tracks CF and
+  adds ADC/SBB, NEG/NOT, rotates, one-operand MUL/IMUL/DIV/IDIV, JCXZ and the
+  LOOP family, with `visitLimit` in place of the fixed four passes.
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
+- **Rules.** `docs/upstream/` moves from `82deb76` to `8d0bda2`, the head of
+  [kibertoad/refurbished-dinosaurs#31](https://github.com/kibertoad/refurbished-dinosaurs/pull/31),
+  which adds the call-target, boundary and ownership contracts, format-table
+  controls and the incoming-call coverage rule. Section links are rewritten to
+  the new line ranges. The vendored checker stays on toolkit `f5e62e0`.
+  Refresh to the merged revision before this merges.
+
 ## Variable uses past a stop, and website rules up to kibertoad/refurbished-dinosaurs@3b4e6fc, 2026-09-30
 
 - **Reporters.** The reporter pin moves from `a0b91d6` to toolkit `926e287`,
@@ -360,7 +387,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 839-860)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 844-865)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

@@ -300,7 +300,7 @@ Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
 [Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 137-181)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 413-463) sections
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 418-468) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored

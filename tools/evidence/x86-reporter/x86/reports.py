@@ -1,6 +1,6 @@
 """Focused reports derived from instruction paths and explicit source bounds."""
 from capstone import CS_AC_READ, CS_AC_WRITE
-from capstone.x86 import X86_OP_MEM, X86_OP_REG
+from capstone.x86 import X86_OP_IMM, X86_OP_MEM, X86_OP_REG
 from .machine import State, StopPath, REGISTERS, ALIASES, segment_register
 from .values import unknown
 from .image import Image, integer
@@ -9,6 +9,54 @@ from .trace import trace, walk, call_target, unsupported_transfer, OVERLAP_REASO
 
 def entries(image):
     return sorted(set(at for r in image.regions for at in r["entries"]))
+
+
+def search_coverage(image, scans):
+    """How much of each complete segment, overlay or section the searched regions cover."""
+    sections = (image.config.get("peMetadata") or {}).get("sections", [])
+    declared = image.config.get("segments", [])
+    if not isinstance(declared, list) or len(declared) > 256:
+        raise ValueError("segments must be a list of at most 256 declared segment bounds")
+    for d in declared:
+        if not isinstance(d, dict) or not d.get("name") or not d.get("evidence"):
+            raise ValueError("Each declared segment needs name, start, end and evidence")
+        integer(d.get("start"), 0, len(image.data), "segment start")
+        integer(d.get("end"), d["start"] + 1, len(image.data), "segment end")
+    containers = {}
+    for r in image.regions:
+        if r["name"] not in scans:
+            continue
+        container = r.get("container")
+        segment = next((d for d in declared if d["start"] <= r["start"] and r["end"] <= d["end"]), None)
+        if container is None and segment is not None:
+            container = {"view": "segment " + segment["name"], "start": segment["start"], "end": segment["end"]}
+        if container is None:
+            section = next((s for s in sections if s["rawStart"] <= r["start"] and r["end"] <= s["rawStart"] + s["loadedRawSize"]), None)
+            if section is not None:
+                container = {"view": "section " + section["name"], "start": section["rawStart"], "end": section["rawStart"] + section["loadedRawSize"]}
+        key = None if container is None else (container["view"], container["start"], container["end"])
+        containers.setdefault(key, []).append(r)
+    rows = []
+    for key, regions in containers.items():
+        names = [r["name"] for r in regions]
+        if key is None:
+            rows.append({"container": None, "regions": names, "partial": False,
+                         "meaning": "no overlay, section or declared segment contains these regions; the search covers them only"})
+            continue
+        view, start, end = key
+        spans = sorted((r["start"], r["end"]) for r in regions)
+        missing, cursor = [], start
+        for a, b in spans:
+            if a > cursor:
+                missing.append({"start": cursor, "end": a})
+            cursor = max(cursor, b)
+        if cursor < end:
+            missing.append({"start": cursor, "end": end})
+        rows.append({"container": {"view": view, "start": start, "end": end}, "regions": names, "unsearched": missing,
+                     "partial": bool(missing),
+                     "meaning": "partial search: callers in the unsearched ranges are not covered" if missing else
+                                "the searched regions cover the complete container"})
+    return rows
 
 
 def incoming(image, config):
@@ -94,12 +142,29 @@ def incoming(image, config):
         "overlayFixupFar": [h["site"] for h in hits if h["encoding"] == "lcall" and h["provenance"].get("relocation", {}).get("descriptor") is not None],
         "relative": [h["site"] for h in hits if h["encoding"] == "call"],
     }
+    # Say where each unverified row sits, so a reader knows whether a route to it is still unread
+    # (undecoded bytes, perhaps behind a computed transfer) or whether it is bytes of another instruction.
+    reached = sorted((at, at + ins.size) for at, ins in {**seen, **contested}.items())
+    for row in candidates + disputed + partial:
+        if row["site"] in seen:
+            continue
+        inside = next((start for start, end in reached if start < row["site"] < end), None)
+        hole = next((u for u in undecoded if u["start"] <= row["site"] < u["end"]), None)
+        row["position"] = ({"insideInstruction": inside, "meaning": "bytes of a reached instruction; a call here needs an overlapping start"}
+                           if inside is not None else
+                           {"undecodedRange": hole, "meaning": "no established path reaches these bytes; an unread or computed route may"}
+                           if hole is not None else {"meaning": "start of a contested instruction"})
+    transfers = [{"site": e["site"], "kind": e["kind"], "reason": e["provenance"].get("reason")}
+                 for e in edges if e["target"] is None and image.region(e["site"])["name"] in scans]
+    coverage = search_coverage(image, scans)
+    partial_scope = any(c["partial"] for c in coverage)
     return {"target": target, "sections": {k: v[:limit] for k, v in sections.items()}, "confirmed": bounded(hits), "candidates": bounded(candidates),
             "contested": bounded(disputed), "unresolved": bounded(partial),
             "counts": {"confirmed": len(hits), "candidates": len(candidates), "contested": len(disputed), "unresolved": len(partial)},
             "truncated": truncated, "controls": [scanned[at] for at in controls],
-            "searched": [r for r in image.regions if r["name"] in scans], "undecodedRanges": undecoded, "gaps": gaps,
-            "negativeUsable": bool(controls) and not (hits or candidates or disputed or partial or gaps or truncated or undecoded),
+            "searched": [r for r in image.regions if r["name"] in scans], "coverage": coverage, "partialSearch": partial_scope,
+            "unresolvedTransfers": sorted(transfers, key=lambda t: t["site"]), "undecodedRanges": undecoded, "gaps": gaps,
+            "negativeUsable": bool(controls) and not (hits or candidates or disputed or partial or gaps or truncated or undecoded or partial_scope),
             "exclusions": ["computed call targets", "unrelocated far calls", "undeclared mappings", "prefix-started raw candidates off the entry path"],
             "scope": "All bytes of declared search regions; verified calls are reachable from accepted starts. Never proves universal absence."}
 
@@ -451,9 +516,271 @@ def operand_provenance(image, config):
     return result
 
 
+def _segmented(segment, offset):
+    return f"{segment:04X}:{offset:04X}"
+
+
+def _citation(image, target):
+    """How the standard cites a canonical file offset: resident code by mapped address, overlay code by file offset."""
+    region = image.region(target)
+    if region is None:
+        return {"fileOffset": target, "region": None, "citation": None,
+                "reason": "canonical target is outside the declared regions"}
+    ip = (region["ip"] + target - region["start"]) & image.mask
+    if image.flat:
+        return {"fileOffset": target, "region": region["name"], "citation": f"{ip:08X}", "form": "preferred-base virtual address"}
+    if region.get("resident", False):
+        return {"fileOffset": target, "region": region["name"], "citation": _segmented(region["segment"], ip),
+                "form": "resident load-image address"}
+    return {"fileOffset": target, "region": region["name"], "citation": f"+0x{target:08X}",
+            "form": "file offset; prefix the path the build entry gives",
+            "analysisView": _segmented(region["segment"], ip)}
+
+
+def call_target_report(image, config):
+    """One direct transfer: the raw operand, its relocation or fixup chain and the address it may be cited by."""
+    query = config.get("query", {})
+    if not isinstance(query, dict):
+        raise ValueError("Target query must be an object")
+    site = integer(query.get("site"), 0, len(image.data) - 1, "call site")
+    ins = image.decode(site)
+    if ins is None or ins.mnemonic not in ("call", "lcall", "jmp", "ljmp") or not ins.operands or ins.operands[0].type != X86_OP_IMM:
+        raise ValueError("Target site must decode as a direct call or jump inside a declared region")
+    if unsupported_transfer(image, ins):
+        raise ValueError("Operand-size or far control transfer is outside the selected frame model")
+    seen, gaps, _, _, contested = walk(image, entries(image), config.get("instructionLimit", 10000))
+    boundary = ("entry-path instruction" if site in seen else CONTESTED_REASON if site in contested
+                else "raw byte candidate; instruction boundary unverified")
+    result = {"site": site, "mnemonic": ins.mnemonic, "size": ins.size, "boundary": boundary,
+              "nativeReachability": "unconfirmed"}
+    region = image.region(site)
+    if ins.mnemonic in ("call", "jmp"):
+        loaded = ins.operands[0].imm & image.mask
+        target = image.near_target(site, loaded)
+        result.update({"encoding": "relative", "loadedTarget": loaded,
+                       "loadedAddress": f"{loaded:08X}" if image.flat else _segmented(region["segment"], loaded),
+                       "relocated": None, "relocation": "relative transfers carry no relocation",
+                       "mapping": "source PE section table" if image.config.get("peMetadata") else f"declared mapping of region {region['name']}",
+                       "canonicalTarget": target, "target": None if target is None else _citation(image, target)})
+    else:
+        if ins.size != 5 or image.data[site] not in (0x9a, 0xea):
+            raise ValueError("Only the ptr16:16 far transfer encoding is supported")
+        raw_offset = int.from_bytes(image.data[site + 1:site + 3], "little")
+        raw_segment = int.from_bytes(image.data[site + 3:site + 5], "little")
+        result.update({"encoding": "ptr16:16", "operandSite": site + 3, "rawOffset": raw_offset, "rawSegment": raw_segment,
+                       "rawOperand": _segmented(raw_segment, raw_offset)})
+        fixup = image.fixups.get(site + 3)
+        if fixup is None:
+            result.update({"relocated": False, "canonicalTarget": None, "target": None,
+                           "reason": "no relocation or fixup covers the segment word; the raw operand is not a loaded address and no target is assigned"})
+        else:
+            if "raw" in fixup and fixup["raw"] != raw_segment:
+                raise ValueError("Relocation raw word disagrees with the encoded segment operand")
+            overlay = fixup.get("descriptor") is not None
+            result.update({"relocated": True, "kind": "FBOV fixup" if overlay else "MZ relocation", "evidence": fixup["evidence"],
+                           "loadSegment": fixup.get("loadSegment"), "resolvedSegment": fixup["segment"],
+                           "loadedAddress": _segmented(fixup["segment"], raw_offset)})
+            if overlay:
+                result.update({"storedWord": raw_segment, "descriptor": fixup["descriptor"], "storedLowBits": raw_segment & 7,
+                               "descriptorSegment": fixup.get("descriptorSegment"), "descriptorFlags": fixup.get("descriptorFlags"),
+                               "note": "the stored word is the descriptor index shifted left by three; it is neither the index nor a segment"})
+            else:
+                result["note"] = "the raw word is relative to the load image; the loader adds the load segment"
+            for name in ("loadedTarget", "trampoline", "targetError"):
+                if fixup.get(name) is not None:
+                    result[name] = fixup[name]
+            if "raw" not in fixup:
+                result["mappingProvenance"] = "relocation metadata supplied by the caller, not read from the source"
+            target, _ = image.far_target(site, ins)
+            result["canonicalTarget"] = target
+            result["target"] = None if target is None else _citation(image, target)
+    analyzer = query.get("analyzerAddress")
+    if analyzer is not None:
+        if not isinstance(analyzer, dict) or not analyzer.get("evidence"):
+            raise ValueError("analyzerAddress needs segment, offset and evidence")
+        shown = _segmented(integer(analyzer.get("segment"), 0, 65535, "analyzer segment"),
+                           integer(analyzer.get("offset"), 0, 65535, "analyzer offset"))
+        cited = result.get("target") or {}
+        identities = {"raw operand": result.get("rawOperand"), "loaded address": result.get("loadedAddress"),
+                      "canonical target": cited.get("analysisView") or cited.get("citation")}
+        matched = [name for name, value in identities.items() if value == shown]
+        result["analyzer"] = {"address": shown, "evidence": analyzer["evidence"], "matches": matched, "disagrees": not matched,
+                              "interpretation": ("equal only to the raw operand, which names unrelocated bytes"
+                                                 if matched == ["raw operand"] else
+                                                 "kept beside the derived chain; it never replaces the relocation, descriptor or trampoline identities")}
+    result["gaps"] = [g for g in gaps if g.get("site") == site]
+    return result
+
+
+RETURNS = {"ret": "near return", "retf": "far return", "iret": "interrupt return", "iretd": "interrupt return"}
+PORTS = ("in", "out", "insb", "insw", "insd", "outsb", "outsw", "outsd")
+
+
+def body(image, entry, limit=10000):
+    """Every instruction one entry reaches without entering a callee, and every way out of it.
+
+    Calls, interrupts and port accesses are followed to the next instruction, and each such
+    continuation is listed as an assumption. A direct jump to another established entry or
+    another region, and every far jump, ends the body as a tail transfer.
+    """
+    established = set(entries(image))
+    pending, seen, exits, calls, gaps, assumed, shared = [entry], {}, [], [], [], [], set()
+    while pending:
+        at = pending.pop()
+        if at in seen:
+            continue
+        if len(seen) >= limit:
+            gaps.append({"site": at, "reason": "instruction limit"})
+            break
+        ins = image.decode(at)
+        if ins is None:
+            gaps.append({"site": at, "reason": "undecoded or unmapped edge"})
+            continue
+        seen[at] = ins
+        if at != entry and at in established:
+            shared.add(at)
+        m, following = ins.mnemonic, at + ins.size
+        if unsupported_transfer(image, ins):
+            gaps.append({"site": at, "reason": "unsupported control-transfer frame encoding"})
+            continue
+        if m in RETURNS:
+            exits.append({"site": at, "kind": RETURNS[m], "cleanupBytes": ins.operands[0].imm if ins.operands else 0})
+            continue
+        if m == "hlt":
+            exits.append({"site": at, "kind": "halt"})
+            continue
+        if m in ("int", "int3", "into") or m in PORTS:
+            assumed.append({"site": at, "assumption": ("the interrupt returns to the next instruction" if m.startswith("int")
+                                                      else "the port access continues to the next instruction")})
+            pending.append(following)
+            continue
+        if m in ("jmp", "ljmp"):
+            target, provenance = call_target(image, at, ins)
+            if target is None:
+                exits.append({"site": at, "kind": "unresolved jump", "reason": provenance.get("reason")})
+                gaps.append({"site": at, "reason": "jump target unresolved; the body may continue elsewhere"})
+            elif m == "ljmp" or (target in established and target != entry) or image.region(target) is not image.region(at):
+                exits.append({"site": at, "kind": "tail transfer", "target": target})
+            else:
+                pending.append(target)
+            continue
+        if m in ("call", "lcall"):
+            target, provenance = call_target(image, at, ins)
+            calls.append({"site": at, "target": target, "encoding": m,
+                          **({} if target is not None else {"reason": provenance.get("reason")})})
+            assumed.append({"site": at, "assumption": "the callee returns to the next instruction"})
+            pending.append(following)
+            continue
+        if m.startswith("j") or m.startswith("loop"):
+            target, provenance = call_target(image, at, ins)
+            if target is None:
+                gaps.append({"site": at, "reason": provenance.get("reason", "branch target outside declared regions")})
+            else:
+                pending.append(target)
+        pending.append(following)
+    intervals = sorted((at, at + ins.size) for at, ins in seen.items())
+    runs, overlaps = [], []
+    for start, end in intervals:
+        if runs and start < runs[-1][1]:
+            overlaps.append(start)
+        if runs and start <= runs[-1][1]:
+            runs[-1][1] = max(runs[-1][1], end)
+        else:
+            runs.append([start, end])
+    for at in overlaps:
+        gaps.append({"site": at, "reason": OVERLAP_REASON})
+    holes = [{"start": a[1], "end": b[0]} for a, b in zip(runs, runs[1:])]
+    covered = sum(end - start for start, end in runs)
+    return {"entry": entry, "instructions": seen, "intervals": [{"start": a, "end": b} for a, b in runs], "holes": holes,
+            "span": {"start": runs[0][0], "end": runs[-1][1]} if runs else None, "coveredBytes": covered,
+            "exits": sorted(exits, key=lambda e: e["site"]), "calls": sorted(calls, key=lambda c: c["site"]),
+            "assumedContinuations": sorted(assumed, key=lambda a: a["site"]), "sharedEntries": sorted(shared),
+            "gaps": gaps, "complete": bool(exits) and not gaps}
+
+
+def _body_report(b):
+    return {k: v for k, v in b.items() if k != "instructions"} | {"instructionCount": len(b["instructions"])}
+
+
+def _analyzer_function(config):
+    claim = config.get("analyzerFunction")
+    if claim is None:
+        return None
+    if not isinstance(claim, dict) or not claim.get("evidence"):
+        raise ValueError("analyzerFunction needs start and evidence")
+    return claim
+
+
+def bounds(image, config):
+    entry = integer(config.get("entry"), 0, len(image.data) - 1, "entry")
+    if entry not in entries(image):
+        raise ValueError("Bounds entry must be an established region entry")
+    b = body(image, entry, config.get("instructionLimit", 10000))
+    result = _body_report(b)
+    claim = _analyzer_function(config)
+    if claim is not None:
+        start = integer(claim.get("start"), 0, len(image.data) - 1, "analyzer start")
+        size = integer(claim.get("bodyBytes"), 1, len(image.data), "analyzer body bytes")
+        end = start + size
+        result["analyzer"] = {
+            "start": start, "bodyBytes": size, "evidence": claim["evidence"], "startMatches": start == entry,
+            "bodyBytesMatch": size == b["coveredBytes"], "startPlusBodyBytes": end,
+            "exitsAtOrBeyond": [e for e in b["exits"] if e["site"] >= end],
+            "instructionsAtOrBeyond": sorted(at for at in b["instructions"] if at >= end),
+            "interpretation": "an analyzer size counts body bytes; start plus size is not an end address unless the body is one contiguous run"}
+    result["interpretation"] = ("complete means every reached path ends in a listed exit within the declared regions and the "
+                                "listed continuation assumptions; it is not a complete reading under the standard")
+    return result
+
+
+def owner(image, config):
+    query = config.get("query", {})
+    if not isinstance(query, dict):
+        raise ValueError("Owner query must be an object")
+    site = integer(query.get("site"), 0, len(image.data) - 1, "owner site")
+    if image.region(site) is None:
+        raise ValueError("Owner site is outside declared code")
+    entry_limit = integer(config.get("entryLimit", 64), 1, 256, "entryLimit")
+    established = entries(image)
+    owners, inside, gaps = [], [], []
+    for index, entry in enumerate(established):
+        if index >= entry_limit:
+            gaps.append({"entries": established[index:], "reason": "entry limit; these entries were not checked"})
+            break
+        b = body(image, entry, config.get("instructionLimit", 10000))
+        if site in b["instructions"]:
+            owners.append({"entry": entry, "complete": b["complete"], "span": b["span"],
+                           "exitsBeforeSiteByAddress": [e for e in b["exits"] if e["site"] < site]})
+        elif any(at < site < at + ins.size for at, ins in b["instructions"].items()):
+            inside.append({"entry": entry, "reason": "the site is inside an instruction this entry reaches, not at its start"})
+    result = {"site": site, "owners": owners, "insideOtherInstructions": inside, "gaps": gaps,
+              "shared": len(owners) > 1,
+              "verdict": ("unowned: no established entry reaches this site" if not owners else
+                          "shared by several entries" if len(owners) > 1 else "one established entry reaches this site"),
+              "interpretation": "ownership is reachability from established entries without entering callees; a return or "
+                                "prologue between an entry and the site by address is a warning, never a boundary"}
+    claim = _analyzer_function(config)
+    if claim is not None:
+        start = integer(claim.get("start"), 0, len(image.data) - 1, "analyzer start")
+        hypothesis = body(image, start, config.get("instructionLimit", 10000)) if image.region(start) else None
+        result["analyzer"] = {
+            "start": start, "evidence": claim["evidence"], "established": start in established,
+            "agrees": any(o["entry"] == start for o in owners),
+            "reachesSite": None if hypothesis is None else site in hypothesis["instructions"],
+            "exitsBeforeSiteByAddress": [] if hypothesis is None else [e for e in hypothesis["exits"] if start <= e["site"] < site],
+            "interpretation": "disagreement means the analyzer's function and the established entries assign this site differently"}
+    return result
+
+
 def _run_report(image, config, command):
     if command == "operand":
         return operand_provenance(image, config)
+    if command == "target":
+        return call_target_report(image, config)
+    if command == "bounds":
+        return bounds(image, config)
+    if command == "owner":
+        return owner(image, config)
     if command == "incoming":
         return incoming(image, config)
     if command == "uses":
@@ -488,4 +815,5 @@ def run_report(data, config, command):
     result = _run_report(image, image.config, command)
     return {"instructionModel": {"bits": image.bits, "addressModel": "flat32" if image.flat else "segmented16",
                                  "flatAssumption": "CS/DS/ES/SS bases zero; FS/GS bases unknown" if image.flat else None},
-            "sourceMapping": image.config.get("peMetadata"), "declaredRegions": image.regions, **result}
+            "sourceMapping": image.config.get("peMetadata"), "formatTables": image.config.get("formatTables"),
+            "declaredRegions": image.regions, **result}

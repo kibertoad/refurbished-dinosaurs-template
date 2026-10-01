@@ -226,6 +226,152 @@ class ReporterTests(unittest.TestCase):
         self.assertEqual(len(r["confirmed"]), 2)
         self.assertNotEqual(r["confirmed"][0]["provenance"]["resolvedSegment"], r["confirmed"][1]["provenance"]["resolvedSegment"])
 
+    def test_target_reports_near_mapping_and_unverified_boundary(self):
+        c = Code().branch("e8", "callee").emit("c3").label("data").branch("e8", "callee").label("callee").emit("c3")
+        data = c.bytes()
+        cfg = configuration(data, query={"site": 0})
+        r = run_report(data, cfg, "target")
+        self.assertEqual((r["boundary"], r["canonicalTarget"], r["loadedAddress"]), ("entry-path instruction", 7, "1000:0007"))
+        self.assertEqual(r["target"]["citation"], "1000:0007")
+        cfg["query"]["site"] = 4
+        self.assertIn("unverified", run_report(data, cfg, "target")["boundary"])
+
+    def test_target_marks_supplied_relocation_metadata_and_analyzer_identity(self):
+        data = bytes.fromhex("9a 05 00 00 00 c3")
+        cfg = configuration(data, query={"site": 0, "analyzerAddress": {"segment": 0x1000, "offset": 5, "evidence": "synthetic"}},
+                            relocations=[{"site": 3, "segment": 0x1000, "evidence": "synthetic supplied pair"}])
+        r = run_report(data, cfg, "target")
+        self.assertEqual((r["kind"], r["canonicalTarget"], r["loadedAddress"]), ("MZ relocation", 5, "1000:0005"))
+        self.assertIn("supplied", r["mappingProvenance"])
+        self.assertEqual(r["analyzer"]["matches"], ["loaded address", "canonical target"])
+        cfg["relocations"] = []
+        unrelocated = run_report(data, cfg, "target")
+        self.assertEqual((unrelocated["relocated"], unrelocated["target"]), (False, None))
+        cfg["query"]["site"] = 5
+        with self.assertRaisesRegex(ValueError, "direct call or jump"):
+            run_report(data, cfg, "target")
+
+    def test_bounds_follow_every_exit_past_a_hole(self):
+        c = Code().emit("85 c0").branch("74", "second").emit("c3 cc").label("second").emit("b8 01 00 c3")
+        data = c.bytes()
+        r = run_report(data, configuration(data, analyzerFunction={"start": 0, "bodyBytes": 9, "evidence": "synthetic analyzer size"}), "bounds")
+        self.assertEqual([e["site"] for e in r["exits"]], [4, 9])
+        self.assertEqual(r["holes"], [{"start": 5, "end": 6}])
+        self.assertEqual((r["coveredBytes"], r["span"], r["complete"]), (9, {"start": 0, "end": 10}, True))
+        self.assertTrue(r["analyzer"]["bodyBytesMatch"])
+        self.assertEqual([e["site"] for e in r["analyzer"]["exitsAtOrBeyond"]], [9])
+
+    def test_bounds_end_at_tail_transfer_and_list_call_assumptions(self):
+        c = Code().branch("e8", "other").branch("e9", "other").label("other").emit("c3")
+        data = c.bytes(); cfg = configuration(data)
+        cfg["regions"][0]["entries"] = [0, 6]
+        r = run_report(data, cfg, "bounds")
+        self.assertEqual(r["exits"], [{"site": 3, "kind": "tail transfer", "target": 6}])
+        self.assertEqual([a["site"] for a in r["assumedContinuations"]], [0])
+        self.assertEqual(r["calls"][0]["target"], 6)
+
+    def test_owner_rejects_an_analyzer_function_that_returns_before_the_site(self):
+        c = Code().emit("b8 00 00 c3").label("handler").branch("e8", "callee").emit("c3").label("callee").emit("c3")
+        data = c.bytes(); cfg = configuration(data, query={"site": 4}, analyzerFunction={"start": 0, "evidence": "synthetic analyzer function"})
+        cfg["regions"][0]["entries"] = [0, 4, 8]
+        r = run_report(data, cfg, "owner")
+        self.assertEqual([o["entry"] for o in r["owners"]], [4])
+        self.assertFalse(r["analyzer"]["agrees"])
+        self.assertFalse(r["analyzer"]["reachesSite"])
+        self.assertEqual([e["site"] for e in r["analyzer"]["exitsBeforeSiteByAddress"]], [3])
+
+    def test_owner_reports_shared_tails_and_interior_sites(self):
+        data = bytes.fromhex("b8 00 00 b8 01 00 c3")
+        cfg = configuration(data, query={"site": 3})
+        cfg["regions"][0]["entries"] = [0, 3]
+        r = run_report(data, cfg, "owner")
+        self.assertTrue(r["shared"])
+        self.assertEqual([o["entry"] for o in r["owners"]], [0, 3])
+        self.assertEqual(run_report(data, cfg, "bounds")["sharedEntries"], [3])
+        cfg["query"]["site"] = 4
+        interior = run_report(data, cfg, "owner")
+        self.assertEqual(interior["owners"], [])
+        self.assertEqual(len(interior["insideOtherInstructions"]), 2)
+
+    def test_incoming_labels_a_search_of_part_of_a_declared_segment_partial(self):
+        data = bytes.fromhex("e8 01 00 c3 c3 e8 fc ff c3")
+        cfg = configuration(data, target=4, controls=[0], segments=[{"name": "code", "start": 0, "end": 9, "evidence": "synthetic segment"}])
+        cfg["regions"] = [{**cfg["regions"][0], "name": "first", "end": 5, "entries": [0]},
+                          {**cfg["regions"][0], "name": "second", "start": 5, "ip": 5, "entries": [5]}]
+        cfg["searchRegions"] = ["first"]
+        narrow = run_report(data, cfg, "incoming")
+        self.assertTrue(narrow["partialSearch"])
+        self.assertEqual(narrow["coverage"][0]["unsearched"], [{"start": 5, "end": 9}])
+        self.assertFalse(narrow["negativeUsable"])
+        cfg["searchRegions"] = ["first", "second"]
+        whole = run_report(data, cfg, "incoming")
+        self.assertFalse(whole["partialSearch"])
+        self.assertEqual([h["site"] for h in whole["confirmed"]], [0, 5])
+
+    def test_incoming_says_where_each_unverified_candidate_sits(self):
+        hidden = bytes.fromhex("ff e0 e8 01 00 c3 c3")
+        cfg = configuration(hidden, target=6)
+        cfg["regions"][0]["entries"] = [0, 6]
+        r = run_report(hidden, cfg, "incoming")
+        self.assertEqual(r["candidates"][0]["position"]["undecodedRange"], {"start": 2, "end": 6, "region": "synthetic"})
+        self.assertEqual(r["unresolvedTransfers"], [{"site": 0, "kind": "jmp", "reason": "computed transfer remains unresolved"}])
+        embedded = bytes.fromhex("c7 06 00 02 e8 03 00 c3 c3 cc c3")
+        cfg = configuration(embedded, target=10)
+        cfg["regions"][0]["entries"] = [0, 10]
+        r = run_report(embedded, cfg, "incoming")
+        self.assertEqual([c["site"] for c in r["candidates"]], [4])
+        self.assertEqual(r["candidates"][0]["position"]["insideInstruction"], 0)
+
+    def test_shift_and_rotate_through_carry_build_a_double_word(self):
+        r = report("b8 00 80 ba 01 00 d1 e0 d1 d2 c3")
+        regs = r["paths"][0]["registers"]
+        self.assertEqual((regs["ax"]["value"], regs["dx"]["value"]), (0, 3))
+        symbolic = report("d1 e0 d1 d2 c3")
+        self.assertIsNone(symbolic["paths"][0]["registers"]["dx"]["value"])
+        self.assertEqual(events(symbolic, "arithmetic")[-1]["operation"], "rcl")
+
+    def test_add_with_carry_propagates_a_concrete_carry(self):
+        r = report("b8 01 00 ba 05 00 05 ff ff 83 d2 00 c3")
+        regs = r["paths"][0]["registers"]
+        self.assertEqual((regs["ax"]["value"], regs["dx"]["value"]), (0, 6))
+        self.assertEqual(events(r, "arithmetic")[-1]["carryOut"]["value"], 0)
+
+    def test_carry_branches_follow_explicit_carry_and_survive_inc(self):
+        self.assertEqual(len(report("f9 40 72 01 c3 c3")["paths"]), 1)
+        self.assertEqual(len(report("d0 e0 72 01 c3 c3")["paths"]), 2)
+        self.assertEqual(len(report("b0 80 d0 e0 72 01 c3 c3")["paths"]), 1)
+        self.assertEqual(len(report("f9 9c f8 9d 72 01 c3 c3")["paths"]), 1)
+
+    def test_neg_not_and_rotate_without_carry(self):
+        r = report("b8 05 00 f7 d8 72 01 c3 c3")
+        self.assertEqual(len(r["paths"]), 1)
+        self.assertEqual(r["paths"][0]["registers"]["ax"]["value"], 0xfffb)
+        self.assertEqual(report("b0 81 d0 c0 c3")["paths"][0]["registers"]["al"]["value"], 3)
+        self.assertEqual(report("b8 0f 00 f7 d0 c3")["paths"][0]["registers"]["ax"]["value"], 0xfff0)
+
+    def test_loop_counts_down_and_visit_limit_is_explicit(self):
+        r = report("b9 03 00 31 c0 40 e2 fd c3")
+        self.assertTrue(r["completeWithinModel"])
+        self.assertEqual(r["paths"][0]["registers"]["ax"]["value"], 3)
+        stopped = report("b9 0a 00 31 c0 40 e2 fd c3")
+        self.assertIn("visitLimit", stopped["paths"][0]["stop"])
+        raised = report("b9 0a 00 31 c0 40 e2 fd c3", visitLimit=16)
+        self.assertEqual(raised["paths"][0]["registers"]["ax"]["value"], 10)
+        self.assertEqual(len(report("e3 01 c3 c3")["paths"]), 2)
+        self.assertEqual(len(report("31 c9 e3 01 c3 c3")["paths"]), 1)
+
+    def test_mul_and_div_keep_both_halves_and_divide_errors(self):
+        r = report("b8 34 12 bb 00 01 f7 e3 72 01 c3 c3")
+        regs = r["paths"][0]["registers"]
+        self.assertEqual((regs["ax"]["value"], regs["dx"]["value"], len(r["paths"])), (0x3400, 0x12, 1))
+        q = report("b8 64 00 31 d2 bb 07 00 f7 f3 c3")["paths"][0]["registers"]
+        self.assertEqual((q["ax"]["value"], q["dx"]["value"]), (14, 2))
+        signed = report("b8 9c ff ba ff ff bb 07 00 f7 fb c3")["paths"][0]["registers"]
+        self.assertEqual((signed["ax"]["value"], signed["dx"]["value"]), (0xfff2, 0xfffe))
+        self.assertIn("divide by zero", report("b8 01 00 31 d2 31 db f7 f3 c3")["paths"][0]["stop"])
+        unknown_divisor = report("f7 f3 c3")
+        self.assertEqual(unknown_divisor["paths"][0]["conditionalModels"][0]["assumption"], "no divide error")
+
     def test_dispatch_normalization_and_rejection(self):
         c = Code().emit("83 e0 7f 83 f8 02").branch("73", "reject").emit("89 c3 d1 e3").label("dispatch").emit("ff 27").label("reject").emit("c3")
         c.label("table").emit("20 00 30 00")
