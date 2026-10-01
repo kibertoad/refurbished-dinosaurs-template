@@ -1,45 +1,45 @@
 {
   "standardVersion": 1,
-  "captured": "2026-09-30",
+  "captured": "2026-10-01",
   "files": [
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "3b4e6fcfca887620cdf13c8a8e62f9ca53133d60",
+      "revision": "82deb767ab64ca9922bb6347d66d9856b7640e91",
       "source": "website/content/english/pages/documentation-standard.md",
       "path": "docs/upstream/documentation-standard.md",
-      "sha256": "8e03d1af1429f7ee3a3cc8a817761f2f825e41d70eb1b9338736b752304a619a"
+      "sha256": "385416827bb1c72a1933f9afb0b74215b7c0c98ed81d5ec9145c6d32bdcfcc3b"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "3b4e6fcfca887620cdf13c8a8e62f9ca53133d60",
+      "revision": "82deb767ab64ca9922bb6347d66d9856b7640e91",
       "source": "website/content/english/pages/methodology.md",
       "path": "docs/upstream/methodology.md",
       "sha256": "ac33ad93c35f1dbd9461ca9011947c8f6324e3c242007bd7bede390567b309f3"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "3b4e6fcfca887620cdf13c8a8e62f9ca53133d60",
+      "revision": "82deb767ab64ca9922bb6347d66d9856b7640e91",
       "source": "website/content/english/pages/work-protocol.md",
       "path": "docs/upstream/work-protocol.md",
       "sha256": "639f3edffdf54226b8b0277d5bbf11017929a5ed8cee5b5eaa1c55e267da7f75"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "3b4e6fcfca887620cdf13c8a8e62f9ca53133d60",
+      "revision": "82deb767ab64ca9922bb6347d66d9856b7640e91",
       "source": "LICENSE",
       "path": "docs/upstream/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-      "revision": "c36182046f3eb71e6485163b502bc4950880aa24",
+      "revision": "f5e62e083eda1aac202695682f8299dc681e4fd4",
       "source": "tools/check-documentation.mjs",
       "path": "vendor/check-documentation.mjs",
-      "sha256": "2a14f82889022f81de70a2fcb569c2dd4c8003ac64f8c146fb1b75ccbdf6b21d"
+      "sha256": "8a42196ced4f2f5abaa605dd8fb1d315a9d2ccb2fcae42972246da826c02a556"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-      "revision": "c36182046f3eb71e6485163b502bc4950880aa24",
+      "revision": "f5e62e083eda1aac202695682f8299dc681e4fd4",
       "source": "LICENSE",
       "path": "vendor/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"

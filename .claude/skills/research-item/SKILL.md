@@ -117,7 +117,7 @@ only the lines the link gives, and never a section already read this session.
    memory nothing wrote, timing, or the operating system. List its findings in
    the entry's `complete_reading`. The standard's
    [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 137-181)
-   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 413-461)
+   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 413-463)
    sections list what that covers; the parts most often missed are the
    segment each access actually goes through, every part of a stored call
    target, the other byte of a word written a byte at a time, allocation
@@ -128,7 +128,10 @@ only the lines the link gives, and never a section already read this session.
    checked to decode as a call; a dispatch table finding reads how the input
    becomes an index and what bounds it. An `offset` into overlay code lies
    inside a row of its build's Code ranges section, whose finding shows the
-   range holds code. A procedure keeps each call a later decision depends on
+   range holds code with a location that is not `kind: file-data`. Bytes of an
+   executable read as data are located with `kind: file-data` and an `offset`
+   (plus `unpacked: true` for bytes the unpacker writes outside the load image),
+   never to keep code out of the Code ranges check. A procedure keeps each call a later decision depends on
    as its own step, says what a rejected or abandoned call leaves in place,
    and marks with `# visible:` comments where a change becomes visible to
    other actors. An entry that depends on any of those needs

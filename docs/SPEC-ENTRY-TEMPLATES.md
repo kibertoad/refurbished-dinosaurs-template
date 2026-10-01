@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 323-778)
+sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 323-780)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -73,7 +73,8 @@ other_files:
 
 Code ranges is a table of the parts of each file that hold code located by
 offset, or `None.` where all code is located by address. A range is half-open,
-and a location's `offset` into overlay code lies wholly inside one row:
+a location's `offset` into overlay code lies wholly inside one row, and each
+row's finding has a location in that file that is not `kind: file-data`:
 
 ```markdown
 | File | Range | Overlay | Finding |
@@ -135,7 +136,7 @@ method: <static or dynamic>
 locations:
   - build: BLD-<ALIAS>
     file: <path from the build entry>
-    address: <range in the notation for the file's format, or offset: for data files and overlays>
+    address: <range in the notation for the file's format, or offset: for data files, overlays and kind: file-data>
 tool: <tool and version>
 environment: null
 ---
@@ -411,7 +412,7 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](upstream/documentation-standard.md#deviation-log) (lines 837-858)
+[deviation log](upstream/documentation-standard.md#deviation-log) (lines 839-860)
 section sets out. Delete it otherwise. IDs are never reused or renumbered, and a dropped deviation keeps
 its file.
 

@@ -360,7 +360,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 837-858)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 839-860)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 
@@ -691,3 +691,7 @@ Re-pinned to merged toolkit commit f5e62e083eda1aac202695682f8299dc681e4fd4, the
 ## Research queue tracking
 
 Added `tools/Check-ResearchTracking.mjs` to the fast gate. It checks that every listed area has a queue file (or split directory) with its heading, `Next ID:` line and sections in order, that no queue file names an unlisted area, and that each item has a well-formed ID, names existing, non-superseded spec entries with the first in the file's area, asks a question, says what settles it and what it blocks, and, under Blocked, what it waits on. IDs are unique and below their area's allocator. Every reading in an active entry's Open questions cites a queue item that names the entry; content no item can settle yet (a neutral name the standard requires the entry to list, or the observation that would confirm a reading where no run is possible) ends with `(No item: <why>)` instead, and an exemption with no reason fails. The check is structural: it never raises a status or declares a survey complete. `queue/RNG.md` and `queue/SAVE.md` seed the scaffold's two areas with empty queues. Synthetic tests cover missing queues, duplicate and dangling IDs, wrong ownership, allocator reuse, untracked questions, reasoned and empty exemptions, blocked records, consecutive and multi-paragraph items, malformed items, dotted build aliases, split directories, wrapped text and CRLF.
+
+## Executable file-data locations
+
+`docs/upstream/` moves from website `3b4e6fc` to `82deb76`, which holds kibertoad/refurbished-dinosaurs PRs 28, 29 and 30. The vendored checker and the CI action move from toolkit `c361820` to `f5e62e0`, which holds the matching checker changes from toolkit PRs 20 and 21. Bytes in an executable that are read as data can now be located with `kind: file-data` and an `offset` into the shipped file, or with `unpacked: true` and an offset into the unpacked file for bytes the unpacker writes outside the load image. A Code ranges row's finding needs a location in that file that is not `kind: file-data`. The build and finding templates, `AGENTS.md` and the research-item skill say the same, and section line ranges were regenerated with `node tools/upstream.mjs links --write`. `node tools/upstream.mjs verify`, `docs --check` and `links` pass, and so do the Node evidence, upstream, bridge and vendor tests apart from the bootstrap preservation test, which needs PowerShell.
