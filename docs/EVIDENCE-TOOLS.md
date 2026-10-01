@@ -148,3 +148,9 @@ The pinned toolkit reporter now accepts `sourceKind: "pe32"` for i386 executable
 ## Committed inventory verification
 
 `inventory-check` uses the ordinary hash-guarded MZ/FBOV source, `build` and `manifest`. Its `inventory` object names a local input `path` and `repositoryPath`, which must match the generated portable coverage destination; the local `path` must end with that `repositoryPath`, so the file read is the one the destination check names. Every start must carry the same manifest prefix, be written as the standard's eight-digit uppercase file offset (as `inventory` writes it), be unique and lie in mapped source. Body byte counts are positive/bounded and are never interpreted as end addresses. Committed TSV columns are start, size, optional researcher-authored name and out_of_scope. No analyzer names/code/bytes belong there; analyzer default names such as `FUN_0040` are rejected. A configured project retaining a historical path supplies `legacyPath` plus nonempty `legacyEvidence`; the checker validates that exact safe path but continues to report the portable canonical destination. A legacy allowance is an explicit research input, not proof of an arbitrary path's provenance.
+
+`x86-operand-candidates` inventories encoded displacement/immediate matches with
+prefix order/repeats, widths and overlap groups. Verified entry-path memory uses,
+rejected overlaps and unresolved boundaries remain distinct. Relative branches
+and implicit operands never match. Controls, scan caps and result caps keep
+partial search and incomplete groups explicit; see the pinned guide.

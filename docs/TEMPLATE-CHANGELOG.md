@@ -8,6 +8,16 @@ not here.
 
 A project created from this template may delete this file.
 
+## Overlapping operand candidate inventory, 2026-10-01
+
+- **Reporter.** Toolkit PR 38 merged at `1ef21ef`; adopt exact source/tests/guide.
+- **Behavior.** Encoded literal candidates retain prefix order/repeats, operand
+  widths, intersecting spans and entry-path classifications. Only verified memory
+  starts count; rejected or unresolved boundaries remain explicit. Implicit
+  operands and relative branches are excluded. Caps qualify groups and coverage.
+- **Checks.** Synthetic prefix, preceding/interior overlap, literal-only, repeated
+  prefix, cap and source-bridge controls accompany the pinned reporter.
+
 ## Indirect jump tables, relocated pointer inventories and ownership ranges, 2026-10-01
 
 - **Reporters.** The reporter pin moves from `313bb7d` to toolkit `c133cd4`,
