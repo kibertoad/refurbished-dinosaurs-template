@@ -227,15 +227,16 @@ existing artifact paths. Documentation states the prerequisite and normal CI pat
 Exit: canonical normal and offline validation pass; open a shared template PR and
 adopt only reviewed delivery. No new persisted file layout or owner decision.
 
-## Exact dispatch and pointer reporter adoption
+## Exact dispatch, pointer and ownership reporter adoption
 
-Tooling outcome: adopt merged toolkit b87064216317eeee0ac991a8b154d5b58a46534c
+Tooling outcome: adopt merged toolkit c133cd48bfe6cc3cb7126616996e7d548982a068
 including evidenced near-jump tables, canonical relocated-pointer exact/alias
-inventories and bounded pointer-domain exclusions. Evidence: merged toolkit
-PRs 33/34 and the configured-project source controls recorded separately.
+inventories, bounded pointer-domain exclusions, owner ranges, boundary checks
+and source-derived overlay export provenance. Evidence: merged toolkit PRs
+33-37 and the configured-project source controls recorded separately.
 Acceptance: source/guide/tests remain exact and hashed; the mapping includes
 both new modules and dispatch tests; normal template validation runs the pinned
-tests with the vendored Python module path. Existing source identity, caps,
+tests unchanged, with no module-path override. Existing source identity, caps,
 partial-search and unresolved-flow safeguards remain intact. No original
 content, game claims or runtime access. Exit: exact pin, synthetic reporter
 checks and canonical template validation pass; publish a reviewable template PR.

@@ -119,7 +119,12 @@ the relocation or FBOV fixup, the stored descriptor word and decoded index, the
 trampoline and the canonical target, and compares an analyzer's address with
 each instead of replacing them. Use `x86-bounds` and `x86-owner` before joining a
 call to its caller or bounding a reading by an analyzer's size: an analyzer's
-size is a body-byte count and is never added to a start to make an end. Give
+size is a body-byte count and is never added to a start to make an end.
+`x86-owner` lists every checked entry's reached `ranges` and, for owners and the
+analyzer hypothesis, a `boundaryCheck` whose `joinableWithinModel` is false when
+a body is incomplete, contested, stopped at a gap or the entry limit left
+entries undecoded. Its `overlayExports` come only from the source FBOV tables;
+a config that supplies them is rejected. Give
 `formatControls` the build's known relocation, descriptor, overlay, fixup and
 trampoline counts so a misread table fails the query. Declare a resident
 segment's bounds from the build's code ranges in `segments` so an incoming

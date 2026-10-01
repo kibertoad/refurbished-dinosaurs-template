@@ -8,12 +8,12 @@ not here.
 
 A project created from this template may delete this file.
 
-## Indirect jump tables and relocated pointer inventories, 2026-10-01
+## Indirect jump tables, relocated pointer inventories and ownership ranges, 2026-10-01
 
-- **Reporters.** The reporter pin moves from `313bb7d` to toolkit `b870642`,
+- **Reporters.** The reporter pin moves from `313bb7d` to toolkit `c133cd4`,
   where toolkit PRs
-  [33](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/33) and
-  [34](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/34)
+  [33](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/33) to
+  [37](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/37)
   merged. The mapping adds `pointer-inventory.mjs`, `x86/dispatch.py` and
   `tests/evidence/test_dispatch.py`.
 - **Behaviour.** CFG commands follow a segmented16 computed near word jump
@@ -23,11 +23,14 @@ A project created from this template may delete this file.
   reports still stop at the jump. `x86-pointers` inventories adjacent
   segment:offset pairs at declared MZ relocations and FBOV fixups naming a query
   target, as exact pairs, aliases, unresolved and excluded rows under one cap,
-  with positive controls. (`docs/BOUNDED-EVIDENCE-REPORTERS.md`,
-  `docs/EVIDENCE-TOOLS.md`.)
-- **Checks.** The pinned `test_dispatch.py` imports `x86` from the toolkit
-  layout, so `tools/Invoke-Validation.ps1` puts `tools/evidence/x86-reporter`
-  on `PYTHONPATH` for the Python suite only and restores it afterwards.
+  with positive controls. `x86-owner` adds every checked entry's reached
+  ranges, source-derived FBOV overlay exports and a `boundaryCheck` that is
+  never joinable for incomplete, contested or gap-stopped bodies or past the
+  entry limit; supplied `overlayExports` are rejected.
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
+- **Checks.** The pinned `test_dispatch.py` now falls back to the vendored
+  `tools/evidence/x86-reporter` layout like the other pinned suites, so
+  `tools/Invoke-Validation.ps1` needs no `PYTHONPATH` change.
 
 ## Validation reruns without restore, 2026-10-01
 

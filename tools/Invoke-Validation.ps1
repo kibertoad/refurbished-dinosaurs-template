@@ -89,16 +89,7 @@ try {
     & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Node documentation, queue or reporter-pin checks failed.' }
     $evidencePython = if ($env:EVIDENCE_PYTHON) { $env:EVIDENCE_PYTHON } else { 'python' }
-    # The pinned test_dispatch.py imports x86 from the toolkit layout; expose the vendored copy for this run only.
-    $previousPythonPath = $env:PYTHONPATH
-    $env:PYTHONPATH = @((Join-Path $repositoryRoot 'tools/evidence/x86-reporter'), $previousPythonPath |
-        Where-Object { $_ }) -join [IO.Path]::PathSeparator
-    try {
-        & $evidencePython -B -m unittest discover -s (Join-Path $repositoryRoot 'tests/evidence') -p 'test*.py'
-    }
-    finally {
-        $env:PYTHONPATH = $previousPythonPath
-    }
+    & $evidencePython -B -m unittest discover -s (Join-Path $repositoryRoot 'tests/evidence') -p 'test*.py'
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic x86 reporter tests failed. Install the pinned evidence requirements.' }
     & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/evidence/bridge.test.mjs') (Join-Path $repositoryRoot 'tests/evidence/vendor.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed.' }

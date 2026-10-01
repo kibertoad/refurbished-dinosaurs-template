@@ -295,7 +295,13 @@ class ReporterTests(unittest.TestCase):
         self.assertEqual([o["entry"] for o in r["owners"]], [4])
         self.assertFalse(r["analyzer"]["agrees"])
         self.assertFalse(r["analyzer"]["reachesSite"])
+        self.assertFalse(r["analyzer"]["boundaryCheck"]["joinableWithinModel"])
         self.assertEqual([e["site"] for e in r["analyzer"]["exitsBeforeSiteByAddress"]], [3])
+        self.assertEqual(r["analyzer"]["span"], {"start": 0, "end": 4})
+        self.assertEqual(r["analyzer"]["ranges"], [{"start": 0, "end": 4}])
+        self.assertTrue(r["analyzer"]["complete"])
+        self.assertTrue(r["owners"][0]["boundaryCheck"]["joinableWithinModel"])
+        self.assertEqual([e["entry"] for e in r["checkedEntries"]], [0, 4, 8])
 
     def test_owner_reports_shared_tails_and_interior_sites(self):
         data = bytes.fromhex("b8 00 00 b8 01 00 c3")
@@ -463,11 +469,27 @@ class ReporterTests(unittest.TestCase):
         cfg["regions"][0]["entries"] = [0, 1]
         r = run_report(data, cfg, "owner")
         self.assertEqual([o["entry"] for o in r["owners"]], [0])
+        self.assertFalse(r["owners"][0]["boundaryCheck"]["joinableWithinModel"])
         self.assertEqual(r["owners"][0]["contestedBy"], [{"entry": 1, "site": 0, "otherSite": 1},
                                                          {"entry": 1, "site": 0, "otherSite": 2}])
         self.assertEqual(r["contestedOwners"], [0])
         self.assertTrue(r["verdict"].startswith("unresolved"))
         self.assertTrue(r["analyzer"]["contested"])
+        cfg["regions"][0]["entries"] = [0, 1]
+        cfg["entryLimit"] = 1
+        limited = run_report(data, cfg, "owner")
+        self.assertEqual(limited["owners"][0]["contestedBy"], [])
+        self.assertFalse(limited["owners"][0]["boundaryCheck"]["joinableWithinModel"])
+        cfg.update(query={"site": 2}, analyzerFunction={"start": 1, "evidence": "synthetic unchecked entry"})
+        unchecked = run_report(data, cfg, "owner")
+        self.assertTrue(unchecked["analyzer"]["reachesSite"])
+        self.assertFalse(unchecked["analyzer"]["boundaryCheck"]["joinableWithinModel"])
+        cfg.update(query={"site": 3}, analyzerFunction={"start": 0, "evidence": "synthetic analyzer function"})
+        del cfg["entryLimit"]
+        cfg["overlayExports"] = [{"descriptor": 1}]
+        with self.assertRaisesRegex(ValueError, "integer entry"):
+            run_report(data, cfg, "owner")
+        del cfg["overlayExports"]
         cfg["regions"][0]["entries"] = [0]
         alone = run_report(data, cfg, "owner")
         self.assertEqual((alone["owners"][0]["contestedBy"], alone["contestedOwners"]), ([], []))
@@ -819,6 +841,11 @@ class ReporterTests(unittest.TestCase):
             result = subprocess.run(args, capture_output=True, text=True)
             self.assertEqual(result.returncode, 1)
             self.assertIn("baseline", result.stderr)
+            cfg["sha256"] = hashlib.sha256(data).hexdigest(); cfg["overlayExports"] = []
+            path.write_text(json.dumps(cfg))
+            result = subprocess.run(args, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("source-derived", result.stderr)
 
 
 
