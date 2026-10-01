@@ -8,6 +8,22 @@ not here.
 
 A project created from this template may delete this file.
 
+## Validation reruns without restore, 2026-10-01
+
+- **Behaviour.** `tools/Invoke-Validation.ps1 -NoRestore` skips only
+  `dotnet restore` and uses the restore state a normal run left in the
+  checkout; every policy, configuration, infrastructure, Node and Python check,
+  the build and the tests still run, and a missing restore state fails through
+  .NET diagnostics with no restore fallback. Normal runs and CI still restore.
+  Evidence: a configured project's validation failed on NuGet service and
+  signature endpoints although its packages were already restored.
+- **Checks.** `tests/upstream/offline-validation.test.mjs`, in the fast gate,
+  drives a copy of the script with command doubles: default restore, no
+  restore and `--no-restore` consumers under the switch, unchanged checks and
+  test filters, and a failed build propagating without a restore. The gate
+  passes the PowerShell running it to the test, and the test skips when no
+  PowerShell 7 is available. (`docs/VALIDATION.md`.)
+
 ## Call targets, function bounds, incoming coverage and carry arithmetic, 2026-10-01
 
 - **Reporters.** The reporter pin moves from `7da1b93` to toolkit `313bb7d`,
