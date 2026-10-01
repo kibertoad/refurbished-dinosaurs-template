@@ -82,7 +82,7 @@ runs for the checkout (one lock per checkout path), caps MSBuild at two workers
 by default, and stops only a `<Project>.Game` process whose executable lives
 inside this checkout; installed copies and unrelated `dotnet` processes are left
 alone. It runs `Verify-Repository.ps1` and `Verify-Configuration.ps1`, then
-restores, builds in Release, and runs the test suite with a 30-minute safety
+restores (unless `-NoRestore` is given), builds in Release, and runs the test suite with a 30-minute safety
 timeout.
 
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
@@ -106,6 +106,8 @@ accidental exclusion or a broken filter. `-ShutdownBuildServersAfterRun` stops
 the user's .NET build servers after a run; it is off by default because it also
 cools the build of any open IDE. Avoid running raw `dotnet build` and
 `dotnet test` concurrently in the checkout; use the serialized entry point.
+`-NoRestore` skips only the restore step, for a rerun of a checkout already
+restored by a normal run; see [Explicit rerun without restore](#explicit-rerun-without-restore).
 
 ## Reference capture
 

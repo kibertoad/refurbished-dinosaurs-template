@@ -218,8 +218,9 @@ restored for the same checkout and build paths. Normal invocation and CI retain
 restore. Evidence: configured-project validation failed on NuGet service/signature
 endpoints despite previously restored packages. No gameplay or spec change.
 Acceptance: -NoRestore skips only restore; policy, configuration, infrastructure,
-node/Python checks, build and tests remain required. Missing restore state fails without fallback; callers must restore again after dependency input changes. Existing test filters/count controls
-and serialization remain intact. Synthetic command doubles prove default restore,
+node/Python checks, build and tests remain required. Missing restore state fails
+without fallback; callers must restore again after dependency input changes.
+Existing test filters/count controls and serialization remain intact. Synthetic command doubles prove default restore,
 offline build/test arguments, retained checks and failure propagation. A configured
 project must pass a real offline rerun after normal validation has restored its
 existing artifact paths. Documentation states the prerequisite and normal CI path.
