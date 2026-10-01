@@ -28,12 +28,43 @@ A project created from this template may delete this file.
   adds ADC/SBB, NEG/NOT, rotates, one-operand MUL/IMUL/DIV/IDIV, JCXZ and the
   LOOP family, with `visitLimit` in place of the fixed four passes.
   (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
-- **Rules.** `docs/upstream/` moves from `82deb76` to `8d0bda2`, the head of
-  [kibertoad/refurbished-dinosaurs#31](https://github.com/kibertoad/refurbished-dinosaurs/pull/31),
-  which adds the call-target, boundary and ownership contracts, format-table
-  controls and the incoming-call coverage rule. Section links are rewritten to
-  the new line ranges. The vendored checker stays on toolkit `f5e62e0`.
-  Refresh to the merged revision before this merges.
+- **Rules.** `docs/upstream/` moves from `82deb76` to `ca39d07`, where
+  [kibertoad/refurbished-dinosaurs#31](https://github.com/kibertoad/refurbished-dinosaurs/pull/31)
+  merged. It adds the call-target, boundary and ownership contracts, format-table
+  controls and the incoming-call coverage rule. Under these contracts a near
+  call takes the caller's segment, an unresolved computed jump is an exit with
+  unknown targets, a query that gives no table counts is reported as unchecked,
+  and a repeat limit and a division that may overflow are named. Section links
+  are rewritten to the new line ranges. The vendored checker stays on toolkit
+  `f7da132`.
+
+## Addresses in code comments, and a pre-commit hook, 2026-10-01
+
+Adopts the parts of
+[kibertoad/chaos-overlords-new-chrome#268](https://github.com/kibertoad/chaos-overlords-new-chrome/pull/268)
+that apply to every restoration.
+
+- **Checker.** `vendor/check-documentation.mjs` and the CI pin move from
+  toolkit `f5e62e0` to `f7da132`, where
+  [toolkit PR 23](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/23)
+  merged.
+  An address a code comment gives must be recorded in an entry the comment
+  cites, or in the evidence of a cited entry. Neutral names (`fn_…`, `g_…`) are
+  always checked; plain `0x…` values only once the CI step gives `images`,
+  which `ci.yml` explains how to add.
+- **Local runs match CI.** `tools/upstream.mjs docs` passes the checker the
+  inputs the CI step gives under `with:`; a command-line option still wins.
+- **Pre-commit hook.** `.githooks/pre-commit` runs the gate's node checks on
+  the staged tree. The checks are listed once, in `tools/Invoke-NodeChecks.mjs`,
+  which `tools/Invoke-Validation.ps1` also runs. `tools/evidence/sync-x86.mjs`
+  now compares real paths before running, so a symlinked path (macOS's
+  temporary directory) no longer skips its check with exit 0.
+- **Rules.** `AGENTS.md`: evidence lives in the spec and is recorded before a
+  comment, test or commit message gives it; look for a new ID on the open pull
+  request branches too; enable the hook and do not bypass it.
+- **Acceptance.** `node tools/upstream.mjs verify`, `node tools/upstream.mjs links`
+  and `node tools/Invoke-NodeChecks.mjs` pass, and so does the upstream Node
+  suite apart from the bootstrap preservation test, which needs PowerShell.
 
 ## Variable uses past a stop, and website rules up to kibertoad/refurbished-dinosaurs@3b4e6fc, 2026-09-30
 
