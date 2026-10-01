@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Explicit local-checkout adoption; never fetches or refreshes upstream rules.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, realpathSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
@@ -49,7 +49,9 @@ export function adopt(checkout, base = root) {
   writeFileSync(resolve(base, "tools/evidence/x86-lock.json"), JSON.stringify(lock, null, 2) + "\n");
   return verify(base);
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+// Node resolves symlinks for the entry module, so compare real paths; a mismatch would skip the check and exit 0.
+const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();
+if (invokedDirectly) {
   try {
     const args = process.argv.slice(2);
     if (args.length === 1 && args[0] === "--check") console.log(`Reporter pin verified: ${verify().revision}`);

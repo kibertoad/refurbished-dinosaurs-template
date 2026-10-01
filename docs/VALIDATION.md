@@ -167,6 +167,16 @@ deviation that exists on `main`. The toolkit's
 [setup guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/documentation-standard-check.md)
 lists its inputs.
 
+The check also fails when a code comment gives an address that no entry the
+comment cites records, in its locations or text or in the evidence of an entry
+it cites. A neutral name (`fn_…`, `g_…`) is always an address. A plain `0x…`
+value is one only inside an image the job gives with the action's `images`
+input, so colours, masks and offsets are left alone; the template cannot know
+the original's image, so `ci.yml` only explains how to add it. Take the base
+and size from the finding that records them. A range larger than `max-range`
+(64 KiB by default), such as a whole section, records nothing inside it. When a
+comment fails, cite the finding that records the address, or write one.
+
 The verified offline runner and explicit refresh procedure are documented in
 [UPSTREAM-RULES](UPSTREAM-RULES.md). The canonical gate checks snapshot hashes,
 the matching CI pin, documentation, and synthetic evidence/snapshot tests.
@@ -181,12 +191,23 @@ node tools/upstream.mjs docs
 git add spec/index PARITY.md
 ```
 
+`tools/upstream.mjs docs` passes the checker the inputs the CI step gives
+under `with:` (`code`, `references`, `images`, `max-range` and `data-dirs`), so
+a local run checks what CI checks; an option given on its command line wins.
 `--check` reports problems without writing anything. `tools/Test-TemplateInfrastructure.ps1`
 fails if the workflow stops running the check or pins it to anything but a full
 commit SHA. The script does not check some items on the standard's list, such as
 the fixture schema and the hashes of saves and recordings; its guide lists them,
 and reviewers check those by hand. A save-patch write is given as a byte offset
 and value in the experiment's Setup section.
+
+`.githooks/pre-commit` runs the gate's node checks, listed once in
+`tools/Invoke-NodeChecks.mjs`, before each commit once a clone enables it with
+`git config core.hooksPath .githooks`. It copies the index to a temporary
+directory and checks that, so it judges what is being committed: unstaged edits
+neither hide a problem nor block a clean commit. The documentation check runs
+there with `--no-ksy`, so `.ksy` compile errors still surface only in the gate
+and CI. Without `node` the hook prints a warning and lets the commit through.
 
 ## Repository policy
 

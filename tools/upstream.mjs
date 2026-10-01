@@ -46,6 +46,33 @@ export function verifySnapshot(root = ROOT) {
   if (pins.length !== 1 || !pins[0].trim().startsWith(`- uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${checker.revision}`) || !/@[0-9a-f]{40}(?:\s|$)/.test(pins[0])) throw new Error("CI checker revision differs from the verified offline checker");
   return lock;
 }
+// The checker inputs the CI step gives under with:, as the arguments the action passes for them, so a
+// local run checks what CI checks. Only flat "key: value" lines are read; anything else fails.
+const INPUTS = ["code", "references", "images", "max-range", "data-dirs"];
+export function ciCheckerArgs(ci) {
+  const lines = ci.split(/\r?\n/), at = lines.findIndex((line) => line.includes("kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@"));
+  if (at < 0) throw new Error("CI does not run the pinned checker action");
+  const indent = (line) => line.length - line.trimStart().length, ignored = (line) => !line.trim() || line.trim().startsWith("#");
+  const step = indent(lines[at]), args = [];
+  let inWith = false;
+  for (const line of lines.slice(at + 1)) {
+    if (ignored(line)) continue;
+    if (indent(line) <= step) break;
+    if (indent(line) === step + 2) {
+      inWith = /^with:\s*(?:#.*)?$/.test(line.trim());
+      if (!inWith && /^with:/.test(line.trim())) throw new Error("CI checker inputs must be a block of key: value lines");
+      continue;
+    }
+    if (!inWith) continue;
+    const m = /^([a-z-]+):(?:\s+(?:"([^"]*)"|'([^']*)'|([^\s#"'|>][^#]*?)))?\s*(?:#.*)?$/.exec(line.trim());
+    if (!m) throw new Error(`Unsupported CI checker input line: ${line.trim()}`);
+    const [, key, ...values] = m, value = values.find((v) => v !== undefined) ?? "";
+    if (!INPUTS.includes(key)) continue;
+    // The action always passes code and references, and the other inputs only when they are set.
+    if (value || key === "code" || key === "references") args.push(`--${key}`, value);
+  }
+  return args;
+}
 async function download(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(30000), headers: { "User-Agent": "restoration-template-upstream-check" } });
   if (!response.ok) throw new Error(`Upstream ${response.status}: ${url}`);
@@ -81,7 +108,9 @@ export async function main(args, root = ROOT) {
   if (command === "verify" && !rest.length) { verifySnapshot(root); console.log("Pinned Standard v1, Methodology, Protocol and checker digests verified offline; upstream freshness not checked."); return 0; }
   if (command === "docs") {
     verifySnapshot(root);
-    const result = spawnSync(process.execPath, [resolve(root, "vendor/check-documentation.mjs"), "--root", root, ...rest], { cwd: root, stdio: "inherit" });
+    // The checker keeps the last value of an option, so arguments given here override CI's inputs.
+    const fromCi = ciCheckerArgs(read(resolve(root, ".github/workflows/ci.yml")).toString("utf8"));
+    const result = spawnSync(process.execPath, [resolve(root, "vendor/check-documentation.mjs"), "--root", root, ...fromCi, ...rest], { cwd: root, stdio: "inherit" });
     if (result.error) throw result.error;
     return result.status ?? 1;
   }
