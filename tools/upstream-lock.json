@@ -29,20 +29,6 @@
       "source": "LICENSE",
       "path": "docs/upstream/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"
-    },
-    {
-      "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-      "revision": "f7da1328b2adc0a45865de45b35d42c88afdbc6b",
-      "source": "tools/check-documentation.mjs",
-      "path": "vendor/check-documentation.mjs",
-      "sha256": "3659202a132a8963321882d84d4af07e153a955c69e991511039b55efd1420b3"
-    },
-    {
-      "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-      "revision": "f7da1328b2adc0a45865de45b35d42c88afdbc6b",
-      "source": "LICENSE",
-      "path": "vendor/LICENSE",
-      "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"
     }
   ]
 }

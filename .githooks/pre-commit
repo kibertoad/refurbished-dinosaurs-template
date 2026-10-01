@@ -13,11 +13,23 @@ if ! command -v node >/dev/null 2>&1; then
   echo "pre-commit: node is not on the path, so the checks were skipped; CI runs them." >&2
   exit 0
 fi
+checkout=$(pwd)
 git_dir=$(git rev-parse --absolute-git-dir)
 # A separate step, so a failed mktemp stops the hook instead of leaving $staged empty.
 staged=$(mktemp -d)
 trap 'rm -rf "$staged"' EXIT
 trap 'exit 1' HUP INT TERM
 git checkout-index --all --prefix="$staged/"
+# The index snapshot omits ignored installed dependencies. Reuse the checkout's
+# package installation; staged manifests still verify its exact versions.
+if [ ! -d "$checkout/node_modules" ]; then
+  echo "pre-commit: run ./tools/Restore-ToolDependencies.ps1 first." >&2
+  exit 1
+fi
+cp -R "$checkout/node_modules" "$staged/node_modules"
+if [ -z "${EVIDENCE_PYTHON:-}" ]; then
+  EVIDENCE_PYTHON=$(node --input-type=module -e 'import {enginePython} from "./tools/tool-dependencies.mjs"; console.log(enginePython());')
+  export EVIDENCE_PYTHON
+fi
 export GIT_DIR="$git_dir" GIT_WORK_TREE="$staged"
 node "$staged/tools/Invoke-NodeChecks.mjs" --no-ksy

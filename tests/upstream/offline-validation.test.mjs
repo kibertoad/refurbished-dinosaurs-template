@@ -11,7 +11,7 @@ const literal=s=>"'"+s.replaceAll("'","''")+"'";
 function exercise(t,offline,failBuild=false){
  const dir=mkdtempSync(join(tmpdir(),'validation-offline-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));mkdirSync(join(dir,'tools'));
  copyFileSync(join(root,'tools/Invoke-Validation.ps1'),join(dir,'tools/Invoke-Validation.ps1'));
- for(const name of ['Verify-Repository','Verify-Configuration','Test-TemplateInfrastructure','Test'])writeFileSync(join(dir,'tools',name+'.ps1'),`param($RepositoryRoot,$MinimumExpectedTests,$TestFilter,[switch]$NoRestore)\n$global:checks.Add('${name}')\n${name==='Test'?'$global:forwarded=[bool]$NoRestore':''}\n$global:LASTEXITCODE=0\n`);
+ for(const name of ['Verify-Repository','Verify-Configuration','Test-TemplateInfrastructure','Restore-ToolDependencies','Test'])writeFileSync(join(dir,'tools',name+'.ps1'),`param($RepositoryRoot,$MinimumExpectedTests,$TestFilter,[switch]$NoRestore)\n$global:checks.Add('${name}')\n${name==='Test'?'$global:forwarded=[bool]$NoRestore':''}\n$global:LASTEXITCODE=0\n`);
  const driver=join(dir,'driver.ps1');writeFileSync(driver,`
 $ErrorActionPreference='Stop'
 $global:commands=[Collections.Generic.List[object]]::new()
@@ -42,7 +42,7 @@ test('validation restores normally and explicit NoRestore retains checks and no-
  assert(offline.commands.filter(a=>['build','test','publish'].includes(a[0])).every(a=>a.includes('--no-restore')));
  assert.deepEqual(offline.checks,normal.checks);
  if(existsSync(join(root,'tools/Test.ps1'))){assert.equal(offline.forwarded,true);assert.equal(normal.forwarded,false);assert(offline.checks.includes('Test'));}
- else {assert(offline.checks.includes('Verify-Repository'));assert(offline.checks.includes('Verify-Configuration'));assert(offline.checks.includes('Test-TemplateInfrastructure'));assert(offline.checks.includes('node'));assert(offline.checks.includes('python'));}
+ else {assert(offline.checks.includes('Verify-Repository'));assert(offline.checks.includes('Verify-Configuration'));assert(offline.checks.includes('Test-TemplateInfrastructure'));assert(offline.checks.includes('node'));assert(offline.checks.includes('Restore-ToolDependencies'));}
  const nativeTest=offline.commands.find(a=>a[0]==='test');if(nativeTest){assert(nativeTest.includes('SyntheticFilter'));assert(nativeTest.includes('--minimum-expected-tests'));}
 });
 test('NoRestore failure propagates without falling back to restore',{skip:noPwsh},t=>{

@@ -53,8 +53,6 @@ if (Test-Path -LiteralPath $configPath -PathType Leaf) {
 }
 & node (Join-Path $root 'tools/upstream.mjs') verify
 if ($LASTEXITCODE -ne 0) { throw 'Pinned upstream snapshot verification failed.' }
-& node (Join-Path $root 'tools/evidence/sync-x86.mjs') --check
-if ($LASTEXITCODE -ne 0) { throw 'Pinned evidence reporter verification failed.' }
 $findings = [Collections.Generic.List[string]]::new()
 
 $paths = @(& git -c "safe.directory=$safeRoot" -c core.quotepath=false -C $root ls-files --cached --others --exclude-standard)
@@ -65,7 +63,7 @@ $checkIdentifiers = $isConfigured -and $projectName -and $projectName -cne $temp
 
 foreach ($relative in $paths | Sort-Object -Unique) {
     # Immutable upstream text can contain examples of template identifiers; its digests are verified above.
-    if ($relative -match '^(docs/upstream|vendor|tools/evidence/x86-reporter)/' -or
+    if ($relative -match '^(docs/upstream)/' -or
         $relative -eq 'docs/BOUNDED-EVIDENCE-REPORTERS.md') { continue }
     $file = Join-Path $root $relative
     if (-not [IO.File]::Exists($file)) { continue }
