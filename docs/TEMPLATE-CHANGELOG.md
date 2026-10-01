@@ -670,6 +670,12 @@ Added ReportMemoryBlocks.java with capped page/exact-name selection, explicit to
 
 Added hash-guarded inventory-check to validate committed TSVs against build/manifest prefixes, mapped source bounds, numeric start uniqueness, bounded body-byte counts, allowed optional researcher columns and portable destinations. Explicit evidenced legacy paths support configured projects without silently renaming historical inventories. Synthetic tests cover CLI/identity failures and empty optional cells. The actual Dark Sun installed 2,153-row inventory passes; shared export reproduces its retained mapped export and view join exactly. Canonical gate passes 92 Python, 40 Node and 56 .NET tests with a zero-warning/error build.
 
+## Selected-window capture isolation
+
+Use selected-client PrintWindow capture, fail on unsupported or uniform results,
+and never fall back to desktop pixels. Add an offscreen Windows regression and
+document the distinction between captured client pixels and a verified game state.
+
 ## Research queue tracking
 
 Added `tools/Check-ResearchTracking.mjs` to the fast gate. It checks that every listed area has a queue file (or split directory) with its heading, `Next ID:` line and sections in order, that no queue file names an unlisted area, and that each item has a well-formed ID, names existing, non-superseded spec entries with the first in the file's area, asks a question, says what settles it and what it blocks, and, under Blocked, what it waits on. IDs are unique and below their area's allocator. Every reading in an active entry's Open questions cites a queue item that names the entry; content no item can settle yet (a neutral name the standard requires the entry to list, or the observation that would confirm a reading where no run is possible) ends with `(No item: <why>)` instead, and an exemption with no reason fails. The check is structural: it never raises a status or declares a survey complete. `queue/RNG.md` and `queue/SAVE.md` seed the scaffold's two areas with empty queues. Synthetic tests cover missing queues, duplicate and dangling IDs, wrong ownership, allocator reuse, untracked questions, reasoned and empty exemptions, blocked records, consecutive and multi-paragraph items, malformed items, dotted build aliases, split directories, wrapped text and CRLF.

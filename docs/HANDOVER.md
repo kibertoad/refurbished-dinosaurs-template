@@ -1,32 +1,20 @@
-# Handover
-
-Where the work outside any goal stands now. Rewrite this file at the end of
-every session that works under no goal; do not append to it. A session under a
-goal writes the same sections in its goal file's Handover instead, so two
-sessions running at once never write the same file. It is at most 200 lines.
-History is in git, open research questions are in `queue/`, the plan is in
-`docs/IMPLEMENTATION-PLAN.md`, the goals running are the files in
-`docs/goals/`, and the open live session requests are the files in
-`docs/live-sessions/`. Name items and entries by ID; what research found or
-tried belongs in the spec and the queue, never here.
-See the [work protocol](upstream/work-protocol.md#working-files) (lines 10-30).
+﻿# Handover
 
 ## State
 
-- Stage: _Intake, Runtime access, Survey, Slices (which slice) or Audit._
-- Last gate: _date, `./tools/Invoke-Validation.ps1` result, documentation check result._
+- Stage: unconfigured template; no game intake has started.
+- Last gate: 2026-10-01, `tools/Invoke-Validation.ps1` fast gate and offline documentation check passed on Windows using temporary portable PowerShell 7.
+- PR 35 capture tooling has Windows timeout, recovery, and physical client-edge acceptance coverage.
 
 ## Unfinished
 
-_Anything left half done and left out of the batch commits, with where it
-stands, what finishes it, and its `wip/` branch where the working tree does not
-outlive the session. `None.` when the working tree is clean and every batch was
-committed._
+None.
 
 ## Blockers
 
-None known.
+High-DPI and mixed-monitor capture acceptance needs a Windows desktop configured above 96 DPI. This session's desktop reports 96 DPI.
 
 ## Next
 
-_At most five items, each naming a queue item by its ID, a parity row or a slice._
+- Complete PR 35 capture acceptance at 125% or higher and across monitors with different scale factors; see `docs/VALIDATION.md`.
+- Resume the template's game-intake slice when an owner selects a game.
