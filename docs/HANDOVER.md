@@ -4,11 +4,12 @@
 
 - Stage: unconfigured template; no game intake has started.
 - Last gate: 2026-10-01, `tools/Invoke-Validation.ps1` fast gate and offline documentation check passed on Windows using temporary portable PowerShell 7.
-- PR 35 capture tooling has Windows timeout, recovery, and physical client-edge acceptance coverage.
+- Shared signing/release safeguards are ready for review: main-only preparation, bounded jobs, expected certificate verification and same-commit tag reuse. Synthetic tag/certificate controls and canonical validation pass.
+- PR 35 capture tooling retains its prior Windows timeout, recovery and physical client-edge coverage.
 
 ## Unfinished
 
-None.
+No unfinished changes. Live signing and repository environment protection are release-time acceptance, not exercised by synthetic tests.
 
 ## Blockers
 
