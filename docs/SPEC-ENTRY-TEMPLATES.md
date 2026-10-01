@@ -19,6 +19,13 @@ it is certain that there is nothing. The documentation standard check from
 runs on every pull request and reports what an entry is missing, as
 `docs/VALIDATION.md` describes.
 
+Each bullet in an Open questions section cites the queue item that tracks it
+(`(Q-COMBAT-004)`). A bullet no item can settle yet, such as a neutral name the
+standard requires the entry to list, or the observation that would confirm a
+reading where no run is possible, ends with `(No item: <why>)` instead.
+`tools/Check-ResearchTracking.mjs` fails any other bullet, and an exemption with
+no reason.
+
 Every Markdown file the standard defines, entries included, is at most 1,000
 lines. An entry that would pass the limit is split by what it describes, as
 the standard's [File size](upstream/documentation-standard.md#file-size) (lines 94-108)

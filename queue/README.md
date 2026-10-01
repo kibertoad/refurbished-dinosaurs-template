@@ -52,7 +52,11 @@ affects between `Agent run` and `Live session` in the same commit.
 Close an item by recording the answer in `spec/` and deleting the item in the
 same commit, which names it in a `Queue:` trailer so that it can still be
 found. An open reading of an entry, in its Open questions section, always has
-an item, and is cited by the item's ID. A complete static reading makes its
+an item, and is cited by the item's ID. Open questions content that no item
+can settle yet, such as a neutral name the standard requires the
+entry to list, or the observation that would confirm a reading where no run is
+possible, ends with `(No item: <why>)` so the check can tell it was left
+untracked on purpose. A complete static reading makes its
 entries `established` with no run. A reading that is not complete yet leaves
 them `supported`, and the same commit adds a `Static` item for what it still
 has to cover, and an `Emulated call` item where the harness can reach the
@@ -76,3 +80,8 @@ with a hyphen for the space: `queue/COMBAT/static.md`,
 `queue/COMBAT/agent-run.md`. Each opens with `# COMBAT: Static`. A section file
 that would still pass is split by the kind of the first entry each item names:
 `queue/COMBAT/static/RULE.md`.
+
+Run `node tools/Check-ResearchTracking.mjs` to check area files, stable IDs and
+links between active spec Open questions and their queue items. The canonical
+fast gate runs it. Passing this structural check does not prove a survey or
+research question complete.

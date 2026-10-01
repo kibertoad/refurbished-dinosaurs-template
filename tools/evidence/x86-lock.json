@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "92a182333e4c4c24a91024c16d4427f84c6269cb",
+  "revision": "f5e62e083eda1aac202695682f8299dc681e4fd4",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -45,7 +45,7 @@
     {
       "source": "tools/evidence/x86/machine.py",
       "path": "tools/evidence/x86-reporter/x86/machine.py",
-      "sha256": "8f7ccac0e264c6bc8d1e8a1fcc87ea7eef6778968203a9de0bfb70404ececdf3"
+      "sha256": "4f2f9ae35a81478ed1d7dc89b56ae0c1abfe628037c77fd7dfff1fc4611984cf"
     },
     {
       "source": "tools/evidence/x86/reports.py",

@@ -199,3 +199,14 @@ Pin the follow-up toolkit candidate with verified direct-edge overlap proof and 
 ## Instruction-owned operand adoption
 
 Pin the toolkit candidate with instruction-verified MOV/PUSH immediate ownership, declared segment provenance and effect-summary flag events. Exact guide/source/tests must share the pin; canonical gate proves synthetic boundary/width/CLI controls. Keep mapped addresses separate from native reachability and preserve unresolved raw words.
+
+## Research queue tracking
+
+Tooling batch. A spec can pass the documentation checker while its area queues
+are missing and its Open questions have no actionable queue references. Add a
+structural protocol check for area files, section order, stable allocators,
+entry ownership, duplicate IDs, dangling references and untracked questions.
+Blocked items require Waiting on. Empty RNG/SAVE scaffold queues allocate no
+questions. Acceptance: synthetic positive and negative fixtures, wrapped text
+and Windows line endings; the unconfigured scaffold passes. The check never
+promotes evidence or declares Survey complete. Include it in the fast gate.
