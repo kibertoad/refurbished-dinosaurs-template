@@ -247,3 +247,15 @@ between monitors with different scale factors remain unconfirmed locally.
 The canonical `tools/Invoke-Validation.ps1` fast gate passed using a temporary
 portable PowerShell 7 runtime, including the Windows acceptance tests and Release
 solution build. No original game or proprietary assets were used.
+
+## Explicit rerun without restore
+
+After normal validation has restored this checkout, run
+`./tools/Invoke-Validation.ps1 -NoRestore` to rerun using the existing restored
+lock/assets state when NuGet is unavailable. Normal invocation and CI still
+restore. The switch skips restore only; all policy/configuration/infrastructure,
+Python/Node checks, builds and tests remain required. It never retries a failed
+build or test by restoring automatically. Missing assets/packages fail through
+.NET diagnostics. Cached restore freshness is a caller prerequisite, not inferred
+by this switch: rerun normal validation after changing dependency inputs,
+lockfiles, SDK or build paths. Filters still mean partial test acceptance.
