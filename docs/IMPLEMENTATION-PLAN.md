@@ -262,3 +262,69 @@ pointer-provenance controls and every canonical validation check. Preserve
 configured identity and NoRestore behavior. No game claims or proprietary
 fixtures. Exit: template gate passes and the adoption PR is updated. No owner
 decision needed.
+
+## Locked package tooling bootstrap
+
+Tooling outcome: install exact npm dependencies from the repository lock and the
+engine/Capstone wheel hashes from Python requirements. The default Python
+environment lives under artifacts/evidence-python (Scripts/python.exe on Windows,
+bin/python elsewhere); EVIDENCE_PYTHON can select an explicitly supplied
+interpreter. Normal validation restores those dependencies; NoRestore checks
+existing dependencies and never installs or falls back to network. Standalone
+wrappers select that same project environment and give an actionable setup
+command when it is missing. Existing runtime/source-specific Ghidra wrappers
+combine the packaged shared scripts with retained project-specific scripts.
+Acceptance: locked clean normal restore, offline rerun, missing/mismatched engine
+and prepared-protocol controls, wrapper routing and configured source/control
+regressions pass; published archives contain the required modules/scripts.
+No gameplay, source manifest or rule snapshot refresh. Exit: canonical gates and
+reviewable template migration; no copied competing shared implementation remains.
+
+
+## Merged call-order release adoption
+
+Adopt toolkit PR 41 merge e1628488 and registry engine 0.2.0 by exact wheel hash.
+The already published npm reader forwards the command without a reader upgrade;
+no source-built substitute or rule snapshot refresh. Acceptance: the recorded
+caller sequences/shared guards, cleanup bytes, flat inventory and unresolved
+callee effects pass; false-alternative and all nonvacuous cap controls reject.
+Configured and template normal/offline gates pass. Existing source controls stay
+passing. Exit: exact installed delivery and whole Gap 15 contract rerun; remove
+only Gap 15 after those gates, retaining other stable IDs and requests.
+
+
+## Merged return-flow release adoption
+
+Adopt toolkit PR 43 merge 23bf64e3 through registry engine 0.3.0 by exact wheel
+hash. This supersedes the intermediate engine 0.2.0 lock and retains PR 41's
+call-order delivery. Acceptance: configured initializer, unsigned-reader,
+conditional wrapper and signed-dimension result-width/encoding controls and
+rejected false encoding/out-of-width/capped controls pass. Keep conditional
+callee models and stopped paths explicit. Existing source controls and Gap 15
+controls remain passing; configured/template normal and offline gates pass.
+Exit: complete cited contracts verified on installed packages; only then close
+proven Gap 15/26 contracts. No gameplay or rule snapshot changes.
+
+## Merged effect-ordering release adoption
+
+Adopt toolkit PR 45 merge eab782d7 through published engine 0.4.0 by exact
+wheel hash. It retains the merged call-order and return-flow commands while
+adding bounded effect timelines and qualified local restoration witnesses.
+Acceptance: normal and unreachable-proxy NoRestore canonical gates pass;
+installed-package call-order, return-flow and existing source controls pass.
+Verify the SCRIPT wrapper early-exit control through installed packages; stopped
+or capped source paths remain incomplete and cannot close Gap 27. No gameplay,
+research claims or rule snapshot changes. Exit: reproducible registry delivery,
+reviewable template lock update and recorded controls; full unresolved request
+contracts remain open until every cited case is covered.
+## Published reader 0.2.0 adoption
+
+Adopt the registry executable-reader 0.2.0 archive from toolkit release d938689
+with an exact npm lock. Engine 0.4.0 and checker 0.1.0 remain pinned. The release
+includes merged command help and prepared-reader integration; do not adopt the
+unmerged conditional-table candidate. Acceptance: normal and unavailable-proxy
+NoRestore canonical gates in configured and template checkouts, version/missing-
+dependency controls and all retained installed-package source drivers pass.
+Configs/reports stay in GAME_DIR; no candidate PYTHONPATH is used. Exit: validated
+locks, reviewable template PR update and source regression record. No gameplay,
+rule snapshot or persisted content-contract change.

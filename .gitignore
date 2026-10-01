@@ -32,3 +32,6 @@ __pycache__/
 hs_err_pid*.log
 replay_pid*.log
 *.hprof
+
+# Published tooling dependencies; only their locks are committed.
+node_modules/

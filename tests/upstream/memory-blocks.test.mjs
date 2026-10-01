@@ -4,6 +4,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,copyFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve,dirname} from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {ghidraScriptPath} from '../../tools/tool-dependencies.mjs';
 const root=resolve(import.meta.dirname,'../..');
 test('bounded memory map selection handles large maps and rejects invalid or ambiguous selections',(t)=>{
  const javac=process.env.JAVA_HOME?join(process.env.JAVA_HOME,'bin',process.platform==='win32'?'javac.exe':'javac'):'javac';
@@ -14,7 +15,7 @@ test('bounded memory map selection handles large maps and rejects invalid or amb
  try{
   put('ghidra/program/model/mem/MemoryBlock.java','package ghidra.program.model.mem; public class MemoryBlock { public String name; public MemoryBlock(String n){name=n;} public String getName(){return name;} public String getStart(){return "0";} public String getEnd(){return "7";} public long getSize(){return 8;} }');
   put('ghidra/app/script/GhidraScript.java',`package ghidra.app.script; import ghidra.program.model.mem.MemoryBlock; public abstract class GhidraScript { public String[] args; public Program currentProgram=new Program(); public String[] getScriptArgs(){return args;} public void println(String s){System.out.println(s);} public void printerr(String s){System.out.println("ERROR: "+s);} protected abstract void run() throws Exception; public static class Program { public Memory getMemory(){return new Memory();} } public static class Memory { public MemoryBlock[] getBlocks(){MemoryBlock[] b=new MemoryBlock[3546]; for(int i=0;i<b.length;i++)b[i]=new MemoryBlock(i<2?"duplicate":"block"+i); return b;} } }`);
-  copyFileSync(join(root,'tools/ghidra/ReportMemoryBlocks.java'),join(scratch,'ReportMemoryBlocks.java'));
+  copyFileSync(join(ghidraScriptPath(),'ReportMemoryBlocks.java'),join(scratch,'ReportMemoryBlocks.java'));
   put('Harness.java','public class Harness { public static void main(String[] args)throws Exception { ReportMemoryBlocks r=new ReportMemoryBlocks();r.args=args;r.run(); } }');
   const compile=spawnSync(javac,['-d',scratch,join(scratch,'ghidra/program/model/mem/MemoryBlock.java'),join(scratch,'ghidra/app/script/GhidraScript.java'),join(scratch,'ReportMemoryBlocks.java'),join(scratch,'Harness.java')],{encoding:'utf8'});assert.equal(compile.status,0,compile.stderr);
   const run=(...args)=>{const p=spawnSync(java,['-cp',scratch,'Harness',...args],{encoding:'utf8'});assert.equal(p.status,0,p.stderr);return p.stdout;};

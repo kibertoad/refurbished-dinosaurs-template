@@ -31,7 +31,8 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
-      - run: python -m pip install -r tools/evidence/x86-reporter/requirements.txt
+      - shell: pwsh
+        run: ./tools/Restore-ToolDependencies.ps1
       - name: Verify repository, build, and test
         shell: pwsh
         env:
@@ -55,14 +56,14 @@ jobs:
           # Full history, so the check can find where a pull request forked from main and fail
           # when it deletes a spec ID, area or deviation that exists there.
           fetch-depth: 0
-      # The toolkit publishes no tags, and its setup guide pins a commit on its main branch.
+      # The published checker version matches this pinned toolkit action.
       # A plain 0x address in a code comment is checked only inside the original's image, which the
       # template cannot know. Once a finding records the image's base and size (for a PE, its
       # ImageBase and SizeOfImage), add them to this step, and cite that finding here:
       #   with:
       #     images: 0x00400000..0x004C9000
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@f7da1328b2adc0a45865de45b35d42c88afdbc6b # zizmor: ignore[stale-action-refs]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@15ac5eef2fc2e1dcdec24eef7972588c476bf528 # @scientific-method/standard-checker@0.1.0
   installer:
     name: Windows installer
     needs: verify

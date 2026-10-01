@@ -12,7 +12,7 @@ export function checks(noKsy = false) {
   return [
     ["Pinned documentation check", "tools/upstream.mjs", ["docs", "--check", ...(noKsy ? ["--no-ksy"] : [])]],
     ["Research queue tracking", "tools/Check-ResearchTracking.mjs", []],
-    ["Pinned x86 reporters against their adoption record", "tools/evidence/sync-x86.mjs", ["--check"]],
+    ["Published tooling dependencies", "tools/tool-dependencies.mjs", ["verify"]],
   ];
 }
 export function main(args, root = ROOT) {
