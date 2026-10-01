@@ -15,12 +15,13 @@ Adopts the parts of
 that apply to every restoration.
 
 - **Checker.** `vendor/check-documentation.mjs` and the CI pin move from
-  toolkit `f5e62e0` to `ecec608`, the head of
-  [toolkit PR 23](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/23).
+  toolkit `f5e62e0` to `f7da132`, where
+  [toolkit PR 23](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/23)
+  merged.
   An address a code comment gives must be recorded in an entry the comment
   cites, or in the evidence of a cited entry. Neutral names (`fn_…`, `g_…`) are
   always checked; plain `0x…` values only once the CI step gives `images`,
-  which `ci.yml` explains how to add. Re-pin once that PR merges.
+  which `ci.yml` explains how to add.
 - **Local runs match CI.** `tools/upstream.mjs docs` passes the checker the
   inputs the CI step gives under `with:`; a command-line option still wins.
 - **Pre-commit hook.** `.githooks/pre-commit` runs the gate's node checks on

@@ -174,7 +174,8 @@ value is one only inside an image the job gives with the action's `images`
 input, so colours, masks and offsets are left alone; the template cannot know
 the original's image, so `ci.yml` only explains how to add it. Take the base
 and size from the finding that records them. A range larger than `max-range`
-(64 KiB by default), such as a whole section, records nothing inside it. When a
+(64 KiB by default), such as a whole section, records only its two ends, nothing
+inside it. When a
 comment fails, cite the finding that records the address, or write one.
 
 The verified offline runner and explicit refresh procedure are documented in

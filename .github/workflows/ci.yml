@@ -62,7 +62,7 @@ jobs:
       #   with:
       #     images: 0x00400000..0x004C9000
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@ecec608fcee43631386f12297c7df2cc8ef903ce # zizmor: ignore[stale-action-refs]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@f7da1328b2adc0a45865de45b35d42c88afdbc6b # zizmor: ignore[stale-action-refs]
   installer:
     name: Windows installer
     needs: verify
