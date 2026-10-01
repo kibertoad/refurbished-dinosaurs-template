@@ -94,8 +94,8 @@ Coverage describes analyzer-discovered functions, not every function that exists
 
 The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
 `x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation`, `x86-dispatch`,
-`x86-operand`, `x86-target`, `x86-bounds` and `x86-owner` commands use the pinned
-toolkit reporter. Install its Python dependency with
+`x86-operand`, `x86-target`, `x86-bounds`, `x86-owner` and `x86-pointers`
+commands use the pinned toolkit reporter. Install its Python dependency with
 `python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
 See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
 In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
@@ -119,11 +119,26 @@ the relocation or FBOV fixup, the stored descriptor word and decoded index, the
 trampoline and the canonical target, and compares an analyzer's address with
 each instead of replacing them. Use `x86-bounds` and `x86-owner` before joining a
 call to its caller or bounding a reading by an analyzer's size: an analyzer's
-size is a body-byte count and is never added to a start to make an end. Give
+size is a body-byte count and is never added to a start to make an end.
+`x86-owner` lists every checked entry's reached `ranges` and, for owners and the
+analyzer hypothesis, a `boundaryCheck` whose `joinableWithinModel` is false when
+a body is incomplete, contested, stopped at a gap or the entry limit left
+entries undecoded. Its `overlayExports` come only from the source FBOV tables;
+a config that supplies them is rejected. Give
 `formatControls` the build's known relocation, descriptor, overlay, fixup and
 trampoline counts so a misread table fails the query. Declare a resident
 segment's bounds from the build's code ranges in `segments` so an incoming
 search over part of it is reported as partial.
+
+A computed near word jump (segmented16 only) can be followed through a table
+declared in `indirectJumps`, with the consumer and table-layout evidence and an
+explicit `exhaustive` flag; the CFG commands (`x86-bounds`, `x86-owner`,
+`x86-incoming` and the entry-path queries) follow its words, while `x86-trace`
+and the other path reports still stop there. `x86-pointers` inventories the
+declared MZ relocations and FBOV fixups whose preceding word forms an adjacent
+segment:offset pair naming a query target, split into exact pairs, aliases,
+unresolved and excluded rows. Its rows are word-pair candidates, never proof of
+runtime pointer use, and it reads only MZ/FBOV sources.
 
 ## PE32 reporter adoption
 

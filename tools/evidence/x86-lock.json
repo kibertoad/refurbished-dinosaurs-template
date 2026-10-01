@@ -1,6 +1,6 @@
 {
   "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-  "revision": "313bb7d8baa238b5934e5ddf3f60cb2d5f4887ed",
+  "revision": "c133cd48bfe6cc3cb7126616996e7d548982a068",
   "files": [
     {
       "source": "tools/evidence/NOTICE.md",
@@ -10,17 +10,22 @@
     {
       "source": "tools/evidence/legacy-image.mjs",
       "path": "tools/evidence/x86-reporter/legacy-image.mjs",
-      "sha256": "2ef15f7836395d48cc56d3fe57daea635d281bd3c5e9bcaae0478ac1945d4a5b"
+      "sha256": "2ca03396a87d42adbc7e8af8ada7362f1ec1d2c3fd906ebabe93397d3666d97c"
+    },
+    {
+      "source": "tools/evidence/pointer-inventory.mjs",
+      "path": "tools/evidence/x86-reporter/pointer-inventory.mjs",
+      "sha256": "cf2a97247cdab05596879d51d2e0e70417951f364f8afc6cf82dc0105210788b"
     },
     {
       "source": "tools/evidence/report.mjs",
       "path": "tools/evidence/x86-reporter/report.mjs",
-      "sha256": "c7beb24c54d95ccf7e9509938b14d04485a39c867f8d438b22290b1b7d0bacbe"
+      "sha256": "2916e3227a5bcee7fd87598a32063ce0325d3007277427a69c215f1445f4e946"
     },
     {
       "source": "tools/evidence/report.py",
       "path": "tools/evidence/x86-reporter/report.py",
-      "sha256": "cc2e2bf2bb30840560c596fb65befbbf500c531f2f853b8b477471a24e5f633a"
+      "sha256": "0e7aa4607c4e838a421929390666f89575c3a0c54ce9a52579a396eb9a894502"
     },
     {
       "source": "tools/evidence/requirements.txt",
@@ -33,6 +38,11 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
+      "source": "tools/evidence/x86/dispatch.py",
+      "path": "tools/evidence/x86-reporter/x86/dispatch.py",
+      "sha256": "00f7940ecb50a8511e56ead5b41c833dbf4dfc84c3d429009a650e63293c0984"
+    },
+    {
       "source": "tools/evidence/x86/pe.py",
       "path": "tools/evidence/x86-reporter/x86/pe.py",
       "sha256": "0239bf94184f533aa1cb41e1bd4f85dd8b5ec92d2f7e544e47644a5e0a5ebd33"
@@ -40,7 +50,7 @@
     {
       "source": "tools/evidence/x86/image.py",
       "path": "tools/evidence/x86-reporter/x86/image.py",
-      "sha256": "a12063f9e4b9124903643db39ccb960f2e935bf1c147bed4fae91f0b90be10e9"
+      "sha256": "5fdc5eaef9f56f863cc7688a022216daf18d26c6843546e0e98c741c62822b52"
     },
     {
       "source": "tools/evidence/x86/machine.py",
@@ -50,12 +60,12 @@
     {
       "source": "tools/evidence/x86/reports.py",
       "path": "tools/evidence/x86-reporter/x86/reports.py",
-      "sha256": "c60ff754ef5185113cae056503fcda7e66621ba3faeb832079dc21be061aa06b"
+      "sha256": "2c493ebd3343e08fac1bd14d32a113e124de0bdd1c26d9d15a6f3fa0ce6b5724"
     },
     {
       "source": "tools/evidence/x86/trace.py",
       "path": "tools/evidence/x86-reporter/x86/trace.py",
-      "sha256": "f859a225322507f5df30d56fef26512eaf8749e8b9c99570e668bf28659e1d3e"
+      "sha256": "2a5165e22c87839bbeca1e0974e8e3079640d1757e742418458f8e20aca6c65f"
     },
     {
       "source": "tools/evidence/x86/values.py",
@@ -70,12 +80,12 @@
     {
       "source": "docs/bounded-evidence-reporters.md",
       "path": "docs/BOUNDED-EVIDENCE-REPORTERS.md",
-      "sha256": "5753c698cf6f195c27c9f370989c61bab6bb6a57ac88724355658610aa60cf45"
+      "sha256": "a09cb9f20eda2b7441d53834fd288d0c48184314db919e0387541d9482ce4815"
     },
     {
       "source": "tests/evidence/test_x86.py",
       "path": "tests/evidence/test_x86.py",
-      "sha256": "3b0cfcd728f1b83763f41c061e5e36ec8cab0ff6e53c42dcb8a616286d201957"
+      "sha256": "944f4e8d96dc6f029dabece5a42c2c38d1b1ab46d134e16546f7eef108e937b8"
     },
     {
       "source": "tests/evidence/test_pe.py",
@@ -83,9 +93,14 @@
       "sha256": "d502389728fbda7c012336289c73d87689ce1fc4895d1a7dc5df5788558c922e"
     },
     {
+      "source": "tests/evidence/test_dispatch.py",
+      "path": "tests/evidence/test_dispatch.py",
+      "sha256": "a00d76d316578115617abdeab0e99ca3b2e6cd6d7242251807a4046590db145e"
+    },
+    {
       "source": "tests/evidence/bridge.test.mjs",
       "path": "tests/evidence/bridge.test.mjs",
-      "sha256": "a9e0f2112b22dad364d3846ecfbdff7bf1e2f15eb1c789abb5a75e204d552de6"
+      "sha256": "9cb0eeb774b0b60bf41ccdbbff5462ef851bcef14564adb123ea282e3abd98c8"
     }
   ]
 }

@@ -226,3 +226,17 @@ project must pass a real offline rerun after normal validation has restored its
 existing artifact paths. Documentation states the prerequisite and normal CI path.
 Exit: canonical normal and offline validation pass; open a shared template PR and
 adopt only reviewed delivery. No new persisted file layout or owner decision.
+
+## Exact dispatch, pointer and ownership reporter adoption
+
+Tooling outcome: adopt merged toolkit c133cd48bfe6cc3cb7126616996e7d548982a068
+including evidenced near-jump tables, canonical relocated-pointer exact/alias
+inventories, bounded pointer-domain exclusions, owner ranges, boundary checks
+and source-derived overlay export provenance. Evidence: merged toolkit PRs
+33-37 and the configured-project source controls recorded separately.
+Acceptance: source/guide/tests remain exact and hashed; the mapping includes
+both new modules and dispatch tests; normal template validation runs the pinned
+tests unchanged, with no module-path override. Existing source identity, caps,
+partial-search and unresolved-flow safeguards remain intact. No original
+content, game claims or runtime access. Exit: exact pin, synthetic reporter
+checks and canonical template validation pass; publish a reviewable template PR.

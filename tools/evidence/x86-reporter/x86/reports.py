@@ -664,6 +664,23 @@ def body(image, entry, limit=10000):
             pending.append(following)
             continue
         if m in ("jmp", "ljmp"):
+            declaration = image.indirect_jumps.get(at)
+            if declaration is not None:
+                targets = sorted(set(row["target"] for row in declaration["rows"]))
+                # The full declaration is reported once, in indirectJumpDeclarations.
+                assumed.append({"site": at, "assumption": "indirect jump consumes the declared source table",
+                                "targets": targets, "exhaustive": declaration["exhaustive"]})
+                for target in targets:
+                    if leaves(at, target):
+                        exits.append({"site": at, "kind": "tail transfer", "target": target,
+                                      "mapping": "declared indirect jump table"})
+                    else:
+                        pending.append(target)
+                if not declaration["exhaustive"]:
+                    # Undeclared routes remain a way out of the body, as for any unresolved computed jump.
+                    exits.append({"site": at, "kind": "unresolved jump", "reason": "indirect jump table is not declared exhaustive"})
+                    gaps.append({"site": at, "reason": "indirect jump table is not declared exhaustive"})
+                continue
             target, provenance = call_target(image, at, ins)
             if target is None:
                 exits.append({"site": at, "kind": "unresolved jump", "reason": provenance.get("reason")})
@@ -767,6 +784,19 @@ def _cross_entry_overlaps(bodies):
     return {entry: sorted(rows, key=lambda r: (r["site"], r["entry"], r["otherSite"])) for entry, rows in conflicts.items()}
 
 
+def _overlay_exports(config):
+    """Source-derived overlay export rows (from the Node MZ/FBOV loader) grouped by entry offset."""
+    rows = config.get("overlayExports", [])
+    if not isinstance(rows, list):
+        raise ValueError("overlayExports must be a list")
+    grouped = {}
+    for e in rows:
+        if not isinstance(e, dict) or type(e.get("entry")) is not int:
+            raise ValueError("Each overlay export needs an integer entry")
+        grouped.setdefault(e["entry"], []).append(e)
+    return grouped
+
+
 def owner(image, config):
     query = config.get("query", {})
     if not isinstance(query, dict):
@@ -799,6 +829,23 @@ def owner(image, config):
     conflicts = _cross_entry_overlaps(bodies)
     for o in owners:
         o["contestedBy"] = conflicts.get(o["entry"], [])
+    exports = _overlay_exports(config)
+    checked = {}
+    for entry, b in bodies.items():
+        region = image.region(entry)
+        checked[entry] = {"entry": entry, "span": b["span"], "ranges": b["intervals"],
+                          "complete": b["complete"], "gaps": b["gaps"],
+                          "assumedContinuations": b["assumedContinuations"],
+                          "entryEvidence": region["evidence"], "container": region.get("container"),
+                          "overlayExports": exports.get(entry, [])}
+    for o in owners:
+        row = checked[o["entry"]]
+        o.update({k: row[k] for k in ("ranges", "assumedContinuations", "container", "overlayExports")})
+        # Entries past the entry limit were never decoded, so an overlap with them is unknown, not absent.
+        o["boundaryCheck"] = {"performed": True, "instructionStartReached": True,
+                              "joinableWithinModel": row["complete"] and not o["contestedBy"] and not gaps,
+                              "meaning": "entry-path instruction under complete bounded traversal and no cross-entry overlap "
+                                         "among all established entries; not player reachability"}
     contested = [o["entry"] for o in owners if o["contestedBy"]]
     if contested:
         verdict = "unresolved: an owner's body overlaps instructions another checked entry decodes"
@@ -808,7 +855,7 @@ def owner(image, config):
         verdict = "unresolved: no checked body reaches this site, but some entries were unchecked or their bodies stopped at a gap"
     else:
         verdict = "unowned: no established entry reaches this site"
-    result = {"site": site, "owners": owners, "insideOtherInstructions": inside, "incompleteEntries": incomplete, "gaps": gaps,
+    result = {"site": site, "checkedEntries": list(checked.values()), "owners": owners, "insideOtherInstructions": inside, "incompleteEntries": incomplete, "gaps": gaps,
               "contestedOwners": contested, "shared": len(owners) > 1, "verdict": verdict,
               "interpretation": "ownership is reachability from established entries without entering callees; a return or "
                                 "prologue between an entry and the site by address is a warning, never a boundary"}
@@ -819,6 +866,14 @@ def owner(image, config):
             "start": start, "evidence": claim["evidence"], "established": start in established,
             "agrees": start in established and bool(reaches), "contested": start in contested,
             "reachesSite": reaches,
+            "boundaryCheck": {"performed": hypothesis is not None, "instructionStartReached": reaches,
+                              "joinableWithinModel": bool(hypothesis and hypothesis["complete"] and reaches and start in bodies
+                                                          and not gaps and not conflicts.get(start))},
+            "span": None if hypothesis is None else hypothesis["span"],
+            "ranges": [] if hypothesis is None else hypothesis["intervals"],
+            "complete": False if hypothesis is None else hypothesis["complete"],
+            "gaps": [] if hypothesis is None else hypothesis["gaps"],
+            "assumedContinuations": [] if hypothesis is None else hypothesis["assumedContinuations"],
             "exitsBeforeSiteByAddress": [] if hypothesis is None else [e for e in hypothesis["exits"] if start <= e["site"] < site],
             "interpretation": "disagreement means the analyzer's function and the established entries assign this site differently"}
     return result
@@ -868,4 +923,4 @@ def run_report(data, config, command):
     return {"instructionModel": {"bits": image.bits, "addressModel": "flat32" if image.flat else "segmented16",
                                  "flatAssumption": "CS/DS/ES/SS bases zero; FS/GS bases unknown" if image.flat else None},
             "sourceMapping": image.config.get("peMetadata"), "formatTables": image.config.get("formatTables"),
-            "declaredRegions": image.regions, **result}
+            "declaredRegions": image.regions, "indirectJumpDeclarations": list(image.indirect_jumps.values()), **result}
