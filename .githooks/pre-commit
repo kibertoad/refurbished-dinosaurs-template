@@ -1,0 +1,21 @@
+#!/bin/sh
+# Runs the node checks of the fast gate (tools/Invoke-Validation.ps1) before a commit, so a spec,
+# queue or reporter-pin problem fails here instead of in CI. Enable once per clone with:
+#   git config core.hooksPath .githooks
+# The checks run on what is being committed: the index (GIT_INDEX_FILE during a partial commit) is
+# copied to a temporary directory, so unstaged edits and untracked files neither hide a problem
+# nor block a clean commit. GIT_DIR and GIT_WORK_TREE keep the checks' git calls (the deleted-ID
+# comparison) on this repository.
+set -e
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node is not on the path, so the checks were skipped; CI runs them." >&2
+  exit 0
+fi
+git_dir=$(cd "$(git rev-parse --git-dir)" && pwd)
+staged=$(mktemp -d)
+trap 'rm -rf "$staged"' EXIT
+git checkout-index --all --prefix="$staged/"
+export GIT_DIR="$git_dir" GIT_WORK_TREE="$staged"
+node "$staged/tools/upstream.mjs" docs --check --no-ksy
+node "$staged/tools/Check-ResearchTracking.mjs"
+node "$staged/tools/evidence/sync-x86.mjs" --check
