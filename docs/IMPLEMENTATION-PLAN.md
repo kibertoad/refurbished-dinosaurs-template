@@ -279,3 +279,41 @@ and prepared-protocol controls, wrapper routing and configured source/control
 regressions pass; published archives contain the required modules/scripts.
 No gameplay, source manifest or rule snapshot refresh. Exit: canonical gates and
 reviewable template migration; no copied competing shared implementation remains.
+
+
+## Merged call-order release adoption
+
+Adopt toolkit PR 41 merge e1628488 and registry engine 0.2.0 by exact wheel hash.
+The already published npm reader forwards the command without a reader upgrade;
+no source-built substitute or rule snapshot refresh. Acceptance: the recorded
+caller sequences/shared guards, cleanup bytes, flat inventory and unresolved
+callee effects pass; false-alternative and all nonvacuous cap controls reject.
+Configured and template normal/offline gates pass. Existing source controls stay
+passing. Exit: exact installed delivery and whole Gap 15 contract rerun; remove
+only Gap 15 after those gates, retaining other stable IDs and requests.
+
+
+## Merged return-flow release adoption
+
+Adopt toolkit PR 43 merge 23bf64e3 through registry engine 0.3.0 by exact wheel
+hash. This supersedes the intermediate engine 0.2.0 lock and retains PR 41's
+call-order delivery. Acceptance: configured initializer, unsigned-reader,
+conditional wrapper and signed-dimension result-width/encoding controls and
+rejected false encoding/out-of-width/capped controls pass. Keep conditional
+callee models and stopped paths explicit. Existing source controls and Gap 15
+controls remain passing; configured/template normal and offline gates pass.
+Exit: complete cited contracts verified on installed packages; only then close
+proven Gap 15/26 contracts. No gameplay or rule snapshot changes.
+
+## Merged effect-ordering release adoption
+
+Adopt toolkit PR 45 merge eab782d7 through published engine 0.4.0 by exact
+wheel hash. It retains the merged call-order and return-flow commands while
+adding bounded effect timelines and qualified local restoration witnesses.
+Acceptance: normal and unreachable-proxy NoRestore canonical gates pass;
+installed-package call-order, return-flow and existing source controls pass.
+Verify the SCRIPT wrapper early-exit control through installed packages; stopped
+or capped source paths remain incomplete and cannot close Gap 27. No gameplay,
+research claims or rule snapshot changes. Exit: reproducible registry delivery,
+reviewable template lock update and recorded controls; full unresolved request
+contracts remain open until every cited case is covered.

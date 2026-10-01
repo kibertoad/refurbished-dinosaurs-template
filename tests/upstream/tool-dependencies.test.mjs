@@ -17,7 +17,7 @@ test("published versions, missing engine and version mismatch fail actionably", 
   verifyNpmPackages(); verifyEngine(); assert(checkerScript().endsWith("standard-checker.js"));
   assert.throws(() => verifyEngine(root, {...process.env,EVIDENCE_PYTHON:join(scratch(t),"missing-python")}), /Restore-ToolDependencies/);
   const dir = scratch(t); mkdirSync(join(dir,"tools/evidence"),{recursive:true});
-  writeFileSync(join(dir,"tools/evidence/requirements.txt"),readFileSync(join(root,"tools/evidence/requirements.txt"),"utf8").replace("scientific-method-engine==0.1.0","scientific-method-engine==99.0.0"));
+  writeFileSync(join(dir,"tools/evidence/requirements.txt"),readFileSync(join(root,"tools/evidence/requirements.txt"),"utf8").replace(/scientific-method-engine==\d+\.\d+\.\d+/,"scientific-method-engine==99.0.0"));
   assert.throws(() => verifyEngine(dir,{...process.env,EVIDENCE_PYTHON:enginePython()}), /expected 99.0.0/);
 });
 test("exact npm lock and installed-version mismatch are rejected", t => {
