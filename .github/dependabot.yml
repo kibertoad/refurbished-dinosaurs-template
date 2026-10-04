@@ -17,9 +17,28 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # The template takes its own toolkit's releases as soon as they ship, as pnpm-workspace.yaml
+    # does for the documentation checker.
     cooldown:
       default-days: 7
+      exclude:
+        - RefurbishedDinosaurs.*
+    # SabreTools.Serialization is pinned to the version whose expanded output was compared with
+    # Unshield and whose license was reviewed (maintenance slice T2 in docs/TEMPLATE-CHANGELOG.md).
+    # Moving it means redoing that evidence, so it is bumped by hand.
+    ignore:
+      - dependency-name: SabreTools.Serialization
     groups:
       refurbished-dinosaurs:
         patterns:
           - RefurbishedDinosaurs.*
+      # Groups apply to version updates only. A security update to one RefurbishedDinosaurs.*
+      # package still edits the shared version property, so it is grouped too.
+      refurbished-dinosaurs-security:
+        applies-to: security-updates
+        patterns:
+          - RefurbishedDinosaurs.*
+      # xunit.v3 and xunit.runner.visualstudio release on the same version.
+      xunit:
+        patterns:
+          - xunit.*

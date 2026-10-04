@@ -12,7 +12,14 @@ A project created from this template may delete this file.
 
 `.github/dependabot.yml` proposes NuGet updates weekly, after a seven-day
 cooldown, with the `RefurbishedDinosaurs.*` packages grouped into one pull
-request because they share one pinned version. The npm and pip packages are left
+request because they share one pinned version, and the `xunit.*` packages grouped
+because they release on one version. Security updates to the
+`RefurbishedDinosaurs.*` packages are grouped the same way. Those packages skip
+the cooldown, because the template takes its own toolkit's releases at once, as
+`pnpm-workspace.yaml` does for the documentation checker. `SabreTools.Serialization`
+is ignored: maintenance slice T2 pinned and locked it to the version whose
+expansion was compared with Unshield and whose license was reviewed, so a bump
+redoes that evidence by hand. The npm and pip packages are left
 out: the documentation checker moves only through `tools/upstream.mjs refresh`,
 and the executable reader and the instruction engine must move together, which
 Dependabot cannot do across ecosystems
