@@ -89,7 +89,19 @@ try {
     & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
     # The x86 commands of tools/evidence/report.mjs run scientific-method-engine from EVIDENCE_PYTHON, or python.
-    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
+    # Many Linux and macOS installs provide only python3, so the tests get python3 when python is missing.
+    $previousEvidencePython = $env:EVIDENCE_PYTHON
+    if (-not $env:EVIDENCE_PYTHON -and
+        -not (Get-Command python -CommandType Application -ErrorAction SilentlyContinue) -and
+        (Get-Command python3 -CommandType Application -ErrorAction SilentlyContinue)) {
+        $env:EVIDENCE_PYTHON = 'python3'
+    }
+    try {
+        & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
+    }
+    finally {
+        $env:EVIDENCE_PYTHON = $previousEvidencePython
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
     # The test drives a copy of this script; give it the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH

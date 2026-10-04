@@ -19,7 +19,9 @@ python -m pip install -r requirements-evidence.txt
 ```
 
 `EVIDENCE_PYTHON` selects another Python executable, which must have the engine
-installed. The reader refuses an engine that speaks another prepared-config
+installed. Where only `python3` is on the path, install with `python3 -m pip` and
+set `EVIDENCE_PYTHON=python3` for reports run by hand; the validation gate makes
+that choice for its own tests when `python` is missing. The reader refuses an engine that speaks another prepared-config
 protocol; update the older of the two.
 
 ## Running a report
