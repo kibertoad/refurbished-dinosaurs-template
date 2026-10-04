@@ -17,8 +17,9 @@ git_dir=$(git rev-parse --absolute-git-dir)
 work_tree=$(git rev-parse --show-toplevel)
 # A separate step, so a failed mktemp stops the hook instead of leaving $staged empty.
 staged=$(mktemp -d)
-# The node_modules link is removed first, so rm never descends into the checkout's packages.
-trap 'node -e "try { require(\"fs\").unlinkSync(process.argv[1]) } catch {}" "$staged/node_modules"; rm -rf "$staged"' EXIT
+# rm -rf unlinks a symlink, and Git Bash's rm -rf a junction, without entering it. The link is
+# removed first with rm -f, which has no -r and so cannot enter the checkout's packages either way.
+trap 'rm -f "$staged/node_modules"; rm -rf "$staged"' EXIT
 trap 'exit 1' HUP INT TERM
 git checkout-index --all --prefix="$staged/"
 # The copy has no installed packages; the checks use the checkout's (pnpm install). Node makes the

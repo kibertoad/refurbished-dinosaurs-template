@@ -15,9 +15,9 @@ A project created from this template may delete this file.
   instead of `ln -s`. Git Bash on Windows copies a directory for `ln -s` unless
   symlinks are enabled, and copying pnpm's linked `node_modules` failed with
   "Device or resource busy", so the hook blocked every commit. A junction needs
-  no privilege; on other systems Node makes an ordinary symlink. The exit trap
-  unlinks it before `rm -rf`, so the removal never descends into the checkout's
-  packages.
+  no privilege; on other systems Node makes an ordinary symlink. Git Bash's `rm`
+  treats the junction as a symlink, so `rm -rf` unlinks it without entering it;
+  the exit trap still removes the link first with `rm -f`, which cannot recurse.
 - **Checks.** On Windows the hook now passes on a clean checkout and leaves
   `node_modules` in place; the previous hook fails there with the `ln` error.
 
