@@ -135,24 +135,20 @@ jobs:
             throw "Inno Setup installation returned $($install.ExitCode)."
           }
           "INNO_COMPILER=$compilerRoot\ISCC.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+      # Hosted runners expose only the GDI generic OpenGL renderer, which has no framebuffer objects,
+      # so MonoGame cannot create a graphics device. The toolkit's action installs checksum-verified
+      # Mesa llvmpipe under RUNNER_TEMP and fails the step if it cannot, so the platform smoke tests
+      # never silently run against the runner's own driver.
       - name: Provision software OpenGL for the platform smoke test
+        id: software-opengl
+        uses: kibertoad/refurbished-dinosaurs-toolkit/actions/setup-software-opengl@6ab530df7851354c98e833a2beb76dbe0f71e421
+      - name: Hand the driver to the platform smoke test
         shell: pwsh
+        env:
+          DRIVER_PATH: ${{ steps.software-opengl.outputs.driver-path }}
         run: |
-          # Hosted runners expose only the GDI generic OpenGL renderer, which has no framebuffer
-          # objects, so MonoGame cannot create a graphics device. Mesa's llvmpipe can. While the
-          # download is unpinned this step is a deliberate no-op: the smoke tests then run against
-          # the runner's own driver and report the graphics failure themselves, which is the
-          # behaviour without this step at all. Nothing is skipped or masked either way.
-          try {
-            $driver = ./tools/Install-MesaSoftwareGL.ps1 `
-              -DestinationPath (Join-Path $env:RUNNER_TEMP 'software-opengl')
-            "PLATFORM_SMOKE_TEST_GL_DRIVER=$driver" | Out-File -FilePath $env:GITHUB_ENV -Append
-            Write-Host "Software OpenGL driver provisioned at $driver"
-          }
-          catch {
-            Write-Warning ("Software OpenGL is unavailable, so the platform smoke tests will run " +
-              "against the runner's own driver and are expected to fail: $($_.Exception.Message)")
-          }
+          "PLATFORM_SMOKE_TEST_GL_DRIVER=$env:DRIVER_PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Software OpenGL driver provisioned at $env:DRIVER_PATH"
       - name: Build Windows package
         shell: pwsh
         run: ./tools/Publish-Windows.ps1 -SkipArchive

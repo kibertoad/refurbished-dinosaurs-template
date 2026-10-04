@@ -30,7 +30,7 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
 - **Evidence reporters.** `tools/evidence/x86-reporter/`, `x86-lock.json`,
   `sync-x86.mjs` and the copied reporter tests are gone. The `x86-` commands of
   `tools/evidence/report.mjs` run `@scientific-method/executable-reader` 1.0.0,
-  which hands the query to `scientific-method-engine` 1.0.0 from
+  which hands the query to `scientific-method-engine` 1.0.1 from
   `requirements-evidence.txt`; report output keeps the `bounded-x86-v1` schema.
   Both speak prepared-config protocol 2: a query names its source by `xxh3`, the
   hash its build entry gives, and a config that still names a `sha256` is
@@ -40,7 +40,12 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   `tools/evidence/xxh3.mjs` prints a file's `xxh3` the same way, and
   `Capture-OriginalWindow.ps1` uses it to name each captured frame by `xxh3`
   instead of SHA-256 (`checkpoint.json` schema version 3), hashing after the burst so
-  Node never delays a frame. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
+  Node never delays a frame.
+- **Software OpenGL in CI.** The Windows jobs provision Mesa through the toolkit's
+  `setup-software-opengl` action, pinned by commit, and `tools/Install-MesaSoftwareGL.ps1`
+  is gone. The action pins the same Mesa release and checksum, and it fails the step
+  when it cannot install the driver, where the old step only warned and let the
+  platform smoke test run against the runner's driver. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
   now covers setup and links the toolkit's guide instead of copying it.
 - **Ghidra scripts.** The 23 scripts the engine ships are deleted from
   `tools/ghidra/`; `scientific-method-engine ghidra-scripts` prints their
