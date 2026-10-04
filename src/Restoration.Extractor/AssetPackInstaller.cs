@@ -15,15 +15,7 @@ public static class AssetPackInstaller
         Func<string, Task<AssetPackManifest>> writeStagedPack)
     {
         ArgumentNullException.ThrowIfNull(writeStagedPack);
-        // StagedAssetPack stages beside the destination, so a trailing separator must not turn the
-        // destination's own directory into the staging parent.
-        var outputPath = Path.GetFullPath(output).TrimEnd(
-            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (Directory.GetParent(outputPath) is null || string.IsNullOrWhiteSpace(Path.GetFileName(outputPath)))
-            throw new ArgumentException("Asset-pack output must name a directory below a filesystem root.",
-                nameof(output));
-
-        using var pack = StagedAssetPack.Create(outputPath);
+        using var pack = StagedAssetPack.Create(output);
         var manifest = await writeStagedPack(pack.StagingDirectory);
         await WriteManifestAsync(Path.Combine(pack.StagingDirectory, "manifest.json"), manifest);
         var diagnostics = await OriginalContent.VerifyInstalledAsync(pack.StagingDirectory);

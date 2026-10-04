@@ -40,7 +40,7 @@ try
 }
 catch (Exception exception)
 {
-    ReportStartupFailure(exception, assetPack, allowDialog: !platformSmoke);
+    ReportStartupFailure(exception, assetPack, unattended: platformSmoke);
     return 1;
 }
 
@@ -49,7 +49,7 @@ catch (Exception exception)
 // counts as unattended. This process is a WinExe, so a person launching it from Explorer has no
 // console and its standard handles look redirected; inferring "unattended" from those would take
 // the dialog away from the one case it exists for.
-static void ReportStartupFailure(Exception exception, string? assetPack, bool allowDialog)
+static void ReportStartupFailure(Exception exception, string? assetPack, bool unattended)
 {
     var options = new StartupFailureOptions(
         "{{DISPLAY_NAME}}",
@@ -57,14 +57,8 @@ static void ReportStartupFailure(Exception exception, string? assetPack, bool al
         "If the asset pack is missing or damaged, run {{PROJECT_NAME}}.Extractor against your " +
         "legally owned copy of the original game.",
         "Asset pack");
-    if (allowDialog && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")))
-    {
-        StartupFailure.Report(options, exception, assetPack);
-        return;
-    }
-    var log = StartupFailure.TryWriteLog(options, exception, assetPack);
-    Console.Error.WriteLine(StartupFailure.BuildMessage(options, exception, assetPack, log));
-    Console.Error.WriteLine(exception);
+    var showDialog = !unattended && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+    StartupFailure.Report(options, exception, assetPack, showDialog);
 }
 
 // The failure being reported may be the one that stopped the state directory from resolving.

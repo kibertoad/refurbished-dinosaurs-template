@@ -112,8 +112,10 @@ public sealed class BootstrapTests
         Assert.Contains("Extractor", diagnostic.Message, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task AssetPackInstallIsVerifiedAndReplacesStaleOutput()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AssetPackInstallIsVerifiedAndReplacesStaleOutput(bool trailingSeparator)
     {
         var root = TestRoot();
         var output = Path.Combine(root, "pack");
@@ -122,7 +124,8 @@ public sealed class BootstrapTests
             TestContext.Current.CancellationToken);
         try
         {
-            await AssetPackInstaller.InstallAsync(output, async staging =>
+            var requested = trailingSeparator ? output + Path.DirectorySeparatorChar : output;
+            await AssetPackInstaller.InstallAsync(requested, async staging =>
             {
                 var asset = Path.Combine(staging, "images", "synthetic.bin");
                 Directory.CreateDirectory(Path.GetDirectoryName(asset)!);

@@ -45,11 +45,12 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   stay.
 - **Runtime libraries.** `Restoration.Resources`, the Extractor, the game and
   Inspect reference `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats`
-  at exactly 1.4.0, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
+  at exactly 1.5.1, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
   `CueSheet` and `CueTrack` give way to `OriginalContentSource`, `ContentSourceKinds`,
   `ContentSourceEntry`, `CueBinSheet` and `CueBinTrack`; asset-pack staging and commit
   use `StagedAssetPack`, startup failures `StartupFailure` (still with no dialog in a
-  platform smoke test or when `CI` is set), per-user paths `RestorationPaths`,
+  platform smoke test or when `CI` is set, now through its `showDialog` overload),
+  per-user paths `RestorationPaths`,
   manifest paths `PortableAssetPath.Relative` and pack paths `SafePath.Below`.
   Edition manifests with `sourceKind`, source identification, the asset-pack manifest
   and its verification, and InstallShield expansion stay in the template.
