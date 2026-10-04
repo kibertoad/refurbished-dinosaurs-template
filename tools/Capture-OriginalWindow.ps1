@@ -44,8 +44,14 @@ if (-not $CaptureWorkerWindow -and -not $ListWindows) {
     if (-not (Test-Path -LiteralPath $script:xxh3Helper)) {
         throw "Frame hashing helper not found: $script:xxh3Helper"
     }
-    # Hashing the helper itself proves the reader package resolves, which needs pnpm install.
-    & $script:nodePath $script:xxh3Helper $script:xxh3Helper | Out-Null
+    # Hashing the helper itself proves the reader package resolves, which needs pnpm install. Node's
+    # stack trace for a missing package is dropped: the message below says what to do. Windows
+    # PowerShell turns a native command's redirected stderr into errors, which 'Stop' would make
+    # terminating, so the preference is relaxed for this one call.
+    $preference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $script:nodePath $script:xxh3Helper $script:xxh3Helper 2>$null | Out-Null }
+    finally { $ErrorActionPreference = $preference }
     if ($LASTEXITCODE -ne 0) {
         throw 'Frame hashing does not run; run pnpm install in the repository first.'
     }
