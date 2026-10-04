@@ -36,7 +36,11 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   hash its build entry gives, and a config that still names a `sha256` is
   refused. The template's own `operand`, `incoming`, `table` and `inventory`
   commands check the same `xxh3` through the reader's `sourceXxh3`, and every
-  report's `sourceIdentity` carries it. `legacy-image.mjs` re-exports the reader's parser. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
+  report's `sourceIdentity` carries it. `legacy-image.mjs` re-exports the reader's parser.
+  `tools/evidence/xxh3.mjs` prints a file's `xxh3` the same way, and
+  `Capture-OriginalWindow.ps1` uses it to name each captured frame by `xxh3`
+  instead of SHA-256 (`checkpoint.json` schema version 3), hashing after the burst so
+  Node never delays a frame. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
   now covers setup and links the toolkit's guide instead of copying it.
 - **Ghidra scripts.** The 23 scripts the engine ships are deleted from
   `tools/ghidra/`; `scientific-method-engine ghidra-scripts` prints their

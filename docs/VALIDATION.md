@@ -112,13 +112,17 @@ restored by a normal run; see [Explicit rerun without restore](#explicit-rerun-w
 ## Reference capture
 
 `tools/Capture-OriginalWindow.ps1` captures the selected original window's
-client area in burst frames with SHA-256 metadata into a `checkpoint.json` plus
-an `index.jsonl`, for evidence records rather than committed assets. It supports
+client area in burst frames into a `checkpoint.json` plus an `index.jsonl`, for
+evidence records rather than committed assets. Each frame is named by its `xxh3`,
+the hash the spec cites it by, computed after the burst by `tools/evidence/xxh3.mjs`
+(the executable reader's `sourceXxh3`), so the script needs Node.js and `pnpm install`
+and checks for both before it captures anything. It supports
 interactive, one-shot, and hotkey (Ctrl+Shift+F12) modes, and `-ListWindows` to
 discover the correct process and title. The helper renders the window's client
 through `PrintWindow` with full-content rendering, rather than copying its
 rectangle from the desktop, so a hidden or covered window never produces pixels
-from another application. Its `checkpoint.json` (schema version 2) records the
+from another application. Its `checkpoint.json` (schema version 3, which
+replaced each frame's `sha256` with `xxh3`) records the
 target process, window title, and client size, but not the desktop layout,
 which does not affect the pixels. Each frame runs in an isolated worker with a
 10-second deadline (adjustable with `-CaptureTimeoutSeconds`); a timeout kills
