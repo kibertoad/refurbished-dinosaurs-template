@@ -44,17 +44,26 @@ Installer artifacts used to assemble the release are retained in Actions for one
 day; the durable downloadable copies are the assets attached to the resulting
 GitHub Release. The release workflow has no scheduled or push trigger.
 
+The workflow releases the current `main` commit and fails when dispatched from
+any other branch. A version whose tag already exists can be run again only while
+that tag still resolves to the current `main` commit and has no GitHub Release
+yet; the rerun reuses the tag and publishes the Release. Any other existing tag
+stops the run in `Validate release`.
+
 Both signing jobs use the protected `release-signing` GitHub environment and
-fail before packaging when a required secret is missing.
+fail before packaging when a required secret is missing. Limit that
+environment's deployment branches to `main`.
 
 ### Windows Authenticode signing
 
 Windows signing uses SSL.com eSigner. Configure `ES_USERNAME`, `ES_PASSWORD`,
-`CREDENTIAL_ID`, and `ES_TOTP_SECRET` as `release-signing` environment secrets.
-The workflow downloads the pinned CodeSignTool archive, verifies its SHA-256,
-signs every project executable before packaging, signs the completed installer,
-and requires valid timestamped Authenticode signatures both before and after the
-installer smoke test.
+`CREDENTIAL_ID`, `ES_TOTP_SECRET`, and `ES_CERTIFICATE_THUMBPRINT` (the
+40-digit SHA-1 thumbprint of the signing certificate) as `release-signing`
+environment secrets. The workflow downloads the pinned CodeSignTool archive,
+verifies its SHA-256, signs every project executable before packaging, signs the
+completed installer, and requires valid timestamped Authenticode signatures from
+that certificate both before and after the installer smoke test. Update
+`ES_CERTIFICATE_THUMBPRINT` when the certificate is renewed.
 
 ### Linux detached signature
 

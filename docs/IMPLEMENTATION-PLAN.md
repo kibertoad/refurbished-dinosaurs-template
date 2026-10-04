@@ -149,3 +149,6 @@ existing artifact paths. Documentation states the prerequisite and normal CI pat
 Exit: canonical normal and offline validation pass; open a shared template PR and
 adopt only reviewed delivery. No new persisted file layout or owner decision.
 
+## Release signing safeguards
+
+Tooling batch, comparing New Chrome commit 88f4112791db0caaf488b5bcd906cabd842bd4e1. Restrict release preparation to main, bound job durations, require the expected timestamped Authenticode certificate, and safely reuse a tag only when it resolves to the prepared commit. Preserve existing signing defaults and project-neutral packaging. Synthetic tests cover tag lookup/create/error paths and certificate rejection without contacting signing services. Exit: canonical validation passes and workflow checks cover every job and signature boundary.

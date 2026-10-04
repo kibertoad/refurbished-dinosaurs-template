@@ -257,6 +257,8 @@ The canonical `tools/Invoke-Validation.ps1` fast gate passed using a temporary
 portable PowerShell 7 runtime, including the Windows acceptance tests and Release
 solution build. No original game or proprietary assets were used.
 
+Signing workflow acceptance uses `tests/upstream/release-signing.test.mjs` synthetic tag API and certificate tests. Signed release setup requires `ES_CERTIFICATE_THUMBPRINT` and main-only deployment branches in the protected `release-signing` environment. Live signing is not exercised by synthetic acceptance.
+
 ## Explicit rerun without restore
 
 After normal validation has restored this checkout, run
