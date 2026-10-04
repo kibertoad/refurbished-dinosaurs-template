@@ -42,7 +42,7 @@ test('validation restores normally and explicit NoRestore retains checks and no-
  assert(offline.commands.filter(a=>['build','test','publish'].includes(a[0])).every(a=>a.includes('--no-restore')));
  assert.deepEqual(offline.checks,normal.checks);
  if(existsSync(join(root,'tools/Test.ps1'))){assert.equal(offline.forwarded,true);assert.equal(normal.forwarded,false);assert(offline.checks.includes('Test'));}
- else {assert(offline.checks.includes('Verify-Repository'));assert(offline.checks.includes('Verify-Configuration'));assert(offline.checks.includes('Test-TemplateInfrastructure'));assert(offline.checks.includes('node'));assert(offline.checks.includes('python'));}
+ else {assert(offline.checks.includes('Verify-Repository'));assert(offline.checks.includes('Verify-Configuration'));assert(offline.checks.includes('Test-TemplateInfrastructure'));assert(offline.checks.includes('node'));}
  const nativeTest=offline.commands.find(a=>a[0]==='test');if(nativeTest){assert(nativeTest.includes('SyntheticFilter'));assert(nativeTest.includes('--minimum-expected-tests'));}
 });
 test('NoRestore failure propagates without falling back to restore',{skip:noPwsh},t=>{

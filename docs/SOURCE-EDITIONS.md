@@ -5,7 +5,7 @@
 Before executable analysis, replace this section with a one-time, evidence-backed
 determination of the latest official patch/version. Record the authoritative or
 corroborated sources used, patch provenance, exact analysis version, executable
-path (local only), length, and SHA-256. The analysis version must match the
+path (local only), length, and xxh3. The analysis version must match the
 latest official version recorded in `tools/project-config.json`; otherwise stop
 and patch the owned copy first. This check runs once. After it is recorded
 here, it is established truth: link to this record, and do not investigate the
@@ -28,11 +28,11 @@ equivalent.
 
 Add one JSON document below `src/Restoration.Extractor/source-manifests` per
 supported build, covering the same files and sizes as the build's
-`.files.yaml` manifest. Extractor manifests fingerprint with SHA-256 and build
-manifests with xxh3;
-`Restoration.Inspect --source <dir>` prints both for every file. The Extractor tries
-the manifests deterministically, refuses files it does not recognise, and
-reports why each manifest failed. Preserve manual source selection even after
+`.files.yaml` manifest. Both use the same `xxh3` hashes, so copy them from the
+build manifest; `Restoration.Inspect --source <dir>` prints the size and `xxh3`
+of every file. The Extractor tries every manifest, refuses files it does not
+recognise, reports why each manifest failed, and refuses a copy that more than
+one manifest matches, because those manifests do not tell the editions apart. Preserve manual source selection even after
 adding optional registry, storefront, mounted-media, or archive discovery
 adapters.
 

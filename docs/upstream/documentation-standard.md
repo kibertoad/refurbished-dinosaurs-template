@@ -11,6 +11,16 @@ The format borrows from projects that have done parts of this well. The layout t
 
 Every restoration we have follows version 1: the specs of [Chaos Overlords](https://github.com/kibertoad/chaos-overlords-new-chrome/tree/main/spec), [Dark Sun: Wake of the Ravager](https://github.com/kibertoad/dark-sun-wake-redux/tree/main/spec) and [Conqueror A.D. 1086](https://github.com/kibertoad/reconqueror1086/tree/main/spec) are written to this page. Chaos Overlords and Dark Sun were documented before the standard existed and were converted in September 2026. Each of the three runs the checks listed under [Checks](#checks) on every change.
 
+## Reading the rules
+
+A rule sits under a heading of its own, such as [IDENTIFIERS-1](#identifiers-1): the name of its section in capitals and a number. The rule is everything from that heading to the next one, including the reasons and examples that go with it. Text between a section's heading and its first rule introduces the section and adds no requirement of its own. A rule states what a spec or a tool does in the present tense, so "every entry has an ID" means an entry without one fails. "May" marks something a spec is allowed to do and does not have to. A check that enforces numbered rules names them in the [Checks](#checks) list.
+
+Rule headings are the only sixth-level headings on the page, so `grep '^###### '` over the Markdown source lists every rule, and a link to a rule's anchor, such as `#status-14`, lands on that rule alone. A copy of this file in another repository keeps the same anchors.
+
+A rule keeps its number for good. A dropped rule leaves its number unused, and a new rule takes the next free number in its section wherever it sits on the page. Numbering rules changes none of them, so it does not make a new version of the standard.
+
+The page is being numbered one section at a time. So far that covers [Identifiers](#identifiers), [Status](#status) and the part of [Entry types](#entry-types) before [Builds](#builds). Where a section or subsection has no rules under it yet, everything it says a spec does is required, as it has been since version 1.
+
 ## Where it lives
 
 Each game repository has a `spec/` directory. It describes the original game and nothing else. It never names a class, file or setting from our implementation, so that someone writing a different engine can use it as it is. The implementation points the other way: code comments, tests and the parity matrix cite spec IDs.
@@ -109,13 +119,41 @@ An entry that would pass the limit is split by what it describes, never cut at t
 
 ## Identifiers
 
-Every entry has an ID of the form `KIND-AREA-NNN`, for example `RULE-COMBAT-007`. `KIND` is one of the directory prefixes above. `AREA` is a short subsystem name from the area list in `spec/README.md`, such as `RNG`, `COMBAT`, `AI` or `SAVE`, made of upper-case letters and digits and starting with a letter. It never contains a hyphen, so the ID splits into its three parts at the hyphens. `NNN` is a number, zero-padded to three digits and written with more once an area passes 999, unique within its kind and area. Builds and sources use a short alias in place of area and number: `BLD-GOG-EN-1.1`, `SRC-MANUAL-1996`. An alias starts with an upper-case letter and contains only upper-case letters, digits, dots and hyphens, so in those two kinds everything after the first hyphen is the alias.
+###### IDENTIFIERS-1
+
+Every entry has an ID that starts with its `KIND`, one of the directory prefixes above. Builds and sources follow [IDENTIFIERS-4](#identifiers-4), and every other entry's ID has the form `KIND-AREA-NNN`, for example `RULE-COMBAT-007`.
+
+###### IDENTIFIERS-2
+
+`AREA` is a short subsystem name from the area list in `spec/README.md`, such as `RNG`, `COMBAT`, `AI` or `SAVE`, made of upper-case letters and digits and starting with a letter. It never contains a hyphen, so the ID splits into its three parts at the hyphens.
+
+###### IDENTIFIERS-3
+
+`NNN` is a number, zero-padded to three digits and written with more once an area passes 999, unique within its kind and area.
+
+###### IDENTIFIERS-4
+
+Builds and sources use a short alias in place of area and number: `BLD-GOG-EN-1.1`, `SRC-MANUAL-1996`. An alias starts with an upper-case letter and contains only upper-case letters, digits, dots and hyphens, so in those two kinds everything after the first hyphen is the alias. No two builds or sources share an alias.
+
+###### IDENTIFIERS-5
 
 Areas are added to the list and never removed or renamed, because renaming an area would rename every ID in it. An area whose name turns out to be a poor fit keeps it, and its row in the area list says what it covers.
 
-An ID is never reused or renumbered once it is on the main branch. An entry that turns out to be wrong stays in place with status `superseded`, and its `superseded_by` field names what took its place: the corrected entry, the parts it was split into, or the entry it was merged into. When nothing takes its place, because a mechanic turns out not to exist, `superseded_by` names the findings or experiments that show it. A bug that turns out to be intended is the one case where it may name sources as well (see [Bugs](#bugs)). Anything that cited the old ID can still find out what happened to it. If two branches create the same ID, the one merged second renumbers its entry before it is merged.
+###### IDENTIFIERS-6
+
+An ID is never reused or renumbered once it is on the main branch. If two branches create the same ID, the one merged second renumbers its entry before it is merged.
+
+###### IDENTIFIERS-7
+
+An entry that turns out to be wrong stays in place with status `superseded`, and its `superseded_by` field names what took its place: the corrected entry, the parts it was split into, or the entry it was merged into. When nothing takes its place, because a mechanic turns out not to exist, `superseded_by` names the findings or experiments that show it. A bug that turns out to be intended is the one case where it may name sources as well (see [Bugs](#bugs)).
+
+With [IDENTIFIERS-6](#identifiers-6) and [IDENTIFIERS-7](#identifiers-7) together, anything that cited an old ID can still find out what happened to it.
 
 ## Status
+
+The spec records how well the original is understood. How well our rebuild matches it is recorded in the [parity matrix](#parity-matrix), which uses the same statuses and adds `implemented` and `validated`. [OpenMW](https://wiki.openmw.org/index.php?title=Template:Formula) keeps the same split between analysis status and implementation status.
+
+###### STATUS-1
 
 Rules, formats, screens and bugs describe the original, and each carries one of these statuses:
 
@@ -132,41 +170,91 @@ The first four form a scale, from `unknown` up to `established`.
 
 ### Direct and circumstantial evidence
 
-A finding is direct evidence for a claim when its observation locates what produces the behaviour: the code that reads or writes the field, takes the branch, makes the calls in that order or computes the value, or, for a dynamic finding, the value or the frame the original produced. Anything else that fits the claim is circumstantial: sizes that divide exactly, a pattern in the values of a shipped file, a name, what the manual says, or what similar games do. Circumstantial evidence is recorded as a finding like any other, and an entry names it in its Open questions section, for or against a reading, but never lists it in `evidence`, and it never counts towards a status. An entry whose only evidence from the original is circumstantial is `unknown`, or `sourced` if a source describes it.
+###### STATUS-2
+
+A finding is direct evidence for a claim when its observation locates what produces the behaviour: the code that reads or writes the field, takes the branch, makes the calls in that order or computes the value, or, for a dynamic finding, the value or the frame the original produced. Anything else that fits the claim is circumstantial: sizes that divide exactly, a pattern in the values of a shipped file, a name, what the manual says, or what similar games do.
+
+###### STATUS-3
+
+Circumstantial evidence is recorded as a finding like any other, and an entry names it in its Open questions section, for or against a reading, but never lists it in `evidence`, and it never counts towards a status. An entry whose only evidence from the original is circumstantial is `unknown`, or `sourced` if a source describes it.
 
 ### Complete readings
 
-The code decides most of what a game does, so a reading of it can establish an entry without a run. Static findings establish an entry on their own when together they read all of it in its first build, and the entry lists them in `complete_reading`, a field that rules, formats, screens and bugs may have and that is otherwise absent or empty. A reading is complete when:
+The code decides most of what a game does, so a reading of it can establish an entry without a run.
 
-- it covers every branch of every procedure the entry describes, and for a format every place the code reads or writes the file or structure, and its findings name the instructions they checked wherever the decompiler's types, signedness or casts decide a result;
+###### STATUS-4
+
+Static findings establish an entry on their own when together they read all of it in its first build, and the entry lists them in `complete_reading`, a field that rules, formats, screens and bugs may have and that is otherwise absent or empty. A reading is complete when:
+
+- it covers every branch of every procedure the entry describes, and for a format every place the code reads or writes the file or structure, and its findings name the instructions they checked wherever the decompiler's types, signedness or casts decide a result, which takes in each part that [STATUS-5](#status-5) to [STATUS-13](#status-13) names;
 - it locates every caller of those procedures and every write to the state they read, and resolves every indirect call and jump they take;
 - what the entry says depends on nothing the code does not decide: no point where an interrupt handler or a second thread can change the result (a `# may run:` comment in the procedure), no read of memory that nothing wrote first, no timing, such as the length of a tick or the rate at which frames are drawn, and no result from the operating system or a library outside the build, other than a value from outside the game that the procedure reads by its glossary name.
 
-Covering every branch takes in the following.
+###### STATUS-5
 
-- Loops and recursion. The reading says why each loop ends and why a recursive call cannot go round forever, or names what that rests on. Reaching every branch of a procedure says nothing about a callee or a callback that never returns, and a cycle in the call graph needs its own argument, while a function called from two places is not recursion.
-- The paths that fail. The reading says which writes happen before each failure and stay, and which values are set on each way out, since a failure return undoes nothing unless the code does. A caller that tests only part of a return value, such as the low byte of a word, is read as testing that part. [Findings](#findings) says what a finding about a failure path records.
-- Widths and ranges. The reading gives the width and signedness of each value the result depends on, where it wraps or truncates, and the range of values the callers it has read actually pass. A bound comes from the code that sets it, never from the data that happens to follow a table or a size that divides evenly, and a count of what a procedure produces is kept apart from the bytes allocated for it, headers and terminators included.
-- Identity. A field is named by the segment or object that holds it, its offset and width, and the paths that set it. An argument is read by the width and order the caller pushes and the callee reads, and by who removes it. Two addresses are the same storage only where the reading shows it, by giving the segment or object each address is formed in and the one each access goes through. In 16-bit code that is the segment the instruction actually uses, after any override, and the caller or callee that sets or restores that segment register. An offset taken from BP and passed to a helper that reads through DS shows that the helper reads the caller's stack only where the reading shows that DS and SS hold the same segment at that point. Until it does, the finding keeps the accesses apart and says what evidence is missing. The Setup section of an emulated call says which segments its harness makes equal, and a harness never makes them equal only so that a reading works.
-- Stored calls. A value the code stores and later calls through can hold more than the address of the code: an adjustment added to the object pointer before the call, as a C++ pointer to a member function carries, or a context value passed along with it. The reading follows each part from the code that produces it, through the structure that stores it, to the call that uses it, before the format entry names its fields. Two adjacent words, or a value returned in two registers such as DX:AX, can be one far pointer, so they show two functions only where the reading finds two calls. The finding gives the calling convention of the call, and the width and signedness of any adjustment. A part whose role the reading has not shown keeps its neutral name.
-- Boundaries. The start of a function and the size an analyzer gives its body are leads. A body can share its tail with another function or be entered part way through, and covering its bytes shows neither that every instruction was read nor that every caller was found.
-- Overlapping writes. Each read and write is recorded with its full width and the bytes it covers. Where a byte is stored into a word that is later read whole, the reading also names what writes the other byte, since clearing the low byte of a word leaves it nonzero when the high byte is nonzero. Where the callers the reading has shown can reach that case, the entry describes it and an emulated call of the function includes a run that reaches it. Calling the low byte a flag does not make the whole word one.
-- Allocations. A reading of an allocation keeps apart the number of bytes requested, the width that number is computed in and where it wraps, the unit the allocator counts in, how the returned pointer is normalized, the size the block's header gives, and the range that is later cleared or written. It follows each conversion between bytes, paragraphs and elements back to the code that produces it. A loop that fills the block in bounded chunks says nothing about how large the whole block is. Where the allocator's state or the meaning of a header is not known, the entry's Open questions section says so. An allocator can change its state before it rejects a request, over alignment for example, and return null with those changes still in place, so the reading follows the pointer it saved and the pointer it returned separately.
-- Output counts. Where a procedure produces a list from its inputs, the reading bounds the number of outputs on its own, apart from the bound on each input, and follows every append, split or pairing of inputs to the check that guards the write into the destination. Two input counts that each pass their checks do not show that their product fits. A loop body with four appends shows at most four writes per pass, and does not show that any input the original produces takes all four. The entry keeps apart that bound, the size of the destination and what the inputs would have to be to reach it, and a bug entry that describes an overflow says which buffer the outputs are built in and what else points at that buffer. An emulated call with arguments chosen to reach the bound shows what the code does with them, and does not show that the original's callers ever pass them.
+Loops and recursion. The reading says why each loop ends and why a recursive call cannot go round forever, or names what that rests on. Reaching every branch of a procedure says nothing about a callee or a callback that never returns, and a cycle in the call graph needs its own argument, while a function called from two places is not recursion.
 
-A reading that leaves any of this open is not complete, and the entry's Open questions section says which part.
+###### STATUS-6
 
-An entry that depends on any of those stays `supported` until a run of the original agrees with the reading. A complete reading that later meets a finding or experiment it does not explain makes the entry `disputed`, the same as any other.
+The paths that fail. The reading says which writes happen before each failure and stay, and which values are set on each way out, since a failure return undoes nothing unless the code does. A caller that tests only part of a return value, such as the low byte of a word, is read as testing that part. [Findings](#findings) says what a finding about a failure path records.
 
-Only evidence from the original can dispute an entry. Manuals are often wrong, and a source that disagrees with the findings is cited in `evidence` like any other source, with the disagreement described in the entry's body (a rule's What the sources say section, and the Open questions section of other kinds) and in the source's Known errors section. Two sources that disagree with each other, and no finding or experiment to settle it, leave the entry `sourced` with the disagreement in its Open questions section. An entry that is not superseded must not cite a superseded entry in its `evidence`, `conflicting` or `related` fields. A superseded entry keeps the links it had when it was replaced, so its history stays readable.
+###### STATUS-7
+
+Widths and ranges. The reading gives the width and signedness of each value the result depends on, where it wraps or truncates, and the range of values the callers it has read actually pass. A bound comes from the code that sets it, never from the data that happens to follow a table or a size that divides evenly, and a count of what a procedure produces is kept apart from the bytes allocated for it, headers and terminators included.
+
+###### STATUS-8
+
+Identity. A field is named by the segment or object that holds it, its offset and width, and the paths that set it. An argument is read by the width and order the caller pushes and the callee reads, and by who removes it. Two addresses are the same storage only where the reading shows it, by giving the segment or object each address is formed in and the one each access goes through. In 16-bit code that is the segment the instruction actually uses, after any override, and the caller or callee that sets or restores that segment register. An offset taken from BP and passed to a helper that reads through DS shows that the helper reads the caller's stack only where the reading shows that DS and SS hold the same segment at that point. Until it does, the finding keeps the accesses apart and says what evidence is missing. The Setup section of an emulated call says which segments its harness makes equal, and a harness never makes them equal only so that a reading works.
+
+###### STATUS-9
+
+Stored calls. A value the code stores and later calls through can hold more than the address of the code: an adjustment added to the object pointer before the call, as a C++ pointer to a member function carries, or a context value passed along with it. The reading follows each part from the code that produces it, through the structure that stores it, to the call that uses it, before the format entry names its fields. Two adjacent words, or a value returned in two registers such as DX:AX, can be one far pointer, so they show two functions only where the reading finds two calls. The finding gives the calling convention of the call, and the width and signedness of any adjustment. A part whose role the reading has not shown keeps its neutral name.
+
+###### STATUS-10
+
+Boundaries. The start of a function and the size an analyzer gives its body are leads. A body can share its tail with another function or be entered part way through, and covering its bytes shows neither that every instruction was read nor that every caller was found.
+
+###### STATUS-11
+
+Overlapping writes. Each read and write is recorded with its full width and the bytes it covers. Where a byte is stored into a word that is later read whole, the reading also names what writes the other byte, since clearing the low byte of a word leaves it nonzero when the high byte is nonzero. Where the callers the reading has shown can reach that case, the entry describes it and an emulated call of the function includes a run that reaches it. Calling the low byte a flag does not make the whole word one.
+
+###### STATUS-12
+
+Allocations. A reading of an allocation keeps apart the number of bytes requested, the width that number is computed in and where it wraps, the unit the allocator counts in, how the returned pointer is normalized, the size the block's header gives, and the range that is later cleared or written. It follows each conversion between bytes, paragraphs and elements back to the code that produces it. A loop that fills the block in bounded chunks says nothing about how large the whole block is. Where the allocator's state or the meaning of a header is not known, the entry's Open questions section says so. An allocator can change its state before it rejects a request, over alignment for example, and return null with those changes still in place, so the reading follows the pointer it saved and the pointer it returned separately.
+
+###### STATUS-13
+
+Output counts. Where a procedure produces a list from its inputs, the reading bounds the number of outputs on its own, apart from the bound on each input, and follows every append, split or pairing of inputs to the check that guards the write into the destination. Two input counts that each pass their checks do not show that their product fits. A loop body with four appends shows at most four writes per pass, and does not show that any input the original produces takes all four. The entry keeps apart that bound, the size of the destination and what the inputs would have to be to reach it, and a bug entry that describes an overflow says which buffer the outputs are built in and what else points at that buffer. An emulated call with arguments chosen to reach the bound shows what the code does with them, and does not show that the original's callers ever pass them.
+
+###### STATUS-14
+
+A reading that leaves any of [STATUS-4](#status-4) to [STATUS-13](#status-13) open is not complete, and the entry's Open questions section says which part.
+
+###### STATUS-15
+
+An entry whose result depends on anything the third condition of [STATUS-4](#status-4) rules out stays `supported` until a run of the original agrees with the reading. A complete reading that later meets a finding or experiment it does not explain makes the entry `disputed`, the same as any other.
+
+###### STATUS-16
+
+Only evidence from the original can dispute an entry. Manuals are often wrong, and a source that disagrees with the findings is cited in `evidence` like any other source, with the disagreement described in the entry's body (a rule's What the sources say section, and the Open questions section of other kinds) and in the source's Known errors section. Two sources that disagree with each other, and no finding or experiment to settle it, leave the entry `sourced` with the disagreement in its Open questions section.
+
+###### STATUS-17
+
+An entry that is not superseded must not cite a superseded entry anywhere: in its `builds`, a location, its `evidence`, `conflicting` or `related` fields, a draw in an experiment's fixture, or a row of a build's Code ranges section. A superseded entry keeps the links it had when it was replaced, so its history stays readable.
+
+###### STATUS-18
 
 Status is not tracked per build. An entry's status is what its evidence shows for the first build in its `builds` list, which is the build it was studied in most closely, and another build it lists may rest on less evidence. The entry's Differences between builds section says what was checked in each build.
 
-The spec records how well the original is understood. How well our rebuild matches it is recorded in the [parity matrix](#parity-matrix), which uses the same statuses and adds `implemented` and `validated`. [OpenMW](https://wiki.openmw.org/index.php?title=Template:Formula) keeps the same split between analysis status and implementation status.
+###### STATUS-19
 
 There is no separate confidence scale. An entry is as certain as its status says, and when part of an entry is less certain than the rest, that part goes in its own entry or in the entry's Open questions section.
 
-The citations in the table are the least a status needs. An entry takes the highest status its evidence supports for everything it says. Evidence can meet the citation requirement and still cover only part of the entry, such as an experiment that only ever took one branch of a procedure. The entry then stays at the lower status, and its Open questions section says which part the evidence does not reach.
+###### STATUS-20
+
+The citations in the [STATUS-1](#status-1) table are the least a status needs. An entry takes the highest status its evidence supports for everything it says. Evidence can meet the citation requirement and still cover only part of the entry, such as an experiment that only ever took one branch of a procedure. The entry then stays at the lower status, and its Open questions section says which part the evidence does not reach.
+
+###### STATUS-21
 
 Findings and experiments are evidence rather than claims, so they have a shorter list of their own:
 
@@ -176,33 +264,85 @@ Findings and experiments are evidence rather than claims, so they have a shorter
 | `reproduced` | Repeated by someone other than the person in `recorded_by`, from the entry's own instructions, with the same result, and that person is named in `reproduced_by`. For a random outcome, the same result means a distribution that passes the experiment's own comparison with the recorded one. |
 | `superseded` | Shown to be wrong. `superseded_by` names the entries that show it. |
 
+###### STATUS-22
+
 A claim's status does not depend on whether its evidence has been reproduced, because a project with one person working on it could then never establish anything. The status index lists `established` entries that rest only on `recorded` evidence, and separately those established by a complete reading alone, which shows where a second person's time does the most good.
+
+###### STATUS-23
 
 Builds and sources carry no status, but they can still be wrong: a build entry can hold a hash taken from a damaged copy, or a source entry can describe a different printing from the one that was read. A correction that leaves what the entry identifies unchanged, such as a typo in a title or a new URL for the same document, is made in place. Any other correction is a new entry under a new alias, and the old entry's `superseded_by` names it. Every entry that cited the old one then fails the check until it cites the new one, which is the point at which someone confirms that its evidence still holds.
 
 ### Bounded analysis reports
 
+###### STATUS-24
+
 A shared reporter answers a declared query over a named build and file. Its output gives the source fingerprint, tool version, address mapping, entries and ranges searched, instruction, repeat and result limits, positive controls and exclusions. It distinguishes instruction paths reached from established entries from raw operand or call-byte candidates. A declared code range bounds the search; it does not make every byte an instruction. Undecoded ranges, unresolved targets and exhausted limits stay in the report, including when the result is zero. A missed positive control rejects a negative result.
+
+###### STATUS-25
 
 The report derives the parts it claims to compute from the instructions or source metadata. Supplied contracts, mappings, initial values and external-call models are identified as inputs with their provenance. Unknown values stay unknown. A researcher can supply an observation point, such as the register holding a returned extent, but a label alone does not establish its units or meaning. An instruction the reporter cannot interpret ends that path or leaves an explicit gap. It cannot silently become a call with no effects or a successful operation. A path that reaches the same instruction more times than the query's repeat limit allows stops there and names that limit. Stopping there shows nothing about whether the loop ends. A division that could fault on values the reporter does not know, through a zero divisor or a quotient too wide for its register, continues only under a stated assumption that it does not fault.
 
+###### STATUS-26
+
 A reporter that reads a format's own tables, such as relocations, overlay descriptors, fixups and trampolines, checks them before it answers any query and reports the counts they yield. A query can give the counts a build is known to have, and any difference rejects the query, so a table read with the wrong flag or cut short at a bound cannot narrow that query's search without anyone noticing. A query that gives no counts has only the reported ones to go on, and the report says that nothing checked them. Tests cut a table short and give the build's counts, and the query is rejected.
 
-A reporter need not support every query, and each one it does support meets its contract in this list. The tests use synthetic instructions and state, so they need none of the original's files.
+###### STATUS-27
 
-- A variable-use inventory follows established entries, retains effective operand widths and separates unverified overlapping candidates from counted reads and writes. It checks known instruction hits and reports ranges it could not decode. A test puts data between two entries that both use the field, and another makes the positive control fail. An operand reached only past a stop, such as a call whose callee has not been read or an instruction the reporter could not follow, is listed apart from the reads and writes on traced paths, and each such access names the stops it depends on. Its value, segment state and reachability assumptions remain separate from propagated path effects, and it cannot support a negative result. A test uses a field whose only access follows such a call, and the inventory reports no traced uses and one access that names that call, without assuming the callee preserves state.
-- A memory report retains the segment in which an offset was formed and the effective segment of every later access, including implicit defaults and overrides. It follows segment assignments across calls and leaves possible aliases unresolved. Tests carry a BP-derived offset through BX with unequal DS and SS, then make the two registers equal with instructions and show that the result changes.
-- An argument report maps pushed bytes to the widths the callee consumes, accounting for near and far return frames, widening, saved registers and cleanup. A relocated segment identifies a segment operand; it cannot decide which neighbouring word belongs to a pointer. Tests place an independent word beside a far pointer and check both frame shapes. A push of CS followed by a near call may supply a far-return frame. The report checks the pushed word, return width, stack balance and returned segment, and a test checks them once with the callee's own code and once with an external-call model in its place. Unresolved grouping remains unresolved.
-- An effect report preserves ordered writes and calls for each exit, including early bypasses, partial acquisition and failure. It identifies the producer of each branch's flags, keeps caller and callee predicates, and says which continuations assume a call returns. Tests retain a write before failure and omit a later bypassed write. Branches on two producers whose flags the reporter cannot compute stay uncorrelated, since two unknown conditions are not the same condition. Tests keep two such producers apart while still pairing complementary branches on one producer that nothing changes in between. A rollback claim needs the path that performs it; a failure return supplies none.
-- A return report preserves each producer's result width and evidenced failure encodings, each caller's truncation or extension, stored width and actual predicate. A raw field with the same bits has its own meaning. Tests return a failure word with a nonzero low byte and a successful word with a zero low byte, then follow a caller that tests only that byte. Discarded results and normalized wrapper returns stay visible.
-- An overlapping-access report keeps the complete byte interval of every read and write and the producers of neighbouring bytes. Tests clear a low byte before a word test with a nonzero high byte, and leave that high byte unknown on another path. A named byte flag cannot replace the wider consumer's predicate in the report or its fixtures.
-- An incoming-call report preserves encoding and mapping provenance, including raw relocation words, decoded overlay descriptors, trampolines and canonical targets where the format has them. It separates resident relocated calls, overlay fixups and relative candidates, and checks segment aliases against the same file target. A relative search covers the complete declared segment, overlay or section, including callers placed at higher addresses than the target's own code; a smaller search is labelled partial. The report names the segment, overlay or section each searched range belongs to and lists the parts of it left unsearched. Each candidate off the established paths says whether it lies inside an instruction the paths reach or in bytes no path reaches, and the report lists the computed transfers on the paths it followed, wherever they lie, since those may reach such bytes. Tests include such a late caller, an alias, a raw candidate that is not on an established instruction path, a candidate inside another instruction's operand and a search of part of a declared segment. Computed and unrelocated routes remain explicit exclusions.
-- A call-target report takes one direct call or jump. It gives the raw operand words, whether a relocation or overlay fixup covers the segment word, the load segment and the loaded address. A near call or jump has no segment word, and the report says that its segment is the caller's. For an overlay fixup it adds the stored word, the descriptor that word decodes to, that descriptor's segment and the trampoline the loaded address names. It ends with the code the transfer reaches and the address this standard cites it by, in the form [Notation](#notation) gives. A far word that nothing relocates gets no target. An address an analyzer shows for the same call is an input: the report says which of these identities the analyzer's address equals, and never puts it in their place. Tests use an unrelocated far call, a fixup whose stored word differs from its descriptor index, a call through a trampoline, and analyzer addresses equal to the raw operand, to the target and to neither.
-- A boundary report starts at one established entry and follows every branch and fall-through to each return, halt or tail transfer, without entering callees. It gives the byte runs it reached, the holes between them, every exit, and every call, interrupt or port access whose return it assumed. A computed jump whose targets it cannot resolve is listed as an exit with unknown targets, and the runs it gives do not then show the whole body. A size an analyzer gives is compared as a count of body bytes and is never added to the start to make an end. Tests put a data byte between two returns, end a body with a jump to another entry, and give a size that would cut off the second return.
-- An ownership report says which established entries reach one site as an instruction start, which reach an instruction that contains it, and whether an analyzer's function is among them. A return or prologue that lies between an entry and the site by address is reported as a warning, and the report does not treat it as the end of the entry's body. Tests put a call just past an adjacent function's return and give two entries a shared tail.
-- A guard report checks the value that the protected access or call actually uses, which an earlier test of the same variable does not show by itself. It retains ordering, branch polarity, intervening writers and callees, and distinguishes a checked snapshot from a later reload. Tests dereference before a null check and reload an indirect target after a possible writer. Unknown callee effects cannot establish preservation of the checked value.
-- An allocation report keeps requested bytes, arithmetic width and overflow, admission units, pointer normalization, header extent units and actual write ranges apart. It follows saved and returned pointers separately and retains changes before a failed request. Tests wrap a request, convert paragraphs to bytes, compare a bounded write with a separately observed extent and reject after an earlier state change. An unknown allocator or header contract leaves capacity unresolved.
-- A dispatch report retains the decoded input-to-index transformation and range gates beside the bounded table layout and the source of its count. Raw positions stay separate from input cases until the transformation and source mapping have been read. Tests use inputs made equivalent by normalization, an input rejected before dispatch, and an index outside the declared layout. A configured stride must agree with the encoded access.
+A reporter need not support every query, and each one it does support meets the contract that one of the rules after this one gives for it. The tests use synthetic instructions and state, so they need none of the original's files.
+
+###### STATUS-28
+
+A variable-use inventory follows established entries, retains effective operand widths and separates unverified overlapping candidates from counted reads and writes. It checks known instruction hits and reports ranges it could not decode. A test puts data between two entries that both use the field, and another makes the positive control fail. An operand reached only past a stop, such as a call whose callee has not been read or an instruction the reporter could not follow, is listed apart from the reads and writes on traced paths, and each such access names the stops it depends on. Its value, segment state and reachability assumptions remain separate from propagated path effects, and it cannot support a negative result. A test uses a field whose only access follows such a call, and the inventory reports no traced uses and one access that names that call, without assuming the callee preserves state.
+
+###### STATUS-29
+
+A memory report retains the segment in which an offset was formed and the effective segment of every later access, including implicit defaults and overrides. It follows segment assignments across calls and leaves possible aliases unresolved. Tests carry a BP-derived offset through BX with unequal DS and SS, then make the two registers equal with instructions and show that the result changes.
+
+###### STATUS-30
+
+An argument report maps pushed bytes to the widths the callee consumes, accounting for near and far return frames, widening, saved registers and cleanup. A relocated segment identifies a segment operand; it cannot decide which neighbouring word belongs to a pointer. Tests place an independent word beside a far pointer and check both frame shapes. A push of CS followed by a near call may supply a far-return frame. The report checks the pushed word, return width, stack balance and returned segment, and a test checks them once with the callee's own code and once with an external-call model in its place. Unresolved grouping remains unresolved.
+
+###### STATUS-31
+
+An effect report preserves ordered writes and calls for each exit, including early bypasses, partial acquisition and failure. It identifies the producer of each branch's flags, keeps caller and callee predicates, and says which continuations assume a call returns. Tests retain a write before failure and omit a later bypassed write. Branches on two producers whose flags the reporter cannot compute stay uncorrelated, since two unknown conditions are not the same condition. Tests keep two such producers apart while still pairing complementary branches on one producer that nothing changes in between. A rollback claim needs the path that performs it; a failure return supplies none.
+
+###### STATUS-32
+
+A return report preserves each producer's result width and evidenced failure encodings, each caller's truncation or extension, stored width and actual predicate. A raw field with the same bits has its own meaning. Tests return a failure word with a nonzero low byte and a successful word with a zero low byte, then follow a caller that tests only that byte. Discarded results and normalized wrapper returns stay visible.
+
+###### STATUS-33
+
+An overlapping-access report keeps the complete byte interval of every read and write and the producers of neighbouring bytes. Tests clear a low byte before a word test with a nonzero high byte, and leave that high byte unknown on another path. A named byte flag cannot replace the wider consumer's predicate in the report or its fixtures.
+
+###### STATUS-34
+
+An incoming-call report preserves encoding and mapping provenance, including raw relocation words, decoded overlay descriptors, trampolines and canonical targets where the format has them. It separates resident relocated calls, overlay fixups and relative candidates, and checks segment aliases against the same file target. A relative search covers the complete declared segment, overlay or section, including callers placed at higher addresses than the target's own code; a smaller search is labelled partial. The report names the segment, overlay or section each searched range belongs to and lists the parts of it left unsearched. Each candidate off the established paths says whether it lies inside an instruction the paths reach or in bytes no path reaches, and the report lists the computed transfers on the paths it followed, wherever they lie, since those may reach such bytes. Tests include such a late caller, an alias, a raw candidate that is not on an established instruction path, a candidate inside another instruction's operand and a search of part of a declared segment. Computed and unrelocated routes remain explicit exclusions.
+
+###### STATUS-35
+
+A call-target report takes one direct call or jump. It gives the raw operand words, whether a relocation or overlay fixup covers the segment word, the load segment and the loaded address. A near call or jump has no segment word, and the report says that its segment is the caller's. For an overlay fixup it adds the stored word, the descriptor that word decodes to, that descriptor's segment and the trampoline the loaded address names. It ends with the code the transfer reaches and the address this standard cites it by, in the form [Notation](#notation) gives. A far word that nothing relocates gets no target. An address an analyzer shows for the same call is an input: the report says which of these identities the analyzer's address equals, and never puts it in their place. Tests use an unrelocated far call, a fixup whose stored word differs from its descriptor index, a call through a trampoline, and analyzer addresses equal to the raw operand, to the target and to neither.
+
+###### STATUS-36
+
+A boundary report starts at one established entry and follows every branch and fall-through to each return, halt or tail transfer, without entering callees. It gives the byte runs it reached, the holes between them, every exit, and every call, interrupt or port access whose return it assumed. A computed jump whose targets it cannot resolve is listed as an exit with unknown targets, and the runs it gives do not then show the whole body. A size an analyzer gives is compared as a count of body bytes and is never added to the start to make an end. Tests put a data byte between two returns, end a body with a jump to another entry, and give a size that would cut off the second return.
+
+###### STATUS-37
+
+An ownership report says which established entries reach one site as an instruction start, which reach an instruction that contains it, and whether an analyzer's function is among them. A return or prologue that lies between an entry and the site by address is reported as a warning, and the report does not treat it as the end of the entry's body. Tests put a call just past an adjacent function's return and give two entries a shared tail.
+
+###### STATUS-38
+
+A guard report checks the value that the protected access or call actually uses, which an earlier test of the same variable does not show by itself. It retains ordering, branch polarity, intervening writers and callees, and distinguishes a checked snapshot from a later reload. Tests dereference before a null check and reload an indirect target after a possible writer. Unknown callee effects cannot establish preservation of the checked value.
+
+###### STATUS-39
+
+An allocation report keeps requested bytes, arithmetic width and overflow, admission units, pointer normalization, header extent units and actual write ranges apart. It follows saved and returned pointers separately and retains changes before a failed request. Tests wrap a request, convert paragraphs to bytes, compare a bounded write with a separately observed extent and reject after an earlier state change. An unknown allocator or header contract leaves capacity unresolved.
+
+###### STATUS-40
+
+A dispatch report retains the decoded input-to-index transformation and range gates beside the bounded table layout and the source of its count. Raw positions stay separate from input cases until the transformation and source mapping have been read. Tests use inputs made equivalent by normalization, an input rejected before dispatch, and an index outside the declared layout. A configured stride must agree with the encoded access.
+
+###### STATUS-41
 
 A report that says its search is complete says so only for its stated domain and model. It establishes neither native reachability nor a complete reading by itself. Its reports and configurations stay in `GAME_DIR` and are not committed; findings record the checked observation in the researcher's words. A request for reporter behaviour is closed only after its stated acceptance cases pass against the reporter as it runs. Review guidance or a synthetic example of the desired conclusion does not implement that behaviour.
 
@@ -327,7 +467,19 @@ Every function the sections below define is built in, and needs no glossary entr
 
 ## Entry types
 
-Body sections appear in the order given for each type, each under a `##` heading. The heading is the text before the colon in the list item, or the whole item without its full stop if it has no colon. The examples use Chaos Overlords. The file size and hash in the build example are the real ones for the GOG release, and the other IDs, statuses, addresses and values are illustrative. A section with nothing to say is kept and says `None known.`, so a reader can tell an empty section from a forgotten one. Where it is certain that there is nothing, such as the Parameters of a rule that takes none, it says `None.` instead.
+###### ENTRY-TYPES-1
+
+Body sections appear in the order given for each type, each under a `##` heading. The heading is the text before the colon in the list item, or the whole item without its full stop if it has no colon.
+
+###### ENTRY-TYPES-2
+
+A section with nothing to say is kept and says `None known.`, so a reader can tell an empty section from a forgotten one. Where it is certain that there is nothing, such as the Parameters of a rule that takes none, it says `None.` instead.
+
+###### ENTRY-TYPES-3
+
+The examples of entries on this page use Chaos Overlords, and a spec's entries follow them in their field names, their section headings and the way they write numbers. The IDs, statuses, addresses and other values in them are illustrative, apart from the file size and hash in the build example, which are the real ones for the GOG release.
+
+###### ENTRY-TYPES-4
 
 Links between entries go one way: a claim cites its evidence, and evidence does not list the claims that use it. The check script generates the reverse lists into the indexes. Every entry except builds and sources has these fields, and `superseded_by` is always present, as an empty list unless the status is `superseded`. Builds and sources have `id`, `title` and `superseded_by`, and no `status` or `builds`:
 
@@ -341,11 +493,19 @@ superseded_by: []
 
 Each kind adds fields of its own, and the section for each kind below shows a complete example.
 
+###### ENTRY-TYPES-5
+
 Rules, formats, screens and bugs also have `evidence`, the findings, experiments and sources they rest on, and `conflicting`, the evidence that contradicts them. Both are always present. `conflicting` holds only findings and experiments, and may only be non-empty when the status is `disputed`. They also have `split_with`, which is always present and lists the other entries of a split by build, described below, or is empty, and they may have `complete_reading` (see [Complete readings](#complete-readings)).
+
+###### ENTRY-TYPES-6
 
 Rules, formats, bugs and screens also have `related`, links to other claims, which go one way as well. A rule lists the rules it invokes, the formats it reads or writes, and the screens it shows. A format lists the rules its tables name, such as the rule that decompresses a compressed block. A bug lists the rules, formats and screens it occurs in. A screen lists the rules and screens its effects lead to, and the rules that format the values it shows. A format's links to other formats are the types in its layout table, and the check script reads them from there. The indexes carry every link in the other direction.
 
+###### ENTRY-TYPES-7
+
 An entry with status `supported` or higher may list a build only if at least one finding or experiment it cites lists that build too. An `unknown` or `sourced` entry lists the builds it is believed to apply to. A finding lists a second build only when it was checked in that build as well, and then gives a location in each, or, for a finding that has no locations, says in its observation how it was checked in each. An experiment lists exactly one build. Running it in another build is a second experiment with its own fixture, and its Question section names the first.
+
+###### ENTRY-TYPES-8
 
 When builds differ in a way that changes what an entry says (a different procedure, a different layout, a different set of states), the entry is split into one entry per group of builds that behave alike, and no build is listed in two of them. Each one lists all the others in `split_with`, and its Differences between builds section says how they differ. That section otherwise records the differences that leave the entry true for every build it lists, such as code or data at another address.
 
@@ -790,28 +950,28 @@ The check script runs in each game repository on every change, and the build fai
 
 The script checks that:
 
-- every entry's front matter validates against the schema for its kind, its file name is its ID, and it sits in the directory for its kind;
-- every body has its sections, under the headings given here, in order;
-- every ID has the form for its kind, with an area from the area list where the kind has one, every ID cited anywhere resolves to an entry, and no ID is used twice;
-- no entry that exists on the main branch has been deleted or renamed, and no area has been removed from the area list or renamed;
-- every status is from the list for its kind, and no row of a format's tables is `superseded`;
-- every entry cites what its status requires, counting any source, and counting a finding or experiment only when it lists the first build in the entry's `builds`;
-- every ID in a `complete_reading` is a static finding that the entry lists in `evidence` and that lists the entry's first build, and no rule whose procedure has a `# may run:` comment has a non-empty `complete_reading`;
-- every `reproduced` entry names someone in `reproduced_by` other than its `recorded_by`, and every other finding and experiment has an empty `reproduced_by`;
-- every build a `supported` or `established` entry lists is covered by the evidence it cites, and every experiment lists exactly one build;
+- every entry's front matter validates against the schema for its kind, its file name is its ID, and it sits in the directory for its kind ([ENTRY-TYPES-4](#entry-types-4) to [ENTRY-TYPES-6](#entry-types-6));
+- every body has its sections, under the headings given here, in order ([ENTRY-TYPES-1](#entry-types-1));
+- every ID has the form for its kind, with an area from the area list where the kind has one, every ID cited anywhere resolves to an entry, and no ID is used twice ([IDENTIFIERS-1](#identifiers-1) to [IDENTIFIERS-4](#identifiers-4));
+- no entry that exists on the main branch has been deleted or renamed, and no area has been removed from the area list or renamed ([IDENTIFIERS-5](#identifiers-5) to [IDENTIFIERS-7](#identifiers-7));
+- every status is from the list for its kind, and no row of a format's tables is `superseded` ([STATUS-1](#status-1) and [STATUS-21](#status-21));
+- every entry cites what its status requires, counting any source, and counting a finding or experiment only when it lists the first build in the entry's `builds` ([STATUS-1](#status-1) and [STATUS-18](#status-18));
+- every ID in a `complete_reading` is a static finding that the entry lists in `evidence` and that lists the entry's first build, and no rule whose procedure has a `# may run:` comment has a non-empty `complete_reading` ([STATUS-4](#status-4));
+- every `reproduced` entry names someone in `reproduced_by` other than its `recorded_by`, and every other finding and experiment has an empty `reproduced_by` ([STATUS-21](#status-21));
+- every build a `supported` or `established` entry lists is covered by the evidence it cites, and every experiment lists exactly one build ([ENTRY-TYPES-7](#entry-types-7));
 - every static finding has at least one location for each build it lists, every location names a build the finding lists and a file in that build's `files` list, and every `address` is written in the notation for that file's format (the unpacked format for a packed file), with an `offset` in its place only for a data file, overlay code or an explicit `kind: file-data` location within the shipped file, and every `kind` is `code` or `file-data`, given only in an executable, with a `file-data` location giving an `offset` and never an `address`, and `unpacked: true` given only on a `file-data` location in a packed file, whose offset is then checked against the unpacked size;
 - every build entry's Code ranges section is a table in the form [Builds](#builds) gives or says `None.`, every finding a row names lists that build and has a location in that file of that build that is not `kind: file-data`, and every `offset` range in overlay code lies wholly inside one of that section's rows for its file;
 - every build's `manifest` exists and validates against the manifest schema, and every manifest belongs to a build entry;
 - every value file belongs to the entry its name gives and is named by that entry, every `table` that takes its values from one has as many rows as its count, every list written out in a procedure or a `table` definition has at most 64 values, and every value file of an enumeration table has that table's columns;
 - every packed file in a build entry gives its packer and the size, hash, format and unpacking tool of its unpacked form;
 - every pattern in a format entry's `files` matches a file in each build the entry lists;
-- no entry that is not superseded cites a superseded entry, whether in `builds`, a location, `evidence`, `conflicting`, `related` or a draw in an experiment's fixture, and every entry that is not superseded has an empty `superseded_by`;
-- every superseded entry names what replaced or disproved it, and no chain of `superseded_by` links leads back to where it started;
-- a finding's or experiment's `superseded_by` names only findings and experiments, a build's only builds, a source's only sources, and a source appears in any other kind's `superseded_by` only in a bug's;
-- `conflicting` holds only findings and experiments and is empty unless the status is `disputed`, and `related` links only to the kinds allowed for the entry;
+- no entry that is not superseded cites a superseded entry, whether in `builds`, a location, `evidence`, `conflicting`, `related`, a draw in an experiment's fixture or a row of a build's Code ranges section, and every entry that is not superseded has an empty `superseded_by` ([STATUS-17](#status-17) and [ENTRY-TYPES-4](#entry-types-4));
+- every superseded entry names what replaced or disproved it, and no chain of `superseded_by` links leads back to where it started ([IDENTIFIERS-7](#identifiers-7));
+- a finding's or experiment's `superseded_by` names only findings and experiments, a build's only builds, a source's only sources, and a source appears in any other kind's `superseded_by` only in a bug's ([IDENTIFIERS-7](#identifiers-7) and [STATUS-23](#status-23));
+- `conflicting` holds only findings and experiments and is empty unless the status is `disputed`, and `related` links only to the kinds allowed for the entry ([ENTRY-TYPES-5](#entry-types-5) and [ENTRY-TYPES-6](#entry-types-6));
 - a rule's `related` field holds every rule its procedure calls, takes a function or table from, or names in a `# may run:` comment (all the entries of a split rule), every format whose structures it reads, writes, makes with `new` or passes to `read_file` or `write_file`, every format whose enumeration names it uses, and every screen it names with `show`;
 - every rule a format's tables name is in the format's `related` field, every rule and screen a screen's effects or Shows cells name is in the screen's `related` field, and every bug's `related` field names at least one rule, format or screen;
-- every entry in a `split_with` list names the others back and lists none of their builds, and every build an entry lists is listed by one entry of each split rule it calls or relates to and of each split format it names;
+- every entry in a `split_with` list names the others back and lists none of their builds, and every build an entry lists is listed by one entry of each split rule it calls or relates to and of each split format it names ([ENTRY-TYPES-8](#entry-types-8));
 - every finding has `environment`, set for a dynamic finding and `null` for a static one;
 - every glossary file is named after the term in its `#` heading, no two terms differ only in case, and no term is a device name Windows reserves;
 - every glossary entry gives what the table under [Where it lives](#where-it-lives) asks of its kind of term, and every address, order and outside source it claims is followed by evidence IDs that resolve to entries that are not superseded, or by `(unknown)`;
@@ -827,7 +987,7 @@ The script checks that:
 - every binary format entry's `definition` exists unless the status is `unknown`, and every text format entry's `definition`, `size` and `byte_order` are null;
 - every Kaitai file belongs to the format entry its name and `meta/id` give, compiles, names the licence in `meta/license`, and has fixed sizes that match the layout table in its entry;
 - every experiment's `fixture` exists and validates against the fixture schema, every event it names has a glossary entry, every format, field path and glossary name in its end state exists, every draw names a rule entry, it gives the hash of the save its runs started from unless `starting_state` is `new-game` or `emulated-call`, and, for a patch, the hash of the base save as well;
-- no rule whose procedure has a `# may run:` comment is `established`, or has a `validated` row, when every experiment it cites has `starting_state: emulated-call`;
+- no rule whose procedure has a `# may run:` comment is `established`, or has a `validated` row, when every experiment it cites has `starting_state: emulated-call` ([STATUS-15](#status-15));
 - every `starting_state` that names a save or a patch points to one in `saves/`, and every patch validates against the fixture schema and names formats and field paths that exist in their layout tables with status `supported` or `established`;
 - every save in `saves/` and every file in `recordings/` matches the hash in its fixture, is named by some experiment, and is listed in `spec/LICENSE` as covered by neither licence;
 - every `recording` that gives a path outside `recordings/` and `captures/` names a file in the experiment's build, and every experiment with a `recording` has that recording's hash in its fixture;

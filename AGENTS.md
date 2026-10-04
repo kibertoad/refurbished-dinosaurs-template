@@ -299,8 +299,8 @@ certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
-[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 137-181)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 418-468) sections
+[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 181-273)
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 578-628) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored
@@ -432,8 +432,17 @@ created by the current task.
   may depend on both of the above.
 - `<Project>.Extractor`: separately runnable licensed-source verification and
   transactional asset extraction over `Resources`.
-- `<Project>.Inspect`: read-only tooling over `Resources`.
+- `<Project>.Inspect`: read-only tooling over the original's media.
 - `<Project>.Tests`: architecture, safety, and behavioral tests.
+
+Game-independent readers and runtime helpers come from the `RefurbishedDinosaurs.*`
+NuGet packages, pinned at an exact version: media sources and legacy formats from
+`RefurbishedDinosaurs.LegacyFormats`, asset-pack staging, safe paths, per-user
+locations and startup failure reporting from `RefurbishedDinosaurs.Core`. Use a
+package type before writing a local one, and keep game-specific formats, names and
+rules in the projects above; the
+[shared runtime libraries guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md)
+says what each package covers.
 
 **Rules live in `Core`; screens map them.** Every decision the original makes —
 a flag cascade, a gate, a branch table, an outcome selector, a state
@@ -502,7 +511,7 @@ to fail when discovery drops below an expected count.
 Enable the pre-commit hook once in each clone, before the first commit, with
 `git config core.hooksPath .githooks`, and do not bypass it with
 `--no-verify`. It runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
-on the staged tree in under a second, so a spec, queue or reporter-pin problem
+on the staged tree in under a second, so a spec, queue or checker-pin problem
 fails before the commit instead of in CI.
 
 ## Definition of done

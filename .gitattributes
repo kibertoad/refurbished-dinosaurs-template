@@ -9,11 +9,3 @@
 
 # Hash-verified upstream copies keep their exact bytes on every platform: no EOL conversion.
 docs/upstream/** -text
-vendor/** -text
-
-# Exact toolkit reporter blobs and regression fixtures.
-tools/evidence/x86-reporter/** -text
-docs/BOUNDED-EVIDENCE-REPORTERS.md -text
-tests/evidence/test_x86.py -text
-tests/evidence/bridge.test.mjs -text
-tests/evidence/test_pe.py -text

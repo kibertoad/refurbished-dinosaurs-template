@@ -8,6 +8,88 @@ not here.
 
 A project created from this template may delete this file.
 
+## Published standard checker, scientific-method packages and runtime libraries, 2026-10-04
+
+Follows the toolkit's
+[migration guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/migrating-to-scientific-method.md)
+and its [runtime package migration](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md#migrations).
+
+- **Standard.** `docs/upstream/` moves from `ca39d07` to `c1758fd`, where
+  [kibertoad/refurbished-dinosaurs#33](https://github.com/kibertoad/refurbished-dinosaurs/pull/33)
+  numbered the rules of Identifiers, Status and the shared part of Entry types and
+  moved the reporter contracts out of the page. Numbering changes no rule, so the
+  standard stays version 1. Section links are rewritten to the new line ranges.
+- **Checker.** `vendor/` is gone. `package.json` pins
+  `@scientific-method/standard-checker` 0.2.0, which labels each problem with the
+  rule it breaks, and CI pins the `check-documentation` action at toolkit
+  `a260e39`, the commit that released it. `tools/upstream-lock.json` records both,
+  `tools/upstream.mjs verify` fails when the CI pin, the lock and `package.json`
+  disagree, `docs` refuses an installed checker of another version, and `refresh`
+  moves all three together, refusing a toolkit commit other than the one tagged
+  for that checker release. (`docs/UPSTREAM-RULES.md`.)
+- **Evidence reporters.** `tools/evidence/x86-reporter/`, `x86-lock.json`,
+  `sync-x86.mjs` and the copied reporter tests are gone. The `x86-` commands of
+  `tools/evidence/report.mjs` run `@scientific-method/executable-reader` 1.0.0,
+  which hands the query to `scientific-method-engine` 1.0.1 from
+  `requirements-evidence.txt`; report output keeps the `bounded-x86-v1` schema.
+  Both speak prepared-config protocol 2: a query names its source by `xxh3`, the
+  hash its build entry gives, and a config that still names a `sha256` is
+  refused. The template's own `operand`, `incoming`, `table` and `inventory`
+  commands check the same `xxh3` through the reader's `sourceXxh3`, and every
+  report's `sourceIdentity` carries it. `legacy-image.mjs` re-exports the reader's parser.
+  `tools/evidence/xxh3.mjs` prints a file's `xxh3` the same way, and
+  `Capture-OriginalWindow.ps1` uses it to name each captured frame by `xxh3`
+  instead of SHA-256 (`checkpoint.json` schema version 3), hashing after the burst so
+  Node never delays a frame.
+- **Software OpenGL in CI.** The Windows jobs provision Mesa through the toolkit's
+  `setup-software-opengl` action, pinned by commit, and `tools/Install-MesaSoftwareGL.ps1`
+  is gone. The action pins the same Mesa release and checksum, and it fails the step
+  when it cannot install the driver, where the old step only warned and let the
+  platform smoke test run against the runner's driver. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
+  now covers setup and links the toolkit's guide instead of copying it.
+- **Ghidra scripts.** The 23 scripts the engine ships are deleted from
+  `tools/ghidra/`; `scientific-method-engine ghidra-scripts` prints their
+  directory, and `docs/GHIDRA.md` shows passing both directories to
+  `-scriptPath`. The packaged copies carry fixes the template's lacked: a call path
+  reads the whole body, capped outputs say whether anything was left, and file
+  offsets are hex. `ReportMemoryBlockForFileOffset` now maps offsets to loaded
+  addresses (see the engine README). ExportEditionAnalysis,
+  ExportFunctionAddressCorrelations, ExportVersionTracking* and ReportJumpTable
+  stay.
+- **Runtime libraries.** `Restoration.Resources`, the Extractor, the game and
+  Inspect reference `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats`
+  at exactly 2.0.0, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
+  `CueSheet` and `CueTrack` give way to `OriginalContentSource`, `ContentSourceKinds`,
+  `ContentSourceEntry`, `CueBinSheet` and `CueBinTrack`; asset-pack staging and commit
+  use `StagedAssetPack`, startup failures `StartupFailure` (still with no dialog in a
+  platform smoke test or when `CI` is set, now through its `showDialog` overload),
+  per-user paths `RestorationPaths`,
+  manifest paths `PortableAssetPath.Relative` and pack paths `SafePath.Below`.
+  Edition manifests are `AssetManifest`, identified by `AssetVerifier.IdentifyAsync`,
+  and the asset pack's manifest is `InstalledAssetManifest`, checked by
+  `InstalledAssetVerifier` with unlisted files rejected; the template's `SourceManifest`,
+  `AssetPackManifest`, `ContentDiagnostic` and `SpecHash` are gone. InstallShield
+  expansion stays in the template.
+- **Hashes.** Edition manifests, the asset-pack manifest, InstallShield inventories and
+  `Restoration.Inspect` use XXH3-128 (`xxh3`), the hash the standard gives every file,
+  instead of SHA-256, so an edition manifest copies its hashes from the build entry.
+  `AssetPackFormatVersion` is 2, so a pack written before this change is reported as
+  incompatible and the owner imports again. Diagnostics print the toolkit's problem
+  names (`[WrongHash]`, `[Unlisted]`) instead of snake_case codes, and a copy two
+  edition manifests both match is refused as ambiguous.
+- **Behaviour.** Manifest paths that are drive-relative, end a component with a dot
+  or space, or name a device are rejected on every host. The ISO 9660 reader checks
+  extents against the declared volume, and the cue parser requires track 01 at
+  00:00:00 and rejects layout lines it cannot read. A configured project revalidates
+  its supported media with `verify-source`.
+- **Gate.** CI and the release workflow install the engine and run
+  `pnpm install --frozen-lockfile`; the pre-commit hook links the checkout's
+  `node_modules` into its staged copy. Tests that only covered removed copies are
+  deleted. `tests/evidence/evidence.test.mjs` runs an `x86-` command through the
+  installed reader and engine, the memory-map test runs against the engine's
+  `ReportMemoryBlocks.java`, and the .NET tests cover source verification through
+  each kind, portable path rejection and a staged pack that fails verification.
+
 ## Callee graph and near-pointer segment provenance, 2026-10-01
 
 - **Reporter.** The reporter pin moves from `1ef21ef` to toolkit `67340fc`
@@ -465,7 +547,7 @@ sets how restoration work is planned, tracked and handed on.
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new
-[File size](upstream/documentation-standard.md#file-size) (lines 94-108) section,
+[File size](upstream/documentation-standard.md#file-size) (lines 104-118) section,
 which limits every Markdown file it defines to 1,000 lines and splits the files
 that grew with the whole project.
 
@@ -494,7 +576,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 844-865)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1004-1025)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

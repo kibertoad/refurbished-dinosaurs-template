@@ -87,12 +87,10 @@ try {
 
     # The node checks are listed once, in tools/Invoke-NodeChecks.mjs, which .githooks/pre-commit also runs.
     & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Node documentation, queue or reporter-pin checks failed.' }
-    $evidencePython = if ($env:EVIDENCE_PYTHON) { $env:EVIDENCE_PYTHON } else { 'python' }
-    & $evidencePython -B -m unittest discover -s (Join-Path $repositoryRoot 'tests/evidence') -p 'test*.py'
-    if ($LASTEXITCODE -ne 0) { throw 'Synthetic x86 reporter tests failed. Install the pinned evidence requirements.' }
-    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/evidence/bridge.test.mjs') (Join-Path $repositoryRoot 'tests/evidence/vendor.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
+    # The x86 commands of tools/evidence/report.mjs run scientific-method-engine from EVIDENCE_PYTHON, or python.
+    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
     # The test drives a copy of this script; give it the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }

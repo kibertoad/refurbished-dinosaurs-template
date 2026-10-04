@@ -1,4 +1,6 @@
 using System.Reflection;
+using RefurbishedDinosaurs.Core.Assets;
+using RefurbishedDinosaurs.LegacyFormats;
 using Restoration.Extractor;
 using Restoration.Resources;
 
@@ -13,7 +15,6 @@ static async Task<int> RunAsync(string[] args)
         if (args.Length == 0 || args[0] is "--help" or "-h") return Usage();
         var command = args[0].ToLowerInvariant();
         var requestedOutput = Option(args, "--output");
-        var packOutput = requestedOutput ?? OriginalContent.DefaultAssetPackPath();
         var editions = LoadManifests();
 
         if (command == "list-editions")
@@ -22,7 +23,20 @@ static async Task<int> RunAsync(string[] args)
             return 0;
         }
         if (command == "verify-pack")
-            return Report(await OriginalContent.VerifyInstalledAsync(packOutput), $"Verified asset pack at {packOutput}");
+        {
+            // Resolved only here: the per-user default fails where no local application data folder
+            // exists, which must not stop the commands that never touch the pack.
+            var packOutput = requestedOutput ?? OriginalContent.DefaultAssetPackPath();
+            var verification = await OriginalContent.VerifyInstalledAsync(packOutput);
+            if (!verification.IsValid)
+            {
+                foreach (var issue in verification.Issues)
+                    Console.Error.WriteLine($"[{issue.Problem}] {issue.Detail}");
+                return 3;
+            }
+            Console.WriteLine($"Verified asset pack at {packOutput}");
+            return 0;
+        }
 
         if (command == "expand-installshield")
         {
@@ -31,8 +45,8 @@ static async Task<int> RunAsync(string[] args)
                 return Fail("cabinet_required", "--cabinet must name a legally owned InstallShield cabinet.", 64);
             if (string.IsNullOrWhiteSpace(requestedOutput))
                 return Fail("output_required", "--output must name a new empty extraction directory.", 64);
-            var files = await InstallShieldCabinetExtractor.ExtractAsync(cabinet, packOutput);
-            Console.WriteLine($"Expanded and verified {files.Count} InstallShield files at {packOutput}.");
+            var files = await InstallShieldCabinetExtractor.ExtractAsync(cabinet, requestedOutput);
+            Console.WriteLine($"Expanded and verified {files.Count} InstallShield files at {requestedOutput}.");
             return 0;
         }
 
@@ -40,11 +54,22 @@ static async Task<int> RunAsync(string[] args)
         if (string.IsNullOrWhiteSpace(source))
             return Fail("source_required", "--source must name a legally owned directory or supported media image.", 64);
 
-        var identification = await OriginalContent.IdentifyAsync(source, editions);
+        var identification = await AssetVerifier.IdentifyAsync(source, editions);
         if (!identification.IsSupported)
         {
+            if (identification.IsAmbiguous)
+            {
+                // Two edition manifests describe this copy; they need a file that tells them apart.
+                Console.Error.WriteLine("[edition_ambiguous] The selected source matches more than one edition: " +
+                    string.Join(", ", identification.Matches.Select(edition => edition.SourceEdition)) + ".");
+                return 2;
+            }
             Console.Error.WriteLine("The selected source does not match a supported edition.");
-            return Report(identification.Diagnostics, null, 2);
+            foreach (var mismatch in identification.Mismatches)
+            foreach (var issue in mismatch.Issues)
+                Console.Error.WriteLine($"[{issue.Problem}] {mismatch.Edition.SourceEdition}: " +
+                    (issue.Path is null ? issue.Detail : $"{issue.Path}: {issue.Detail}"));
+            return 2;
         }
         if (command == "verify-source")
         {
@@ -68,7 +93,7 @@ static async Task<int> RunAsync(string[] args)
     }
 }
 
-static SourceManifest[] LoadManifests()
+static AssetManifest[] LoadManifests()
 {
     var assembly = Assembly.GetExecutingAssembly();
     return assembly.GetManifestResourceNames()
@@ -77,24 +102,9 @@ static SourceManifest[] LoadManifests()
         .Select(name =>
         {
             using var stream = assembly.GetManifestResourceStream(name)!;
-            return SourceManifest.Load(stream);
+            return OriginalContent.LoadEdition(stream);
         })
         .ToArray();
-}
-
-static int Report(
-    IReadOnlyList<ContentDiagnostic> diagnostics,
-    string? success,
-    int errorCode = 3)
-{
-    if (diagnostics.Count == 0)
-    {
-        if (success is not null) Console.WriteLine(success);
-        return 0;
-    }
-    foreach (var diagnostic in diagnostics)
-        Console.Error.WriteLine($"[{diagnostic.Code}] {diagnostic.Message}");
-    return errorCode;
 }
 
 static int Fail(string code, string message, int exitCode)

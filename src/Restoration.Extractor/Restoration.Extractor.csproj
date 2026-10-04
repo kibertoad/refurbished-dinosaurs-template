@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Restoration.Resources/Restoration.Resources.csproj" />
+    <PackageReference Include="RefurbishedDinosaurs.Core" Version="[$(RefurbishedDinosaursVersion)]" />
     <PackageReference Include="SabreTools.Serialization" Version="[3.2.0]" />
     <EmbeddedResource Include="source-manifests/*.json" />
   </ItemGroup>

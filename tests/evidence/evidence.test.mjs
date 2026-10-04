@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
+import { sourceXxh3 } from "@scientific-method/executable-reader";
 import { readMz, incomingCalls } from "../../tools/evidence/legacy-image.mjs";
 import { reviewFlow, boundedTable } from "../../tools/evidence/review.mjs";
 import { inventoryPath, parseInventory, joinInventories, verifyInventory } from "../../tools/evidence/inventory.mjs";
@@ -140,7 +140,7 @@ test("command interface checks identity and writes only the canonical inventory 
   const dir = mkdtempSync(join(tmpdir(), "evidence-")); t.after(() => rmSync(dir, { recursive: true, force: true }));
   const bytes = synthetic(); writeFileSync(join(dir, "synthetic.exe"), bytes);
   writeFileSync(join(dir, "view.tsv"), "start\tsize\n1001:0000\t8\n");
-  const cfg = { source: "synthetic.exe", sha256: createHash("sha256").update(bytes).digest("hex"), site: 83, targetOffset: 32,
+  const cfg = { source: "synthetic.exe", xxh3: sourceXxh3(bytes), site: 83, targetOffset: 32,
     build: "BLD-EXAMPLE", manifest: "CD:GAME.EXE", writeRoot: "out", views: [{ name: "resident", path: "view.tsv", ranges: [{ start: 64, end: 512 }] }] };
   const path = join(dir, "report.json"); writeFileSync(path, JSON.stringify(cfg));
   assert.equal(run(["operand", path]).relocated, true);
@@ -155,9 +155,32 @@ test("command interface checks identity and writes only the canonical inventory 
   assert.throws(() => run(["inventory-check", path]), /repositoryPath/);
   cfg.inventory = { path: `out/${result.destination}`, repositoryPath: "coverage/BLD-EXAMPLE/@CD/OTHER.EXE.tsv" }; writeFileSync(path, JSON.stringify(cfg));
   assert.throws(() => run(["inventory-check", path]), /repositoryPath/);
-  cfg.sha256 = "0".repeat(64); writeFileSync(path, JSON.stringify(cfg));
+  cfg.xxh3 = "0".repeat(32); writeFileSync(path, JSON.stringify(cfg));
   assert.throws(() => run(["operand", path]), /baseline/);
+  // A config from before the move to xxh3 is refused rather than checked against nothing.
+  writeFileSync(path, JSON.stringify({ ...cfg, xxh3: undefined, sha256: "0".repeat(64) }));
+  assert.throws(() => run(["operand", path]), /sha256 is no longer read/);
   assert.throws(() => run(["unknown", path]), /Unknown/);
+});
+
+test("x86 commands reach scientific-method-engine through the executable reader", (t) => {
+  // A synthetic MZ whose resident code makes a far call through a relocated segment to a routine that
+  // loads AX and returns far. The engine comes from EVIDENCE_PYTHON, or python.
+  const dir = mkdtempSync(join(tmpdir(), "evidence-x86-")); t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const bytes = Buffer.alloc(512);
+  bytes.write("MZ"); bytes.writeUInt16LE(1, 4); bytes.writeUInt16LE(4, 8);
+  bytes.writeUInt16LE(1, 6); bytes.writeUInt16LE(28, 24); bytes.writeUInt16LE(3, 28);
+  bytes.set([0x9a, 0x10, 0, 0, 0, 0xc3], 64);
+  bytes.set([0xb8, 0xff, 0xff, 0xcb], 80);
+  writeFileSync(join(dir, "source.bin"), bytes);
+  const path = join(dir, "config.json");
+  writeFileSync(path, JSON.stringify({ source: "source.bin", sourceKind: "mz", xxh3: sourceXxh3(bytes), entry: 64,
+    regions: [{ name: "resident", start: 64, end: 84, ip: 0, segment: 4096, entries: [64], evidence: "synthetic mapped MZ" }] }));
+  const report = run(["x86-returns", path]);
+  assert.equal(report.completeWithinModel, true);
+  assert.equal(report.paths[0].registers.ax.value, 65535);
+  assert.ok(report.paths[0].events.some((e) => e.kind === "call-return"));
+  assert.throws(() => run(["x86-unknown", path]), /Unknown x86 report command/);
 });
 
 

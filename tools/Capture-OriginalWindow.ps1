@@ -32,6 +32,31 @@ if (-not $IsWindows -and $PSVersionTable.PSEdition -eq 'Core') {
     throw 'Original-window capture is supported only on Windows.'
 }
 
+# Checked before any capture, so a missing dependency never costs a posed checkpoint. The capture
+# worker only renders frames and does not hash them.
+if (-not $CaptureWorkerWindow -and -not $ListWindows) {
+    $node = Get-Command node -ErrorAction SilentlyContinue
+    if (-not $node) {
+        throw 'Node.js is required to hash captured frames (tools/evidence/xxh3.mjs); install it and run pnpm install.'
+    }
+    $script:nodePath = $node.Source
+    $script:xxh3Helper = Join-Path (Split-Path -Parent $PSScriptRoot) 'tools\evidence\xxh3.mjs'
+    if (-not (Test-Path -LiteralPath $script:xxh3Helper)) {
+        throw "Frame hashing helper not found: $script:xxh3Helper"
+    }
+    # Hashing the helper itself proves the reader package resolves, which needs pnpm install. Node's
+    # stack trace for a missing package is dropped: the message below says what to do. Windows
+    # PowerShell turns a native command's redirected stderr into errors, which 'Stop' would make
+    # terminating, so the preference is relaxed for this one call.
+    $preference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $script:nodePath $script:xxh3Helper $script:xxh3Helper 2>$null | Out-Null }
+    finally { $ErrorActionPreference = $preference }
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Frame hashing does not run; run pnpm install in the repository first.'
+    }
+}
+
 if (-not $OutputRoot) {
     $repositoryRoot = Split-Path -Parent $PSScriptRoot
     $OutputRoot = Join-Path $repositoryRoot 'reference\original\captures'
@@ -263,6 +288,26 @@ if ($CaptureWorkerPath) {
     exit 0
 }
 
+# Frames are named by xxh3, the hash the documentation standard gives every file, computed by the
+# executable reader's sourceXxh3 through tools/evidence/xxh3.mjs (Windows PowerShell has no XXH3).
+function Get-FrameXxh3([string[]] $Paths) {
+    # Only stdout is read: Windows PowerShell turns a native command's redirected stderr into an
+    # error record, which would stop the script before the exit code is checked.
+    $output = & $script:nodePath $script:xxh3Helper @Paths
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frame hashing failed with exit code $LASTEXITCODE; see the xxh3 message above."
+    }
+    $hashes = @($output | ForEach-Object {
+        $line = "$_"
+        if ($line -notmatch '^([0-9a-f]{32})  ') { throw "Unexpected xxh3 output: $line" }
+        $Matches[1]
+    })
+    if ($hashes.Count -ne $Paths.Count) {
+        throw "Expected $($Paths.Count) frame hashes, got $($hashes.Count)."
+    }
+    return ,$hashes
+}
+
 function New-Checkpoint([string] $Label) {
     $target = Find-TargetWindow
     if ([OriginalWindowCapture.NativeMethods]::IsIconic($target.Handle)) {
@@ -286,16 +331,20 @@ function New-Checkpoint([string] $Label) {
             $fileName = 'frame-{0:D2}.png' -f $index
             $framePath = Join-Path $checkpointDirectory $fileName
             Save-ScreenFrame $target.Handle $clientSize $framePath
-            $hash = (Get-FileHash -LiteralPath $framePath -Algorithm SHA256).Hash.ToLowerInvariant()
             $frames.Add([ordered]@{
                 file = $fileName
-                sha256 = $hash
+                xxh3 = $null
                 capturedAt = [DateTimeOffset]::Now.ToString('o')
             })
 
             if ($index -lt $BurstCount -and $BurstIntervalMilliseconds -gt 0) {
                 Start-Sleep -Milliseconds $BurstIntervalMilliseconds
             }
+        }
+        # Hashed once after the burst, so starting Node never lengthens the pause between frames.
+        $hashes = Get-FrameXxh3 ($frames | ForEach-Object { Join-Path $checkpointDirectory $_.file })
+        for ($index = 0; $index -lt $frames.Count; $index++) {
+            $frames[$index].xxh3 = $hashes[$index]
         }
     }
     catch {
@@ -305,7 +354,7 @@ function New-Checkpoint([string] $Label) {
     }
 
     $metadata = [ordered]@{
-        schemaVersion = 2
+        schemaVersion = 3
         experiment = $Experiment
         label = $Label
         capturedAt = $capturedAt.ToString('o')

@@ -12,7 +12,7 @@ Before analysis, replace this instructional section with:
 
 - Ghidra version and absolute local installation path;
 - JDK version and absolute local path;
-- the exact owned executable's edition, path, length, SHA-256, and format;
+- the exact owned executable's edition, path, length, xxh3, and format;
 - a narrow disposable-project pattern below `%TEMP%`.
 
 Check documented local paths before searching or downloading tools. Isolated
@@ -20,11 +20,12 @@ processes may need `GHIDRA_HOME`, `JAVA_HOME`, and an explicit `PATH`.
 If sandboxing prevents Ghidra from persisting user preferences, request only the
 necessary user-level permission rather than reinstalling it.
 
-Always verify executable length and SHA-256 before interpreting an address.
+Always verify executable length and xxh3 (`xxhsum -H2`, or `Restoration.Inspect --source`)
+against its build entry before interpreting an address.
 Another version of the executable is another build, with its own
 `spec/builds/` entry, and a finding lists it only when it was checked there
 too, with a location in each build. Addresses are written in the
-[notation](upstream/documentation-standard.md#notation) (lines 209-246) for the
+[notation](upstream/documentation-standard.md#notation) (lines 349-386) for the
 executable's format: the full virtual address at the header's image base for
 PE, and `segment:offset` for MZ, COM, and NE, with the load segment the
 standard fixes for each.
@@ -61,8 +62,18 @@ New-Item -ItemType Directory -Path $analysisRoot | Out-Null
 ```
 
 Reuse the local project with `-process <executable-name> -noanalysis` and a
-small script under `tools/ghidra`. Never redirect broad output into the
-repository.
+small bounded script. `scientific-method-engine ghidra-scripts` prints the
+directory of the scripts the engine ships, and `tools/ghidra` holds the few it
+does not; pass both to `-scriptPath`, separated by `;`:
+
+```powershell
+$scripts = "$(scientific-method-engine ghidra-scripts);$PWD\tools\ghidra"
+& "$projectGhidraHome\support\analyzeHeadless.bat" `
+  $analysisRoot RestorationAnalysis -process <executable-name> -noanalysis `
+  -scriptPath $scripts -postScript ReportReferences.java 0x1234
+```
+
+Never redirect broad output into the repository.
 
 ## Bounded query pattern
 
@@ -84,35 +95,21 @@ inspect bounded instruction context when a conclusion depends on those details.
 
 ## Bounded reporting scripts
 
-Every script under `tools/ghidra` is a navigation aid for a small, reviewable
-question. Each caps its output so a mistake cannot dump the whole executable.
-Their output is navigation metadata, never proof of a rule; trace each finding
-and confirm it against controlled original-game observations before changing
-compatibility logic. Never redirect broad output into the repository.
+Every script is a navigation aid for a small, reviewable question. Each caps
+its output so a mistake cannot dump the whole executable. Their output is
+navigation metadata, never proof of a rule; trace each finding and confirm it
+against controlled original-game observations before changing compatibility
+logic. Never redirect broad output into the repository.
+
+The engine's README lists the arguments and caps of every script it ships, in
+its [Ghidra script catalog](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/packages/scientific-method-engine/README.md);
+read it at the version `requirements-evidence.txt` pins. Report fixes to those
+scripts to the toolkit rather than copying them here. `tools/ghidra` holds:
 
 | Script | Arguments | Reports |
 | --- | --- | --- |
-| `ReportStringReferences.java` | case-insensitive string fragments | at most 100 matching defined strings and 100 references per match |
-| `ReportSymbolReferences.java` | symbol-name fragments | bounded navigation for known imports or symbols |
-| `ReportScalarConstants.java` | decimal or `0x`-prefixed scalars | at most 300 instructions containing them |
-| `ReportReferences.java` | explicit addresses | references to them and their containing functions |
-| `ReportDataBytes.java` | one address and a byte count (1-256) | the raw bytes at that address |
-| `ReportFunctionSummary.java` | one or more function addresses | focused decompiler output for the selected addresses |
-| `ReportDecompileMatches.java` | one function address then literal text | at most 240 lines with two lines of context |
-| `ReportDecompileWindow.java` | one function address, one-based start line, count (1-160) | a selected basic-block-sized decompiler window |
-| `ReportInstructionWindow.java` | one address and an instruction count (1-200) | a forward instruction listing |
-| `ReportInstructionContext.java` | instruction addresses | at most eight instructions on either side within the function |
-| `ReportCallArguments.java` | one callee address | the three nearest pushed arguments at each direct call |
-| `ReportCallSitesWithScalars.java` | one callee address then exact scalars | calls whose preceding argument setup contains one of the values |
-| `ReportRandomnessCandidates.java` | none | at most 100 candidate timing/random imports and 100 referencing functions each |
-| `ReportCallPaths.java` | start function, target function, maximum depth (1-12) | bounded direct-call paths with fixed edge and result caps |
-| `ReportConstantFirstArgumentCalls.java` | callee address and exact scalar | x86 cdecl calls whose immediately pushed first argument matches |
-| `ReportFirstArgumentCallSummary.java` | one callee address | immediate x86 cdecl first-argument values and non-literal follow-ups |
-| `ReportFunctionScalarConstants.java` | function address and exact scalars | at most 200 matching instructions inside that function |
-| `ReportCallsToRange.java` | inclusive start and end addresses | at most 50 calls or jumps whose target lies in the selected range |
-| `ReportFilePatternInMemory.java` | executable file offset and optional byte count | at most eight loaded-memory matches and ten references per match |
-| `ReportMemoryBlockForFileOffset.java` | executable file offset | the matching loaded block and translated address, if any |
 | `ReportJumpTable.java` | NE16 table address, count (1-128), optional dispatch | bounded word-indexed segmented jump targets |
+| `ExportEditionAnalysis.java`, `ExportFunctionAddressCorrelations.java`, `ExportVersionTrackingAddressContexts.java`, `ExportVersionTrackingMatches.java` | see [Cross-edition comparison](#cross-edition-comparison) | local comparison exports |
 
 Use the narrow scripts to locate line numbers and addresses, then request only
 the explicitly selected decompiler or instruction windows. Do not stitch
@@ -124,7 +121,9 @@ The four `Export*.java` scripts support reproducible local comparison of two
 legally owned executable editions:
 
 - `ExportEditionAnalysis.java` writes deterministic function, instruction, and
-  reference inventories labelled with executable SHA-256 and Ghidra version;
+  reference inventories labelled with the executable's SHA-256 (the only file hash
+  Ghidra records; `citations` checks it against the executable itself, so nobody
+  copies it by hand) and Ghidra version;
 - `ExportVersionTrackingMatches.java` records Ghidra Version Tracking matches;
 - `ExportVersionTrackingAddressContexts.java` adds bounded address context to
   selected matches;
@@ -170,8 +169,7 @@ Without other options the check reports which section holds each address, and
 fails for addresses outside every section. The options add:
 
 - `--xxh3` refuses an executable whose xxh3 differs from the one its build
-  entry gives, and `--sha256` does the same with the SHA-256 recorded by the
-  latest-version gate;
+  entry gives;
 - `--build` skips files whose front matter names other builds and not this one,
   so a repository that documents two editions can check each against its own
   executable. A finding that lists both builds has addresses from each, and

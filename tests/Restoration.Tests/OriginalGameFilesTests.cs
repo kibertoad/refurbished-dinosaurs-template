@@ -1,3 +1,4 @@
+using RefurbishedDinosaurs.Core.Assets;
 using Restoration.Inspect;
 using Xunit;
 
@@ -84,5 +85,5 @@ public sealed class OriginalGameFilesTests : IDisposable
         return Hash(bytes);
     }
 
-    private static string Hash(byte[] bytes) => SpecHash.Xxh3(bytes);
+    private static string Hash(byte[] bytes) => FileFingerprint.Xxh3(bytes);
 }

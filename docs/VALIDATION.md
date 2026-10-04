@@ -33,7 +33,7 @@ named after the disc (`CD`, `CD2`). `GAME_DIR/captures/` holds the dumps,
 captures, recordings, and saves that cannot be committed, each named by its
 hash. That includes the base save an experiment's patch applies to, and the
 save after patching. Every hash in the spec is the 128-bit xxHash3 the standard
-specifies (`xxhsum -H2`); `SpecHash` in `Restoration.Inspect` computes it, and
+specifies (`xxhsum -H2`); `FileFingerprint` in RefurbishedDinosaurs.Core computes it, and
 `Restoration.Inspect --source <dir>` prints it for every file of a source.
 `OriginalGameFiles` in the test project resolves both kinds of path, checks
 each file's hash before a test reads it, and skips the test when the file is
@@ -58,8 +58,8 @@ runner could fetch it, so the marked tests skip there, and a skipped test does
 not fail the build. They run on a maintainer's machine with `GAME_DIR` set to a
 copy the maintainer owns. After a run of `./tools/Invoke-Validation.ps1` in
 which every test in every marked test file of a `validated` row passed and none
-was skipped, record the run with the documentation check from the pinned
-toolkit commit, naming the builds the run used, and commit the
+was skipped, record the run with the pinned documentation check, naming the
+builds the run used, and commit the
 `VALIDATION.md` it writes:
 
 ```sh
@@ -112,13 +112,17 @@ restored by a normal run; see [Explicit rerun without restore](#explicit-rerun-w
 ## Reference capture
 
 `tools/Capture-OriginalWindow.ps1` captures the selected original window's
-client area in burst frames with SHA-256 metadata into a `checkpoint.json` plus
-an `index.jsonl`, for evidence records rather than committed assets. It supports
+client area in burst frames into a `checkpoint.json` plus an `index.jsonl`, for
+evidence records rather than committed assets. Each frame is named by its `xxh3`,
+the hash the spec cites it by, computed after the burst by `tools/evidence/xxh3.mjs`
+(the executable reader's `sourceXxh3`), so the script needs Node.js and `pnpm install`
+and checks for both before it captures anything. It supports
 interactive, one-shot, and hotkey (Ctrl+Shift+F12) modes, and `-ListWindows` to
 discover the correct process and title. The helper renders the window's client
 through `PrintWindow` with full-content rendering, rather than copying its
 rectangle from the desktop, so a hidden or covered window never produces pixels
-from another application. Its `checkpoint.json` (schema version 2) records the
+from another application. Its `checkpoint.json` (schema version 3, which
+replaced each frame's `sha256` with `xxh3`) records the
 target process, window title, and client size, but not the desktop layout,
 which does not affect the pixels. Each frame runs in an isolated worker with a
 10-second deadline (adjustable with `-CaptureTimeoutSeconds`); a timeout kills
@@ -146,8 +150,10 @@ settings, and gives its xxh3. A test reads a copy from
 
 ## Static binary research
 
-`tools/ghidra/` holds bounded, clean-room Ghidra scripts for navigating a
-legally owned original executable. `docs/GHIDRA.md` documents the headless
+`scientific-method-engine ghidra-scripts` prints the directory of the bounded,
+clean-room Ghidra scripts the engine ships for navigating a legally owned
+original executable; `tools/ghidra/` holds the few the engine does not ship.
+`docs/GHIDRA.md` documents the headless
 workflow and each script's arguments and output caps. Results are written up as
 finding entries in `spec/findings/`; decompiler output is never committed.
 
@@ -158,7 +164,7 @@ The `Documentation standard` job in `.github/workflows/ci.yml` runs the
 [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
 pinned to a full commit SHA, on every pull request. It checks `spec/`, `parity/`
 and `deviations/` against the standard's list of
-[checks](upstream/documentation-standard.md#checks) (lines 787-838), compiles each
+[checks](upstream/documentation-standard.md#checks) (lines 947-998), compiles each
 `.ksy` file with the Kaitai Struct compiler, checks that every spec and
 deviation ID cited in `src/`, `tests/` and `tools/` exists and is not
 superseded, fails when `spec/index/` or `PARITY.md` is stale, and fails a `validated`
@@ -182,12 +188,13 @@ comment fails, cite the finding that records the address, or write one.
 
 The verified offline runner and explicit refresh procedure are documented in
 [UPSTREAM-RULES](UPSTREAM-RULES.md). The canonical gate checks snapshot hashes,
-the matching CI pin, documentation, and synthetic evidence/snapshot tests.
+that the CI pin and the checker package agree, documentation, and synthetic
+evidence/snapshot tests.
 
 The check writes `spec/index/` and `PARITY.md`; nobody edits them by hand. After
-changing the spec, `parity/` or `deviations/`, run the script from the same
-toolkit commit the workflow pins, with Node.js 22 or newer, and commit what it
-writes:
+changing the spec, `parity/` or `deviations/`, run the checker package the
+workflow's commit carries, with Node.js 22 or newer after `pnpm install`, and
+commit what it writes:
 
 ```sh
 node tools/upstream.mjs docs

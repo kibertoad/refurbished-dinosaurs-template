@@ -1,8 +1,10 @@
+using RefurbishedDinosaurs.Core.Diagnostics;
 using Restoration.Game;
 using Restoration.Resources;
 
 // Read before the try so the failure path knows whether this launch is a person or a smoke test.
 var platformSmoke = args.Contains("--platform-smoke-test", StringComparer.OrdinalIgnoreCase);
+string? assetPack = null;
 try
 {
     // Decided before the --smoke-test shortcut so that asking for software rendering in a mode
@@ -21,16 +23,15 @@ try
     if (softwareRendering.Enabled) SoftwareRenderer.Apply(softwareRendering.DriverPath!);
     if (!platformSmoke)
     {
-        var assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
-        var diagnostics = await OriginalContent.VerifyInstalledAsync(assetPack);
-        if (diagnostics.Count != 0)
+        assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
+        var verification = await OriginalContent.VerifyInstalledAsync(assetPack);
+        if (!verification.IsValid)
         {
             var details = string.Join(Environment.NewLine,
-                diagnostics.Select(diagnostic => $"[{diagnostic.Code}] {diagnostic.Message}"));
+                verification.Issues.Select(issue => $"[{issue.Problem}] {issue.Detail}"));
+            // The startup failure report names the asset pack and how to recreate it.
             throw new InvalidDataException(
-                $"A verified local asset pack is required at '{assetPack}'." + Environment.NewLine +
-                "Run {{PROJECT_NAME}}.Extractor against your legally owned GOG installation." +
-                Environment.NewLine + details);
+                "A verified local asset pack is required." + Environment.NewLine + details);
         }
     }
     using var game = new RestorationGame(platformSmoke);
@@ -39,8 +40,32 @@ try
 }
 catch (Exception exception)
 {
-    StartupFailureReporter.Report(exception, allowDialog: !platformSmoke);
+    ReportStartupFailure(exception, assetPack, unattended: platformSmoke);
     return 1;
+}
+
+// A smoke test or any other unattended run must not block on a modal dialog: there is nobody to
+// dismiss it, so it would replace a diagnosable non-zero exit with a hang. Only an explicit signal
+// counts as unattended. This process is a WinExe, so a person launching it from Explorer has no
+// console and its standard handles look redirected; inferring "unattended" from those would take
+// the dialog away from the one case it exists for.
+static void ReportStartupFailure(Exception exception, string? assetPack, bool unattended)
+{
+    var options = new StartupFailureOptions(
+        "{{DISPLAY_NAME}}",
+        Path.Combine(StateRootOrTemp(), "Logs"),
+        "If the asset pack is missing or damaged, run {{PROJECT_NAME}}.Extractor against your " +
+        "legally owned copy of the original game.",
+        "Asset pack");
+    var showDialog = !unattended && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+    StartupFailure.Report(options, exception, assetPack, showDialog);
+}
+
+// The failure being reported may be the one that stopped the state directory from resolving.
+static string StateRootOrTemp()
+{
+    try { return OriginalContent.StateRoot(); }
+    catch (InvalidOperationException) { return Path.Combine(Path.GetTempPath(), "{{APP_DATA_DIRECTORY}}"); }
 }
 static string? Option(string[] values, string name)
 {

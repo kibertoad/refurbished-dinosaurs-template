@@ -1,6 +1,6 @@
 #!/bin/sh
 # Runs the node checks of the fast gate (tools/Invoke-NodeChecks.mjs, which
-# tools/Invoke-Validation.ps1 also runs) before a commit, so a spec, queue or reporter-pin problem
+# tools/Invoke-Validation.ps1 also runs) before a commit, so a spec, queue or checker-pin problem
 # fails here instead of in CI. The documentation check runs with --no-ksy, so .ksy compilation is
 # left to the gate and CI. Enable once per clone with:
 #   git config core.hooksPath .githooks
@@ -14,10 +14,13 @@ if ! command -v node >/dev/null 2>&1; then
   exit 0
 fi
 git_dir=$(git rev-parse --absolute-git-dir)
+work_tree=$(git rev-parse --show-toplevel)
 # A separate step, so a failed mktemp stops the hook instead of leaving $staged empty.
 staged=$(mktemp -d)
 trap 'rm -rf "$staged"' EXIT
 trap 'exit 1' HUP INT TERM
 git checkout-index --all --prefix="$staged/"
+# The copy has no installed packages; the checks use the checkout's (pnpm install).
+if [ -d "$work_tree/node_modules" ]; then ln -s "$work_tree/node_modules" "$staged/node_modules"; fi
 export GIT_DIR="$git_dir" GIT_WORK_TREE="$staged"
 node "$staged/tools/Invoke-NodeChecks.mjs" --no-ksy
