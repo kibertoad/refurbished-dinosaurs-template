@@ -45,6 +45,11 @@ test("the documentation check runs the installed standard-checker package", () =
   const installed = JSON.parse(readFileSync(resolve(dirname(checkerPath()), "../package.json"), "utf8"));
   assert.equal(installed.name, "@scientific-method/standard-checker");
   assert.equal(installed.version, manifest.devDependencies["@scientific-method/standard-checker"]);
+  // A package.json bump (such as a Dependabot pull request) fails here until the CI action pin and
+  // the comment naming its tag move with it, so CI and local runs keep applying the same checks.
+  const ci = readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8");
+  assert.ok(ci.includes(`tagged @scientific-method/standard-checker@${installed.version},`),
+    `ci.yml must pin check-documentation to the commit tagged @scientific-method/standard-checker@${installed.version}`);
 });
 test("local runs take the checker inputs the CI step gives", () => {
   const step = `      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${"a".repeat(40)}\n`;

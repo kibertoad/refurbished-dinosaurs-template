@@ -65,7 +65,9 @@ Dependabot pull request proposes it. Set the new
 `pnpm install`, and move the `check-documentation` action in
 `.github/workflows/ci.yml` to the toolkit commit tagged
 `@scientific-method/standard-checker@<version>`, so CI and local runs apply the
-same checks. Its changes are in the package's
+same checks. Change the tag named in the comment above that step too:
+`tests/upstream/upstream.test.mjs` fails until it names the installed version,
+so a Dependabot pull request that moves only `package.json` stays red. Its changes are in the package's
 [changelog](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/packages/standard-checker/CHANGELOG.md).
 
 ## Configuration-test prerequisites

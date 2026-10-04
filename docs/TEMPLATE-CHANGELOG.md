@@ -15,8 +15,11 @@ A project created from this template may delete this file.
   `bridge.test.mjs`, `vendor.test.mjs`) are gone. `x86-<command>` runs
   `@scientific-method/executable-reader` 0.1.0 from npm, which drives
   `scientific-method-engine` 0.4.0 from PyPI (`tools/evidence/requirements.txt`);
-  `legacy-image.mjs` re-exports the reader's parser. Report output is unchanged:
-  the packages carry the reporter as of toolkit `67340fc` and later.
+  `legacy-image.mjs` re-exports the reader's parser. The packages carry the
+  reporter as of toolkit `67340fc` with two later changes to the MZ relocation
+  list: an unrelocated far-call or far-jump word reports `null` for `target`,
+  `loadedTarget` and `trampoline` instead of a computed value, and an FBOV fixup
+  whose descriptor is missing falls back to the raw segment instead of aborting.
   `docs/BOUNDED-EVIDENCE-REPORTERS.md` is replaced by a link to the toolkit's guide.
 - **Documentation check.** `vendor/check-documentation.mjs` and its lock entries
   are gone. `node tools/upstream.mjs docs` runs `@scientific-method/standard-checker`

@@ -23,7 +23,6 @@ function dotnet {
  $global:commands.Add([object]@($args))
  if (${failBuild?'$true':'$false'} -and $args[0] -eq 'build') { $global:LASTEXITCODE=7 } else { $global:LASTEXITCODE=0 }
 }
-Remove-Item Env:EVIDENCE_PYTHON -ErrorAction SilentlyContinue
 $failure=$null
 try { & ${literal(join(dir,'tools/Invoke-Validation.ps1'))} ${offline?'-NoRestore':''} -TestFilter 'SyntheticFilter' -MinimumExpectedTests 3 }
 catch { $failure=$_.Exception.Message }
