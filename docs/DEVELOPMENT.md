@@ -36,6 +36,14 @@ pnpm install
 python -m pip install -r requirements-evidence.txt
 ```
 
+Dependabot proposes NuGet updates weekly (`.github/dependabot.yml`) and leaves
+these packages alone. The documentation checker moves only through
+`node tools/upstream.mjs refresh` (`docs/UPSTREAM-RULES.md`).
+`@scientific-method/executable-reader` in `package.json` and
+`scientific-method-engine` in `requirements-evidence.txt` speak one versioned
+protocol, so bump them in the same change, to releases that speak the same
+protocol version, and run the evidence tests before committing.
+
 Build and test the complete solution with:
 
 ```powershell

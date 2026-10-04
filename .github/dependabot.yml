@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # NuGet packages of every project. The RefurbishedDinosaurs.* packages release together and share
+  # one pinned version (RefurbishedDinosaursVersion in Directory.Build.props), so they arrive as one
+  # pull request.
+  #
+  # The npm and pip packages are not listed, because none of them can be bumped on its own:
+  # - @scientific-method/standard-checker moves only through `node tools/upstream.mjs refresh`, which
+  #   a person starts and which also moves the CI action pin, tools/upstream-lock.json and the
+  #   pnpm-workspace.yaml exemption (docs/UPSTREAM-RULES.md). A package.json-only bump fails the
+  #   upstream tests.
+  # - @scientific-method/executable-reader (npm) drives scientific-method-engine (pip,
+  #   requirements-evidence.txt) over a versioned protocol. Dependabot cannot group across
+  #   ecosystems, so a protocol change would arrive as two pull requests that each fail alone.
+  #   Bump both in one change by hand (docs/DEVELOPMENT.md).
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      refurbished-dinosaurs:
+        patterns:
+          - RefurbishedDinosaurs.*

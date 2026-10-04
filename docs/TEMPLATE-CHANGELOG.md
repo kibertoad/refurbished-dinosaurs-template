@@ -8,6 +8,17 @@ not here.
 
 A project created from this template may delete this file.
 
+## Dependabot for NuGet packages, 2026-10-04
+
+`.github/dependabot.yml` proposes NuGet updates weekly, after a seven-day
+cooldown, with the `RefurbishedDinosaurs.*` packages grouped into one pull
+request because they share one pinned version. The npm and pip packages are left
+out: the documentation checker moves only through `tools/upstream.mjs refresh`,
+and the executable reader and the instruction engine must move together, which
+Dependabot cannot do across ecosystems
+([#48](https://github.com/kibertoad/refurbished-dinosaurs-template/issues/48)).
+`docs/DEVELOPMENT.md` says how to bump them by hand.
+
 ## Published standard checker, scientific-method packages and runtime libraries, 2026-10-04
 
 Follows the toolkit's
