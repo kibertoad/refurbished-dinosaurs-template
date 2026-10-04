@@ -58,7 +58,9 @@ carries, before writing any of them. The toolkit commit must be the one the
 toolkit tagged `@scientific-method/standard-checker@<version>`: a later commit can
 carry the same version with unreleased checker changes, which CI would run and
 the published package would not. Refresh also requires the Standard's v1 declaration,
-updates the CI checker pin and the `package.json` pin, and writes the lock last.
+updates the CI checker pin, the `package.json` pin and the checker's exemption in
+`pnpm-workspace.yaml` from pnpm's minimum release age (a release refresh takes is
+usually younger than that), and writes the lock last.
 Run `pnpm install` afterwards to update `pnpm-lock.yaml`. Individual
 files are replaced atomically; an interruption across files is detected by digest
 verification. Restore the previous snapshot or rerun the explicit refresh before

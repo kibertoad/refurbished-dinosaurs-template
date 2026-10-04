@@ -96,8 +96,17 @@ public static class OriginalContent
     public static RestorationPathOptions PathOptions { get; } = new("{{APP_DATA_DIRECTORY}}");
 
     /// <summary>The per-user directory for settings, saves and logs.</summary>
-    public static string StateRoot() => RestorationPaths.ResolveStateRoot(PathOptions,
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+    /// <exception cref="InvalidOperationException">The account has no local application data folder.</exception>
+    public static string StateRoot()
+    {
+        var localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        // RestorationPaths would reject the empty folder with an ArgumentException naming its parameter,
+        // which tells a player nothing.
+        if (string.IsNullOrWhiteSpace(localApplicationData))
+            throw new InvalidOperationException("This account has no local application data folder, so the " +
+                "per-user directory for the asset pack, settings and logs cannot be resolved.");
+        return RestorationPaths.ResolveStateRoot(PathOptions, localApplicationData);
+    }
 
     /// <summary>The per-user asset pack the Extractor writes and the game reads by default.</summary>
     public static string DefaultAssetPackPath() => Path.Combine(StateRoot(), PathOptions.ContentDirectory);

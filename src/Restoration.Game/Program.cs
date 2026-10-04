@@ -71,7 +71,7 @@ static void ReportStartupFailure(Exception exception, string? assetPack, bool al
 static string StateRootOrTemp()
 {
     try { return OriginalContent.StateRoot(); }
-    catch (ArgumentException) { return Path.Combine(Path.GetTempPath(), "{{APP_DATA_DIRECTORY}}"); }
+    catch (InvalidOperationException) { return Path.Combine(Path.GetTempPath(), "{{APP_DATA_DIRECTORY}}"); }
 }
 static string? Option(string[] values, string name)
 {

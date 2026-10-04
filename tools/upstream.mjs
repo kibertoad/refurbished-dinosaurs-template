@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, mkdirSync, renameSync, statSync, realpathSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, renameSync, statSync, realpathSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -58,15 +58,27 @@ export function verifySnapshot(root = ROOT) {
 // The installed checker, resolved from this script's checkout. It must be the version the lock pins,
 // so a stale node_modules cannot check against other rules than CI.
 export function checkerEntry(lock, from = import.meta.url) {
-  let manifestPath;
-  try { manifestPath = createRequire(from).resolve(`${CHECKER}/package.json`); }
-  catch (error) {
-    if (error.code !== "MODULE_NOT_FOUND") throw error;
-    throw new Error(`${CHECKER} is not installed; run pnpm install`);
-  }
+  // The package is found by directory on Node's lookup path rather than by resolving its package.json,
+  // which a package whose exports omit "./package.json" (as the executable reader's do) refuses.
+  const manifestPath = (createRequire(from).resolve.paths(CHECKER) ?? [])
+    .map((dir) => resolve(dir, CHECKER, "package.json")).find((path) => existsSync(path));
+  if (!manifestPath) throw new Error(`${CHECKER} is not installed; run pnpm install`);
   const manifest = JSON.parse(read(manifestPath, 65536));
   if (manifest.version !== lock.checker.version) throw new Error(`Installed ${CHECKER} is ${manifest.version}, not the pinned ${lock.checker.version}; run pnpm install`);
-  return resolve(dirname(manifestPath), manifest.bin["standard-checker"]);
+  const bin = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.["standard-checker"];
+  if (typeof bin !== "string") throw new Error(`Installed ${CHECKER} declares no standard-checker executable`);
+  return resolve(dirname(manifestPath), bin);
+}
+// pnpm holds back releases younger than its minimum release age, and refresh takes a checker release
+// as soon as it is tagged, so the pin is exempted. The exemption names the pinned version, so it
+// moves with the pin instead of outliving it.
+export function exemptChecker(workspace, version) {
+  const entry = `'${CHECKER}@${version}'`, key = /^minimumReleaseAgeExclude:[ \t]*\r?\n/m;
+  const pinned = /(['"]?)@scientific-method\/standard-checker@[^'"\s]+\1/g;
+  if (pinned.test(workspace)) return workspace.replace(pinned, entry);
+  if (key.test(workspace)) return workspace.replace(key, (line) => `${line}  - ${entry}\n`);
+  if (/^minimumReleaseAgeExclude\b/m.test(workspace)) throw new Error("pnpm-workspace.yaml must list minimumReleaseAgeExclude as a block sequence for refresh to update it");
+  return `${workspace}${workspace && !workspace.endsWith("\n") ? "\n" : ""}minimumReleaseAgeExclude:\n  - ${entry}\n`;
 }
 // The checker inputs the CI step gives under with:, as the arguments the action passes for them, so a
 // local run checks what CI checks. Only flat "key: value" lines are read; anything else fails.
@@ -166,14 +178,17 @@ export async function main(args, root = ROOT) {
     // Fetch every file before any mutation. Failed downloads leave the snapshot untouched.
     const { lock, staged } = await prepareSnapshot(rest[1], rest[3]);
     const ci = read(resolve(root, ".github/workflows/ci.yml")).toString("utf8");
-    const pattern = /kibertoad\/refurbished-dinosaurs-toolkit\/actions\/check-documentation@[0-9a-f]{40}/g;
+    const pattern = new RegExp(`${ACTION.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[0-9a-f]{40}`, "g");
     if ((ci.match(pattern) ?? []).length !== 1) throw new Error("Expected exactly one pinned checker action");
     const manifest = JSON.parse(read(resolve(root, "package.json"), 65536));
     if (!manifest.devDependencies?.[CHECKER]) throw new Error(`package.json does not pin ${CHECKER}`);
     manifest.devDependencies[CHECKER] = lock.checker.version;
+    const workspacePath = resolve(root, "pnpm-workspace.yaml");
+    const workspace = exemptChecker(existsSync(workspacePath) ? read(workspacePath, 65536).toString("utf8") : "", lock.checker.version);
     const writes = [...staged.map((x) => [x.metadata.path, x.bytes]),
       [".github/workflows/ci.yml", Buffer.from(ci.replace(pattern, `${ACTION}${lock.checker.revision}`))],
       ["package.json", Buffer.from(JSON.stringify(manifest, null, 2) + "\n")],
+      ["pnpm-workspace.yaml", Buffer.from(workspace)],
       ["tools/upstream-lock.json", Buffer.from(JSON.stringify(lock, null, 2) + "\n")]];
     // Lock is written last: an interrupted refresh fails verification before the checker executes.
     for (const [path, bytes] of writes) { const target = resolve(root, path); mkdirSync(dirname(target), { recursive: true }); writeFileSync(target + ".refresh", bytes); renameSync(target + ".refresh", target); }

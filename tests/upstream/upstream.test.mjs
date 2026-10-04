@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
-import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream, ciCheckerArgs, checkerEntry, main } from "../../tools/upstream.mjs";
+import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream, ciCheckerArgs, checkerEntry, exemptChecker, main } from "../../tools/upstream.mjs";
 import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
 import { checkLinks, linkFile, sections } from "../../tools/upstream-sections.mjs";
 import { checks, main as runNodeChecks } from "../../tools/Invoke-NodeChecks.mjs";
@@ -46,6 +46,30 @@ test("a checker version other than the action's is rejected", t => {
   assert.throws(() => checkerEntry({ ...lock, checker: { ...lock.checker, version: "0.0.1" } }), /run pnpm install/);
   assert.throws(() => checkerEntry(lock, pathToFileURL(resolve(tmpdir(), "no-install", "x.mjs")).href), /not installed; run pnpm install/);
   assert.match(checkerEntry(lock), /standard-checker/);
+});
+test("the installed checker is found even when its exports omit package.json", t => {
+  const dir = mkdtempSync(resolve(tmpdir(), "checker-exports-")); t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const pkg = resolve(dir, "node_modules/@scientific-method/standard-checker");
+  mkdirSync(pkg, { recursive: true });
+  writeFileSync(resolve(pkg, "package.json"), JSON.stringify({ name: "@scientific-method/standard-checker", version: lock.checker.version,
+    exports: { ".": "./dist/index.js" }, bin: { "standard-checker": "dist/standard-checker.js" } }));
+  const from = pathToFileURL(resolve(dir, "tools/upstream.mjs")).href;
+  assert.equal(checkerEntry(lock, from), resolve(pkg, "dist/standard-checker.js"));
+  writeFileSync(resolve(pkg, "package.json"), JSON.stringify({ name: "@scientific-method/standard-checker", version: lock.checker.version, bin: "cli.js" }));
+  assert.equal(checkerEntry(lock, from), resolve(pkg, "cli.js"));
+  writeFileSync(resolve(pkg, "package.json"), JSON.stringify({ name: "@scientific-method/standard-checker", version: lock.checker.version }));
+  assert.throws(() => checkerEntry(lock, from), /declares no standard-checker executable/);
+});
+test("refresh moves the checker's minimum-release-age exemption with the pin", () => {
+  const listed = "# comment\nminimumReleaseAgeExclude:\n  - other@1.0.0\n  - '@scientific-method/standard-checker@0.2.0'\n";
+  assert.equal(exemptChecker(listed, "0.3.0"), listed.replace("0.2.0", "0.3.0"));
+  assert.equal(exemptChecker("minimumReleaseAgeExclude:\n  - other@1.0.0\n", "0.3.0"),
+    "minimumReleaseAgeExclude:\n  - '@scientific-method/standard-checker@0.3.0'\n  - other@1.0.0\n");
+  assert.equal(exemptChecker("packages: []", "0.3.0"), "packages: []\nminimumReleaseAgeExclude:\n  - '@scientific-method/standard-checker@0.3.0'\n");
+  assert.equal(exemptChecker("", "0.3.0"), "minimumReleaseAgeExclude:\n  - '@scientific-method/standard-checker@0.3.0'\n");
+  assert.throws(() => exemptChecker("minimumReleaseAgeExclude: []\n", "0.3.0"), /block sequence/);
+  assert.equal(exemptChecker(readFileSync(resolve(root, "pnpm-workspace.yaml"), "utf8"), lock.checker.version),
+    readFileSync(resolve(root, "pnpm-workspace.yaml"), "utf8"));
 });
 test("local runs take the checker inputs the CI step gives", () => {
   const step = `      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${"a".repeat(40)}\n`;

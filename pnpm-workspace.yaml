@@ -1,4 +1,5 @@
-# pnpm holds back releases younger than its minimum release age. A pin to a release newer than
-# that is listed here until the age passes.
+# pnpm holds back releases younger than its minimum release age. `node tools/upstream.mjs refresh`
+# takes a checker release as soon as it is tagged, so it keeps the checker's entry here on the
+# version package.json pins.
 minimumReleaseAgeExclude:
   - '@scientific-method/standard-checker@0.2.0'
