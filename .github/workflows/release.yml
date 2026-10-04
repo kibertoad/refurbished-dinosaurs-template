@@ -32,12 +32,21 @@ jobs:
   prepare:
     name: Validate release
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       commit: ${{ steps.version.outputs.commit }}
     steps:
+      # Fail rather than skip, so a dispatch from another branch does not finish green with
+      # nothing built. The release-signing environment also limits deployments to main.
+      - name: Require dispatch from main
+        shell: pwsh
+        env:
+          DISPATCH_REF: ${{ github.ref }}
+        run: |
+          if ($env:DISPATCH_REF -ne 'refs/heads/main') { throw "Releases run only from main, not '$env:DISPATCH_REF'." }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
@@ -46,16 +55,31 @@ jobs:
       - id: version
         shell: pwsh
         env:
+          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           if ($env:RELEASE_TAG -notmatch '^(\d+\.\d+\.\d+)$') { throw 'Tag must be x.y.z.' }
-          if (git ls-remote --tags origin "refs/tags/$env:RELEASE_TAG") { throw 'Tag already exists.' }
-          "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
-          "commit=$(git rev-parse HEAD)" >> $env:GITHUB_OUTPUT
+          $version = $Matches[1]
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve release commit.' }
+          $tags = @(git ls-remote --tags origin "refs/tags/$env:RELEASE_TAG" "refs/tags/$env:RELEASE_TAG^{}")
+          if ($LASTEXITCODE -ne 0) { throw 'Could not check release tag.' }
+          if ($tags.Count -gt 0) {
+            $peeled = @($tags | Where-Object { $_ -match '\^\{\}$' })
+            $target = if ($peeled.Count) { $peeled[0] } else { $tags[0] }
+            if (($target -split '\s+')[0] -ne $commit) { throw 'Existing tag points to a different commit.' }
+            # A rerun only finishes a release whose tag was pushed without its Release. Stop before
+            # building and signing again when the Release exists, since publishing would fail.
+            gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --json tagName *> $null
+            if ($LASTEXITCODE -eq 0) { throw 'A GitHub Release already exists for this tag.' }
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "commit=$commit" >> $env:GITHUB_OUTPUT
   test:
     name: Test release commit
     needs: prepare
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: read
     steps:
@@ -80,8 +104,11 @@ jobs:
         run: ./tools/Invoke-Validation.ps1
   windows:
     name: Build Windows x64 installer
+    env:
+      ES_CERTIFICATE_THUMBPRINT: ${{ secrets.ES_CERTIFICATE_THUMBPRINT }}
     needs: [prepare, test]
     runs-on: windows-latest
+    timeout-minutes: 45
     # An empty name means "no environment", so an unsigned run does not wait on the signing
     # environment's protection rules or need its secrets.
     environment: ${{ inputs.signed_release != 'none' && 'release-signing' || '' }}
@@ -104,10 +131,13 @@ jobs:
           CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
           ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
         run: |
-          $missing = @('ES_USERNAME', 'ES_PASSWORD', 'CREDENTIAL_ID', 'ES_TOTP_SECRET') |
+          $missing = @('ES_USERNAME', 'ES_PASSWORD', 'CREDENTIAL_ID', 'ES_TOTP_SECRET', 'ES_CERTIFICATE_THUMBPRINT') |
             Where-Object { -not [Environment]::GetEnvironmentVariable($_) }
           if ($missing.Count -ne 0) {
             throw "Missing release-signing environment secret(s): $($missing -join ', ')."
+          }
+          if ($env:ES_CERTIFICATE_THUMBPRINT -notmatch '^[A-Fa-f0-9]{40}$') {
+            throw 'ES_CERTIFICATE_THUMBPRINT must be the 40 hexadecimal digits of the signing certificate thumbprint.'
           }
       - name: Install pinned installer compiler
         shell: pwsh
@@ -198,10 +228,7 @@ jobs:
             $destinations = @(Get-ChildItem $packageRoot -Recurse -File -Filter $file.Name)
             if ($destinations.Count -ne 1) { throw "Expected one destination for '$($file.Name)'." }
             Copy-Item $file.FullName $destinations[0].FullName -Force
-            $signature = Get-AuthenticodeSignature $destinations[0].FullName
-            if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
-              throw "Invalid or untimestamped signature on '$($destinations[0].FullName)'."
-            }
+            ./tools/Assert-WindowsSignature.ps1 -Path $destinations[0].FullName -ExpectedThumbprint $env:ES_CERTIFICATE_THUMBPRINT
           }
       - name: Build installer from verified package
         shell: pwsh
@@ -228,10 +255,7 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
-          $signature = Get-AuthenticodeSignature $installer
-          if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
-            throw "Invalid or untimestamped signature on '$installer'."
-          }
+          ./tools/Assert-WindowsSignature.ps1 -Path $installer -ExpectedThumbprint $env:ES_CERTIFICATE_THUMBPRINT
       - name: Smoke-test installed layout and shortcut
         shell: pwsh
         env:
@@ -248,10 +272,7 @@ jobs:
           $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target 'Game/Restoration.Game.exe'))
           if ($link.TargetPath -ne $expectedTarget) { throw "Shortcut target is invalid: '$($link.TargetPath)'." }
           if ($env:SIGNED_RELEASE -ne 'none') {
-            $signature = Get-AuthenticodeSignature $link.TargetPath
-            if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
-              throw "Installed executable has an invalid or missing timestamped signature."
-            }
+            ./tools/Assert-WindowsSignature.ps1 -Path $link.TargetPath -ExpectedThumbprint $env:ES_CERTIFICATE_THUMBPRINT
           }
           # Same as the CI smoke test: bound the wait and surface the reason. Unbounded, a launch
           # that stops on a dialog nobody can dismiss holds the release job until it times out.
@@ -305,6 +326,7 @@ jobs:
     needs: [prepare, test]
     if: ${{ inputs.installers != 'windows' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     # See the Windows job: an empty name means "no environment".
     environment: ${{ inputs.signed_release == 'Windows/Linux' && 'release-signing' || '' }}
     permissions:
@@ -353,6 +375,7 @@ jobs:
     needs: [prepare, test]
     if: ${{ inputs.installers != 'windows' }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     permissions:
       contents: read
     strategy:
@@ -398,6 +421,7 @@ jobs:
           (needs.linux.result == 'success' && needs.macos.result == 'success'))
       }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: write # Required to create the annotated tag and GitHub Release.
     steps:
@@ -410,8 +434,9 @@ jobs:
           pattern: release-*
           path: release-assets
           merge-multiple: true
-      # The asset count gates tag creation: a tag pushed without a Release blocks
-      # `prepare` from ever re-running this version until someone deletes it by hand.
+      # The asset count gates tag creation. A rerun can finish a tag pushed without a Release
+      # only while main is still at the tagged commit; after main moves, the tag must be
+      # deleted by hand before `prepare` accepts this version again.
       - name: Verify installer assets
         shell: bash
         env:
@@ -436,14 +461,7 @@ jobs:
         run: |
           $commit = git rev-parse HEAD
           if ($LASTEXITCODE -ne 0) { throw 'Could not resolve release commit.' }
-          $tagObject = gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/tags" `
-            -f "tag=$env:RELEASE_TAG" -f "message=Release $env:RELEASE_TAG" `
-            -f "object=$commit" -f 'type=commit' | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0) { throw 'Could not create the release tag object.' }
-          if (-not $tagObject.sha) { throw 'Release tag object response contained no sha.' }
-          gh api --method POST "repos/$env:GITHUB_REPOSITORY/git/refs" `
-            -f "ref=refs/tags/$env:RELEASE_TAG" -f "sha=$($tagObject.sha)"
-          if ($LASTEXITCODE -ne 0) { throw 'Could not create release tag reference.' }
+          ./tools/Ensure-ReleaseTag.ps1 -Repository $env:GITHUB_REPOSITORY -Tag $env:RELEASE_TAG -Commit $commit
       - name: Create GitHub Release
         shell: bash
         env:

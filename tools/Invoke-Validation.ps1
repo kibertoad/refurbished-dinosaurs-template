@@ -91,16 +91,16 @@ try {
     # The x86 commands of tools/evidence/report.mjs run scientific-method-engine from EVIDENCE_PYTHON, or python.
     & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
-    # The test drives a copy of this script; give it the PowerShell running now, which need not be on PATH.
+    # These tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
     try {
-        & node --test (Join-Path $repositoryRoot 'tests/upstream/offline-validation.test.mjs')
+        & node --test (Join-Path $repositoryRoot 'tests/upstream/offline-validation.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/release-signing.test.mjs')
     }
     finally {
         $env:PWSH = $previousPwsh
     }
-    if ($LASTEXITCODE -ne 0) { throw 'Offline validation option controls failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Offline validation or release signing controls failed.' }
 
     $msbuildArguments = @(
         "-maxCpuCount:$MaxCpuCount",
