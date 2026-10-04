@@ -21,6 +21,17 @@ trap 'rm -rf "$staged"' EXIT
 trap 'exit 1' HUP INT TERM
 git checkout-index --all --prefix="$staged/"
 # The copy has no installed packages; the checks use the checkout's (pnpm install).
-if [ -d "$work_tree/node_modules" ]; then ln -s "$work_tree/node_modules" "$staged/node_modules"; fi
+if [ -d "$work_tree/node_modules" ]; then
+  if ! ln -s "$work_tree/node_modules" "$staged/node_modules" 2>/dev/null; then
+    # Git for Windows cannot make a symbolic link without Developer Mode, and its copy fallback
+    # fails on pnpm's links. A directory junction needs no privilege, and rm -rf removes only the link.
+    command -v cygpath >/dev/null 2>&1 || { echo "pre-commit: could not link node_modules into the staged copy." >&2; exit 1; }
+    rm -rf "$staged/node_modules"
+    link=$(cygpath -w "$staged/node_modules")
+    target=$(cygpath -w "$work_tree/node_modules")
+    # Without the exclusion, MSYS rewrites /c and /J as paths before cmd sees them.
+    MSYS2_ARG_CONV_EXCL='*' cmd /c mklink /J "$link" "$target" >/dev/null
+  fi
+fi
 export GIT_DIR="$git_dir" GIT_WORK_TREE="$staged"
 node "$staged/tools/Invoke-NodeChecks.mjs" --no-ksy
