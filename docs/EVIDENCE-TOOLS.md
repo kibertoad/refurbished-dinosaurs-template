@@ -11,10 +11,11 @@ not a new spec version. Keep reports and configurations in `GAME_DIR`; do not co
 From PowerShell, run
 `node tools/evidence/report.mjs operand "$env:GAME_DIR/analysis/operand.json"`.
 Save redirected reports under `GAME_DIR` as well.
-A config names `source` relative to the config, its explicit `sha256` baseline,
-`loadSegment` (default 4096), numeric `site` at the segment operand, and numeric
-`targetOffset`. The SHA-256 guard binds the local tool input; retain the
-Standard's XXH3-128 build fingerprint and build ID in the finding itself.
+A config names `source` relative to the config, its `xxh3` (the XXH3-128 hash the
+build entry gives, as 32 lower-case hex digits), `loadSegment` (default 4096),
+numeric `site` at the segment operand, and numeric `targetOffset`. Every command,
+including the `x86-` ones, refuses a source with another hash and a config that
+still names a `sha256`; the report's `sourceIdentity` repeats the `xxh3` it checked.
 The source may be an ordinary MZ or an MZ followed by a Borland FBOV envelope.
 Other extended formats fail explicitly. Resident ranges include data: location
 resolution alone does not establish an instruction or behavior.

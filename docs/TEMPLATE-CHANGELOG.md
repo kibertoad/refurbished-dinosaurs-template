@@ -29,10 +29,14 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   for that checker release. (`docs/UPSTREAM-RULES.md`.)
 - **Evidence reporters.** `tools/evidence/x86-reporter/`, `x86-lock.json`,
   `sync-x86.mjs` and the copied reporter tests are gone. The `x86-` commands of
-  `tools/evidence/report.mjs` run `@scientific-method/executable-reader` 0.2.0,
-  which hands the query to `scientific-method-engine` 0.9.1 from
+  `tools/evidence/report.mjs` run `@scientific-method/executable-reader` 1.0.0,
+  which hands the query to `scientific-method-engine` 1.0.0 from
   `requirements-evidence.txt`; report output keeps the `bounded-x86-v1` schema.
-  `legacy-image.mjs` re-exports the reader's parser. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
+  Both speak prepared-config protocol 2: a query names its source by `xxh3`, the
+  hash its build entry gives, and a config that still names a `sha256` is
+  refused. The template's own `operand`, `incoming`, `table` and `inventory`
+  commands check the same `xxh3` through the reader's `sourceXxh3`, and every
+  report's `sourceIdentity` carries it. `legacy-image.mjs` re-exports the reader's parser. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
   now covers setup and links the toolkit's guide instead of copying it.
 - **Ghidra scripts.** The 23 scripts the engine ships are deleted from
   `tools/ghidra/`; `scientific-method-engine ghidra-scripts` prints their

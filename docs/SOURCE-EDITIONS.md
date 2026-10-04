@@ -5,7 +5,7 @@
 Before executable analysis, replace this section with a one-time, evidence-backed
 determination of the latest official patch/version. Record the authoritative or
 corroborated sources used, patch provenance, exact analysis version, executable
-path (local only), length, and SHA-256. The analysis version must match the
+path (local only), length, and xxh3. The analysis version must match the
 latest official version recorded in `tools/project-config.json`; otherwise stop
 and patch the owned copy first. This check runs once. After it is recorded
 here, it is established truth: link to this record, and do not investigate the

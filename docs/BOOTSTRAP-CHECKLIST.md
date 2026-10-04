@@ -15,7 +15,7 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] **Mandatory analysis gate:** establish from authoritative or corroborated
       evidence the latest official patch/version, patch the legally owned
       analysis copy to it, and record the conclusion, patch provenance,
-      executable length, and SHA-256 in `tools/project-config.json`,
+      executable length, and xxh3 in `tools/project-config.json`,
       `docs/SOURCE-EDITIONS.md`, and `docs/GHIDRA.md`. Refuse executable analysis
       until this is complete. After that it is settled; do not repeat the
       version investigation unless the repository owner asks.

@@ -12,7 +12,7 @@ Before analysis, replace this instructional section with:
 
 - Ghidra version and absolute local installation path;
 - JDK version and absolute local path;
-- the exact owned executable's edition, path, length, SHA-256, and format;
+- the exact owned executable's edition, path, length, xxh3, and format;
 - a narrow disposable-project pattern below `%TEMP%`.
 
 Check documented local paths before searching or downloading tools. Isolated
@@ -20,7 +20,8 @@ processes may need `GHIDRA_HOME`, `JAVA_HOME`, and an explicit `PATH`.
 If sandboxing prevents Ghidra from persisting user preferences, request only the
 necessary user-level permission rather than reinstalling it.
 
-Always verify executable length and SHA-256 before interpreting an address.
+Always verify executable length and xxh3 (`xxhsum -H2`, or `Restoration.Inspect --source`)
+against its build entry before interpreting an address.
 Another version of the executable is another build, with its own
 `spec/builds/` entry, and a finding lists it only when it was checked there
 too, with a location in each build. Addresses are written in the
@@ -120,7 +121,9 @@ The four `Export*.java` scripts support reproducible local comparison of two
 legally owned executable editions:
 
 - `ExportEditionAnalysis.java` writes deterministic function, instruction, and
-  reference inventories labelled with executable SHA-256 and Ghidra version;
+  reference inventories labelled with the executable's SHA-256 (the only file hash
+  Ghidra records; `citations` checks it against the executable itself, so nobody
+  copies it by hand) and Ghidra version;
 - `ExportVersionTrackingMatches.java` records Ghidra Version Tracking matches;
 - `ExportVersionTrackingAddressContexts.java` adds bounded address context to
   selected matches;
@@ -166,8 +169,7 @@ Without other options the check reports which section holds each address, and
 fails for addresses outside every section. The options add:
 
 - `--xxh3` refuses an executable whose xxh3 differs from the one its build
-  entry gives, and `--sha256` does the same with the SHA-256 recorded by the
-  latest-version gate;
+  entry gives;
 - `--build` skips files whose front matter names other builds and not this one,
   so a repository that documents two editions can check each against its own
   executable. A finding that lists both builds has addresses from each, and
