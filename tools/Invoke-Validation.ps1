@@ -7,7 +7,8 @@ param(
     [switch] $IncludeLongRunningTests,
     [switch] $LongRunningTestsOnly,
     [int] $MinimumExpectedTests,
-    [switch] $TraceTestOutput
+    [switch] $TraceTestOutput,
+    [switch] $NoRestore
 )
 
 $ErrorActionPreference = 'Stop'
@@ -84,27 +85,36 @@ try {
     & (Join-Path $PSScriptRoot 'Test-TemplateInfrastructure.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Template infrastructure verification failed.' }
 
-    & node (Join-Path $repositoryRoot 'tools/upstream.mjs') docs --check
-    if ($LASTEXITCODE -ne 0) { throw 'Pinned documentation check failed.' }
-    & node (Join-Path $repositoryRoot 'tools/Check-ResearchTracking.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Research queue tracking failed.' }
-
-    & node (Join-Path $repositoryRoot 'tools/evidence/sync-x86.mjs') --check
-    if ($LASTEXITCODE -ne 0) { throw 'Pinned x86 reporters differ from their adoption record.' }
-    $evidencePython = if ($env:EVIDENCE_PYTHON) { $env:EVIDENCE_PYTHON } else { 'python' }
-    & $evidencePython -B -m unittest discover -s (Join-Path $repositoryRoot 'tests/evidence') -p 'test*.py'
-    if ($LASTEXITCODE -ne 0) { throw 'Synthetic x86 reporter tests failed. Install the pinned evidence requirements.' }
-    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/evidence/bridge.test.mjs') (Join-Path $repositoryRoot 'tests/evidence/vendor.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/release-signing.test.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed.' }
+    # The node checks are listed once, in tools/Invoke-NodeChecks.mjs, which .githooks/pre-commit also runs.
+    & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
+    # The x86 commands of tools/evidence/report.mjs run scientific-method-engine from EVIDENCE_PYTHON, or python.
+    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
+    # These tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
+    $previousPwsh = $env:PWSH
+    if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
+    try {
+        & node --test (Join-Path $repositoryRoot 'tests/upstream/offline-validation.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/release-signing.test.mjs')
+    }
+    finally {
+        $env:PWSH = $previousPwsh
+    }
+    if ($LASTEXITCODE -ne 0) { throw 'Offline validation or release signing controls failed.' }
 
     $msbuildArguments = @(
         "-maxCpuCount:$MaxCpuCount",
         '-nodeReuse:true',
         '--verbosity', 'minimal'
     )
-    Invoke-CheckedDotnet -Arguments (@(
-        'restore', (Join-Path $repositoryRoot 'Restoration.slnx')
-    ) + $msbuildArguments)
+    if ($NoRestore) {
+        Write-Host 'NoRestore: using existing restore state for this checkout; no restore fallback.'
+    }
+    else {
+        Invoke-CheckedDotnet -Arguments (@(
+            'restore', (Join-Path $repositoryRoot 'Restoration.slnx')
+        ) + $msbuildArguments)
+    }
     Invoke-CheckedDotnet -Arguments (@(
             'build', (Join-Path $repositoryRoot 'Restoration.slnx'),
             '--configuration', 'Release',

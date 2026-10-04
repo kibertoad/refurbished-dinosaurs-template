@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 323-780)
+sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 468-945)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -10,7 +10,7 @@ it.
 Rules, formats, screens and bugs may also have `complete_reading`, a list of
 the static findings that together read all of the entry, which makes it
 `established` without a run (see the standard's
-[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 137-181)).
+[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 181-273)).
 Leave it out until such a reading exists.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
@@ -28,7 +28,7 @@ no reason.
 
 Every Markdown file the standard defines, entries included, is at most 1,000
 lines. An entry that would pass the limit is split by what it describes, as
-the standard's [File size](upstream/documentation-standard.md#file-size) (lines 94-108)
+the standard's [File size](upstream/documentation-standard.md#file-size) (lines 104-118)
 section says. The documentation standard check and
 `tools/Test-TemplateInfrastructure.ps1` both check the limit. Build manifests,
 lists of a build's other files, value files, Kaitai definitions, fixtures and
@@ -390,7 +390,7 @@ heading. A glossary file is not an entry, so it has no ID and no front matter,
 and it is renamed along with its term. Two terms never differ only in case, and
 no term is a name Windows reserves for a device (`con`, `prn`, `aux`, `nul`,
 `com1` to `com9`, `lpt1` to `lpt9`, in any case).
-The standard's [Where it lives](upstream/documentation-standard.md#where-it-lives) (lines 14-92)
+The standard's [Where it lives](upstream/documentation-standard.md#where-it-lives) (lines 24-102)
 section lists what each kind of term also gives. Every claim about the original
 (an address, the order of a list, the order of handlers or of a queue, what an
 outside value is read from) is followed by the IDs of its findings or
@@ -412,7 +412,7 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](upstream/documentation-standard.md#deviation-log) (lines 839-860)
+[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1004-1025)
 section sets out. Delete it otherwise. IDs are never reused or renumbered, and a dropped deviation keeps
 its file.
 

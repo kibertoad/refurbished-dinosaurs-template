@@ -1,1 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="RefurbishedDinosaurs.Core" Version="[$(RefurbishedDinosaursVersion)]" />
+    <PackageReference Include="RefurbishedDinosaurs.LegacyFormats" Version="[$(RefurbishedDinosaursVersion)]" />
+  </ItemGroup>
+</Project>

@@ -8,6 +8,222 @@ not here.
 
 A project created from this template may delete this file.
 
+## Published standard checker, scientific-method packages and runtime libraries, 2026-10-04
+
+Follows the toolkit's
+[migration guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/migrating-to-scientific-method.md)
+and its [runtime package migration](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md#migrations).
+
+- **Standard.** `docs/upstream/` moves from `ca39d07` to `c1758fd`, where
+  [kibertoad/refurbished-dinosaurs#33](https://github.com/kibertoad/refurbished-dinosaurs/pull/33)
+  numbered the rules of Identifiers, Status and the shared part of Entry types and
+  moved the reporter contracts out of the page. Numbering changes no rule, so the
+  standard stays version 1. Section links are rewritten to the new line ranges.
+- **Checker.** `vendor/` is gone. `package.json` pins
+  `@scientific-method/standard-checker` 0.2.0, which labels each problem with the
+  rule it breaks, and CI pins the `check-documentation` action at toolkit
+  `a260e39`, the commit that released it. `tools/upstream-lock.json` records both,
+  `tools/upstream.mjs verify` fails when the CI pin, the lock and `package.json`
+  disagree, `docs` refuses an installed checker of another version, and `refresh`
+  moves all three together, refusing a toolkit commit other than the one tagged
+  for that checker release. (`docs/UPSTREAM-RULES.md`.)
+- **Evidence reporters.** `tools/evidence/x86-reporter/`, `x86-lock.json`,
+  `sync-x86.mjs` and the copied reporter tests are gone. The `x86-` commands of
+  `tools/evidence/report.mjs` run `@scientific-method/executable-reader` 1.0.0,
+  which hands the query to `scientific-method-engine` 1.0.1 from
+  `requirements-evidence.txt`; report output keeps the `bounded-x86-v1` schema.
+  Both speak prepared-config protocol 2: a query names its source by `xxh3`, the
+  hash its build entry gives, and a config that still names a `sha256` is
+  refused. The template's own `operand`, `incoming`, `table` and `inventory`
+  commands check the same `xxh3` through the reader's `sourceXxh3`, and every
+  report's `sourceIdentity` carries it. `legacy-image.mjs` re-exports the reader's parser.
+  `tools/evidence/xxh3.mjs` prints a file's `xxh3` the same way, and
+  `Capture-OriginalWindow.ps1` uses it to name each captured frame by `xxh3`
+  instead of SHA-256 (`checkpoint.json` schema version 3), hashing after the burst so
+  Node never delays a frame.
+- **Software OpenGL in CI.** The Windows jobs provision Mesa through the toolkit's
+  `setup-software-opengl` action, pinned by commit, and `tools/Install-MesaSoftwareGL.ps1`
+  is gone. The action pins the same Mesa release and checksum, and it fails the step
+  when it cannot install the driver, where the old step only warned and let the
+  platform smoke test run against the runner's driver. `docs/BOUNDED-EVIDENCE-REPORTERS.md`
+  now covers setup and links the toolkit's guide instead of copying it.
+- **Ghidra scripts.** The 23 scripts the engine ships are deleted from
+  `tools/ghidra/`; `scientific-method-engine ghidra-scripts` prints their
+  directory, and `docs/GHIDRA.md` shows passing both directories to
+  `-scriptPath`. The packaged copies carry fixes the template's lacked: a call path
+  reads the whole body, capped outputs say whether anything was left, and file
+  offsets are hex. `ReportMemoryBlockForFileOffset` now maps offsets to loaded
+  addresses (see the engine README). ExportEditionAnalysis,
+  ExportFunctionAddressCorrelations, ExportVersionTracking* and ReportJumpTable
+  stay.
+- **Runtime libraries.** `Restoration.Resources`, the Extractor, the game and
+  Inspect reference `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats`
+  at exactly 2.0.0, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
+  `CueSheet` and `CueTrack` give way to `OriginalContentSource`, `ContentSourceKinds`,
+  `ContentSourceEntry`, `CueBinSheet` and `CueBinTrack`; asset-pack staging and commit
+  use `StagedAssetPack`, startup failures `StartupFailure` (still with no dialog in a
+  platform smoke test or when `CI` is set, now through its `showDialog` overload),
+  per-user paths `RestorationPaths`,
+  manifest paths `PortableAssetPath.Relative` and pack paths `SafePath.Below`.
+  Edition manifests are `AssetManifest`, identified by `AssetVerifier.IdentifyAsync`,
+  and the asset pack's manifest is `InstalledAssetManifest`, checked by
+  `InstalledAssetVerifier` with unlisted files rejected; the template's `SourceManifest`,
+  `AssetPackManifest`, `ContentDiagnostic` and `SpecHash` are gone. InstallShield
+  expansion stays in the template.
+- **Hashes.** Edition manifests, the asset-pack manifest, InstallShield inventories and
+  `Restoration.Inspect` use XXH3-128 (`xxh3`), the hash the standard gives every file,
+  instead of SHA-256, so an edition manifest copies its hashes from the build entry.
+  `AssetPackFormatVersion` is 2, so a pack written before this change is reported as
+  incompatible and the owner imports again. Diagnostics print the toolkit's problem
+  names (`[WrongHash]`, `[Unlisted]`) instead of snake_case codes, and a copy two
+  edition manifests both match is refused as ambiguous.
+- **Behaviour.** Manifest paths that are drive-relative, end a component with a dot
+  or space, or name a device are rejected on every host. The ISO 9660 reader checks
+  extents against the declared volume, and the cue parser requires track 01 at
+  00:00:00 and rejects layout lines it cannot read. A configured project revalidates
+  its supported media with `verify-source`.
+- **Gate.** CI and the release workflow install the engine and run
+  `pnpm install --frozen-lockfile`; the pre-commit hook links the checkout's
+  `node_modules` into its staged copy. Tests that only covered removed copies are
+  deleted. `tests/evidence/evidence.test.mjs` runs an `x86-` command through the
+  installed reader and engine, the memory-map test runs against the engine's
+  `ReportMemoryBlocks.java`, and the .NET tests cover source verification through
+  each kind, portable path rejection and a staged pack that fails verification.
+
+## Callee graph and near-pointer segment provenance, 2026-10-01
+
+- **Reporter.** The reporter pin moves from `1ef21ef` to toolkit `67340fc`
+  (toolkit PRs 39 and 40); adopt exact source/tests/guide.
+- **Callee graph.** New `x86-callees` reads a bounded graph from the entry and
+  established region entries. Edges back into the active path are
+  `recursivePath`; edges to an already read node are `sharedNodeReuse` and keep
+  that node's memory observations, continuation assumptions and unread
+  dependencies. Node, edge, depth and instruction limits keep omitted work
+  unresolved; a missing write is never a read-only claim.
+- **Near-pointer provenance.** `x86-arguments` and `x86-effects` retain LEA
+  address formations and link consumed near-pointer arguments and later
+  dereferences to them, keeping formation and dereference segments and
+  registers. Storage merges only for propagated equal segments and identical or
+  affine offsets. `pointerFormationLimit` keeps the most recent formations;
+  evicted ones stay counted and refuse merging.
+- **Checks.** Synthetic diamond, recursion, conditional-write, cap, DS/SS,
+  rebinding, field-offset and string-destination controls accompany the pin.
+
+## Overlapping operand candidate inventory, 2026-10-01
+
+- **Reporter.** Toolkit PR 38 merged at `1ef21ef`; adopt exact source/tests/guide.
+- **Behavior.** Encoded literal candidates retain prefix order/repeats, operand
+  widths, intersecting spans and entry-path classifications. Only verified memory
+  starts count; rejected or unresolved boundaries remain explicit. Implicit
+  operands and relative branches are excluded. Caps qualify groups and coverage.
+- **Checks.** Synthetic prefix, preceding/interior overlap, literal-only, repeated
+  prefix, cap and source-bridge controls accompany the pinned reporter.
+
+## Indirect jump tables, relocated pointer inventories and ownership ranges, 2026-10-01
+
+- **Reporters.** The reporter pin moves from `313bb7d` to toolkit `c133cd4`,
+  where toolkit PRs
+  [33](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/33) to
+  [37](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/37)
+  merged. The mapping adds `pointer-inventory.mjs`, `x86/dispatch.py` and
+  `tests/evidence/test_dispatch.py`.
+- **Behaviour.** CFG commands follow a segmented16 computed near word jump
+  through an `indirectJumps` table declared with consumer and layout evidence
+  and an explicit `exhaustive` flag; a non-exhaustive table keeps its
+  unresolved exit, supplied edges never prove an overlapping start, and path
+  reports still stop at the jump. `x86-pointers` inventories adjacent
+  segment:offset pairs at declared MZ relocations and FBOV fixups naming a query
+  target, as exact pairs, aliases, unresolved and excluded rows under one cap,
+  with positive controls. `x86-owner` adds every checked entry's reached
+  ranges, source-derived FBOV overlay exports and a `boundaryCheck` that is
+  never joinable for incomplete, contested or gap-stopped bodies or past the
+  entry limit; supplied `overlayExports` are rejected.
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
+- **Checks.** The pinned `test_dispatch.py` now falls back to the vendored
+  `tools/evidence/x86-reporter` layout like the other pinned suites, so
+  `tools/Invoke-Validation.ps1` needs no `PYTHONPATH` change.
+
+## Validation reruns without restore, 2026-10-01
+
+- **Behaviour.** `tools/Invoke-Validation.ps1 -NoRestore` skips only
+  `dotnet restore` and uses the restore state a normal run left in the
+  checkout; every policy, configuration, infrastructure, Node and Python check,
+  the build and the tests still run, and a missing restore state fails through
+  .NET diagnostics with no restore fallback. Normal runs and CI still restore.
+  Evidence: a configured project's validation failed on NuGet service and
+  signature endpoints although its packages were already restored.
+- **Checks.** `tests/upstream/offline-validation.test.mjs`, in the fast gate,
+  drives a copy of the script with command doubles: default restore, no
+  restore and `--no-restore` consumers under the switch, unchanged checks and
+  test filters, and a failed build propagating without a restore. The gate
+  passes the PowerShell running it to the test, and the test skips when no
+  PowerShell 7 is available. (`docs/VALIDATION.md`.)
+
+## Call targets, function bounds, incoming coverage and carry arithmetic, 2026-10-01
+
+- **Reporters.** The reporter pin moves from `7da1b93` to toolkit `313bb7d`,
+  where the reporter work of toolkit PRs
+  [28](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/28),
+  [29](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/29),
+  [30](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/30) and
+  [31](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/31)
+  reached `main` through
+  [32](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/32).
+- **Behaviour.** `x86-target` reports one direct call's raw words, relocation or
+  FBOV fixup chain, trampoline, canonical target and citation, and compares an
+  analyzer's address with them. `x86-bounds` and `x86-owner` report an entry's
+  reached body, holes and exits, and which entries own a site, with an
+  analyzer's size compared as a body-byte count. `formatControls` rejects a
+  query whose table counts differ from a build's known counts. Incoming reports
+  label a search over part of an overlay, section or declared segment partial
+  and say where each unverified candidate sits. The path model tracks CF and
+  adds ADC/SBB, NEG/NOT, rotates, one-operand MUL/IMUL/DIV/IDIV, JCXZ and the
+  LOOP family, with `visitLimit` in place of the fixed four passes. Review
+  fixes in the merged stack: a site whose candidate owners overlap or whose
+  entries stopped at a gap is `unresolved` rather than `unowned`; a conditional
+  branch to another entry is a conditional tail transfer; repeat and BND
+  prefixes hide no return, port access or jump; a `scanLimit` that stops short
+  makes an incoming search partial; and a target whose loaded address the
+  loader cannot resolve keeps `targetError` and gets no target.
+  (`docs/BOUNDED-EVIDENCE-REPORTERS.md`, `docs/EVIDENCE-TOOLS.md`.)
+- **Rules.** `docs/upstream/` moves from `82deb76` to `ca39d07`, where
+  [kibertoad/refurbished-dinosaurs#31](https://github.com/kibertoad/refurbished-dinosaurs/pull/31)
+  merged. It adds the call-target, boundary and ownership contracts, format-table
+  controls and the incoming-call coverage rule. Under these contracts a near
+  call takes the caller's segment, an unresolved computed jump is an exit with
+  unknown targets, a query that gives no table counts is reported as unchecked,
+  and a repeat limit and a division that may overflow are named. Section links
+  are rewritten to the new line ranges. The vendored checker stays on toolkit
+  `f7da132`.
+
+## Addresses in code comments, and a pre-commit hook, 2026-10-01
+
+Adopts the parts of
+[kibertoad/chaos-overlords-new-chrome#268](https://github.com/kibertoad/chaos-overlords-new-chrome/pull/268)
+that apply to every restoration.
+
+- **Checker.** `vendor/check-documentation.mjs` and the CI pin move from
+  toolkit `f5e62e0` to `f7da132`, where
+  [toolkit PR 23](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/23)
+  merged.
+  An address a code comment gives must be recorded in an entry the comment
+  cites, or in the evidence of a cited entry. Neutral names (`fn_…`, `g_…`) are
+  always checked; plain `0x…` values only once the CI step gives `images`,
+  which `ci.yml` explains how to add.
+- **Local runs match CI.** `tools/upstream.mjs docs` passes the checker the
+  inputs the CI step gives under `with:`; a command-line option still wins.
+- **Pre-commit hook.** `.githooks/pre-commit` runs the gate's node checks on
+  the staged tree. The checks are listed once, in `tools/Invoke-NodeChecks.mjs`,
+  which `tools/Invoke-Validation.ps1` also runs. `tools/evidence/sync-x86.mjs`
+  now compares real paths before running, so a symlinked path (macOS's
+  temporary directory) no longer skips its check with exit 0.
+- **Rules.** `AGENTS.md`: evidence lives in the spec and is recorded before a
+  comment, test or commit message gives it; look for a new ID on the open pull
+  request branches too; enable the hook and do not bypass it.
+- **Acceptance.** `node tools/upstream.mjs verify`, `node tools/upstream.mjs links`
+  and `node tools/Invoke-NodeChecks.mjs` pass, and so does the upstream Node
+  suite apart from the bootstrap preservation test, which needs PowerShell.
+
 ## Variable uses past a stop, and website rules up to kibertoad/refurbished-dinosaurs@3b4e6fc, 2026-09-30
 
 - **Reporters.** The reporter pin moves from `a0b91d6` to toolkit `926e287`,
@@ -331,7 +547,7 @@ sets how restoration work is planned, tracked and handed on.
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new
-[File size](upstream/documentation-standard.md#file-size) (lines 94-108) section,
+[File size](upstream/documentation-standard.md#file-size) (lines 104-118) section,
 which limits every Markdown file it defines to 1,000 lines and splits the files
 that grew with the whole project.
 
@@ -360,7 +576,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 839-860)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1004-1025)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

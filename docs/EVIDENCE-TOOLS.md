@@ -11,10 +11,11 @@ not a new spec version. Keep reports and configurations in `GAME_DIR`; do not co
 From PowerShell, run
 `node tools/evidence/report.mjs operand "$env:GAME_DIR/analysis/operand.json"`.
 Save redirected reports under `GAME_DIR` as well.
-A config names `source` relative to the config, its explicit `sha256` baseline,
-`loadSegment` (default 4096), numeric `site` at the segment operand, and numeric
-`targetOffset`. The SHA-256 guard binds the local tool input; retain the
-Standard's XXH3-128 build fingerprint and build ID in the finding itself.
+A config names `source` relative to the config, its `xxh3` (the XXH3-128 hash the
+build entry gives, as 32 lower-case hex digits), `loadSegment` (default 4096),
+numeric `site` at the segment operand, and numeric `targetOffset`. Every command,
+including the `x86-` ones, refuses a source with another hash and a config that
+still names a `sha256`; the report's `sourceIdentity` repeats the `xxh3` it checked.
 The source may be an ordinary MZ or an MZ followed by a Borland FBOV envelope.
 Other extended formats fail explicitly. Resident ranges include data: location
 resolution alone does not establish an instruction or behavior.
@@ -93,31 +94,75 @@ Coverage describes analyzer-discovered functions, not every function that exists
 ## Instruction-derived reports
 
 The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
-`x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation` and `x86-dispatch`
-commands use the pinned toolkit reporter. Install its Python dependency with
-`python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
-See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
-In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
-to this template's `x86-` commands, and the requirements file lives in the
-`x86-reporter/` subdirectory. The Python executable can be selected with
-`EVIDENCE_PYTHON`.
+`x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation`, `x86-dispatch`,
+`x86-operand`, `x86-operand-candidates`, `x86-target`, `x86-bounds`,
+`x86-owner`, `x86-callees` and `x86-pointers` commands run the report of the
+same name from `@scientific-method/executable-reader`, which hands every one
+but `pointers` to `scientific-method-engine`. Install both with `pnpm install`
+and `python -m pip install -r requirements-evidence.txt`; `EVIDENCE_PYTHON`
+selects the Python executable. [Bounded instruction reports](BOUNDED-EVIDENCE-REPORTERS.md)
+covers setup and links the toolkit's input contract and supported subset.
 
-`tools/evidence/x86-lock.json` records the toolkit revision and exact hashes of
-its source, tests, documentation and license. `node tools/evidence/sync-x86.mjs
---check` verifies them offline. To adopt a reviewed revision, run the same command
-with a clean local toolkit checkout path instead of `--check`, then run the full
-validation gate. The command reads committed blobs to avoid checkout line-ending
-differences. It does not fetch upstream or change the local methodology snapshots.
-`tools/evidence/legacy-image.mjs` re-exports the pinned MZ/FBOV reader, so the
+`tools/evidence/legacy-image.mjs` re-exports the reader's MZ/FBOV parser, so the
 lightweight commands and the `x86-` commands share one parser.
 Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
 the instruction-derived variants supply the additional analysis.
 
-## PE32 reporter adoption
+Use `x86-target` before citing a far call's target: it keeps the raw operand,
+the relocation or FBOV fixup, the stored descriptor word and decoded index, the
+trampoline and the canonical target, and compares an analyzer's address with
+each instead of replacing them. Use `x86-bounds` and `x86-owner` before joining a
+call to its caller or bounding a reading by an analyzer's size: an analyzer's
+size is a body-byte count and is never added to a start to make an end.
+`x86-owner` lists every checked entry's reached `ranges` and, for owners and the
+analyzer hypothesis, a `boundaryCheck` whose `joinableWithinModel` is false when
+a body is incomplete, contested, stopped at a gap or the entry limit left
+entries undecoded. Its `overlayExports` come only from the source FBOV tables;
+a config that supplies them is rejected. Give
+`formatControls` the build's known relocation, descriptor, overlay, fixup and
+trampoline counts so a misread table fails the query. Declare a resident
+segment's bounds from the build's code ranges in `segments` so an incoming
+search over part of it is reported as partial.
 
-The pinned toolkit reporter now accepts `sourceKind: "pe32"` for i386 executables. Its loader derives preferred-base mappings from validated source sections. Regions and entry/control sites are file offsets; flat memory query offsets are VAs. The full guide documents 32-bit frames, scaled addressing, the flat-segment assumption and unsupported indirect/runtime routes. MZ/FBOV queries keep the segmented 16-bit model, but shared behaviour changes for them too: overlapping entry-path instructions become unresolved boundary gaps, operand-size-prefixed control transfers and LEAVE stop the path, an executed `push cs` before a near call makes a four-byte frame, stopped traces still inventory reachable memory operands as unresolved observations (in `conditionalAccesses`, each naming the stops and untraced calls it depends on), separate unmodelled flag producers no longer share branch outcomes, XCHG and low-result IMUL are decoded, and every report adds `instructionModel`, `sourceMapping` and `declaredRegions`. Fast validation discovers both legacy and PE Python suites with `test*.py`. No game-specific question is closed by this adoption.
+A computed near word jump (segmented16 only) can be followed through a table
+declared in `indirectJumps`, with the consumer and table-layout evidence and an
+explicit `exhaustive` flag; the CFG commands (`x86-bounds`, `x86-owner`,
+`x86-callees`, `x86-incoming` and the entry-path queries) follow its words, while `x86-trace`
+and the other path reports still stop there. `x86-pointers` inventories the
+declared MZ relocations and FBOV fixups whose preceding word forms an adjacent
+segment:offset pair naming a query target, split into exact pairs, aliases,
+unresolved and excluded rows. Its rows are word-pair candidates, never proof of
+runtime pointer use, and it reads only MZ/FBOV sources.
 
+## PE32 executables
+
+The `x86-` commands also accept `sourceKind: "pe32"` for i386 executables. The
+loader derives preferred-base mappings from validated source sections. Regions
+and entry/control sites are file offsets; flat memory query offsets are VAs. The
+toolkit guide documents 32-bit frames, scaled addressing, the flat-segment
+assumption and the unsupported indirect and runtime routes.
 
 ## Committed inventory verification
 
 `inventory-check` uses the ordinary hash-guarded MZ/FBOV source, `build` and `manifest`. Its `inventory` object names a local input `path` and `repositoryPath`, which must match the generated portable coverage destination; the local `path` must end with that `repositoryPath`, so the file read is the one the destination check names. Every start must carry the same manifest prefix, be written as the standard's eight-digit uppercase file offset (as `inventory` writes it), be unique and lie in mapped source. Body byte counts are positive/bounded and are never interpreted as end addresses. Committed TSV columns are start, size, optional researcher-authored name and out_of_scope. No analyzer names/code/bytes belong there; analyzer default names such as `FUN_0040` are rejected. A configured project retaining a historical path supplies `legacyPath` plus nonempty `legacyEvidence`; the checker validates that exact safe path but continues to report the portable canonical destination. A legacy allowance is an explicit research input, not proof of an arbitrary path's provenance.
+
+`x86-operand-candidates` inventories encoded displacement/immediate matches with
+prefix order/repeats, widths and overlap groups. Verified entry-path memory uses,
+rejected overlaps and unresolved boundaries remain distinct. Relative branches
+and implicit operands never match. Controls, scan caps and result caps keep
+partial search and incomplete groups explicit; see the toolkit guide.
+
+`x86-callees` reads a bounded call graph from the entry and established region
+entries. An edge back into the active path is `recursivePath`; an edge to an
+already read node is `sharedNodeReuse` and still carries that node's memory
+observations, continuation assumptions and unread dependencies. It describes
+conditional entry-CFG structure, never runtime recursion, and a missing write is
+never a read-only claim. Node, edge, depth and instruction limits keep omitted
+work unresolved.
+
+`x86-arguments` and `x86-effects` retain LEA address formations and link consumed
+near-pointer arguments and later dereferences to them, with the formation and
+dereference segments and registers. LEA's default segment never binds a pointer;
+storage merges only for propagated equal segments and identical or affine
+offsets. `pointerFormationLimit` keeps the most recent formations, and evicted
+ones stay counted and refuse merging; see the toolkit guide.

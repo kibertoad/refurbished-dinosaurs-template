@@ -26,6 +26,16 @@ Extraction is transactional: a new content pack is staged and fully verified bef
 it replaces the previous verified pack. Imported content is ignored by Git and
 must not be redistributed.
 
+The validation gate and the pre-commit hook also run the documentation check and
+the evidence tooling tests, which need Node.js 22 or newer with pnpm, and Python
+3.12 or newer. Install their pinned packages once per clone, and again whenever
+`package.json` or `requirements-evidence.txt` changes:
+
+```sh
+pnpm install
+python -m pip install -r requirements-evidence.txt
+```
+
 Build and test the complete solution with:
 
 ```powershell
@@ -49,7 +59,11 @@ responsibilities instead.
 ## Repository projects
 
 - `Restoration.Core`: deterministic rules and serializable state.
-- `Restoration.Resources`: bounded binary parsing and original-content contracts.
+- `Restoration.Resources`: the edition and asset-pack manifests, source identification, and
+  verification. Media reading, path safety, staging and startup diagnostics come from the
+  `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats` NuGet packages; the
+  [shared runtime libraries guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md)
+  says what each covers.
 - `Restoration.Game`: MonoGame DesktopGL presentation with assetless smoke modes.
 - `Restoration.Extractor`: separate legal-copy verification and transactional extraction executable.
 - `Restoration.Inspect`: read-only inventory and research output, including the

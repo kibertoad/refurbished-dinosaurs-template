@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using RefurbishedDinosaurs.Core.Assets;
 using SabreTools.Wrappers;
 
 namespace Restoration.Extractor;
 
-public sealed record InstallShieldExtractedFile(string Path, long Size, string Sha256);
+public sealed record InstallShieldExtractedFile(string Path, long Size, string Xxh3);
 
 /// <summary>
 /// Bounded expansion of a supported InstallShield cabinet set.
@@ -152,9 +152,8 @@ public static partial class InstallShieldCabinetExtractor
                 (ulong)info.Length > MaximumFileBytes || total > MaximumOutputBytes - (ulong)info.Length)
                 throw new InvalidDataException("InstallShield output violates the safety limits.");
             total += (ulong)info.Length;
-            await using var stream = File.OpenRead(file);
             result.Add(new(Path.GetRelativePath(root, file).Replace('\\', '/'), info.Length,
-                Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken))));
+                await FileFingerprint.Xxh3Async(file, cancellationToken)));
         }
         return result;
     }

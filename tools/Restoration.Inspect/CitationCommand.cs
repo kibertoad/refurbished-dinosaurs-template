@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using RefurbishedDinosaurs.Core.Assets;
 
 namespace Restoration.Inspect;
 
@@ -11,7 +12,7 @@ public static class CitationCommand
 {
     private const string Usage =
         "Usage: Restoration.Inspect citations --executable <owned.exe> --docs <directory> " +
-        "[--sha256 <expected>] [--xxh3 <expected>] [--build <BLD-id>] [--instructions <edition.instructions.tsv>] [--report <file.csv>]";
+        "[--xxh3 <expected>] [--build <BLD-id>] [--instructions <edition.instructions.tsv>] [--report <file.csv>]";
 
     public static int Run(string[] args)
     {
@@ -26,15 +27,8 @@ public static class CitationCommand
         try
         {
             var bytes = File.ReadAllBytes(executable);
-            var sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
-            var expected = Option(args, "--sha256")?.Trim().ToLowerInvariant();
-            if (expected is not null && expected != sha256)
-            {
-                Console.Error.WriteLine($"[citations_failed] {executable} has SHA-256 {sha256}, expected {expected}.");
-                return 1;
-            }
             // The build manifest in spec/builds gives the executable's xxh3.
-            var xxh3 = SpecHash.Xxh3(bytes);
+            var xxh3 = FileFingerprint.Xxh3(bytes);
             var expectedXxh3 = Option(args, "--xxh3")?.Trim().ToLowerInvariant();
             if (expectedXxh3 is not null && expectedXxh3 != xxh3)
             {
@@ -45,6 +39,9 @@ public static class CitationCommand
             var image = PortableExecutableImage.Read(bytes);
             var instructionsPath = Option(args, "--instructions");
             var instructions = instructionsPath is null ? null : InstructionInventory.Read(instructionsPath);
+            // Ghidra labels its export with the SHA-256 it computed for the program, the only hash it
+            // offers; checking it here binds the export to this executable without anyone typing it.
+            var sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
             if (instructions?.ExecutableSha256 is { } exported && exported != sha256)
             {
                 Console.Error.WriteLine(
@@ -56,7 +53,6 @@ public static class CitationCommand
             var results = AddressCitations.Check(image, citations, instructions);
 
             Console.WriteLine($"executable: {Path.GetFullPath(executable)}");
-            Console.WriteLine($"sha256: {sha256}");
             Console.WriteLine($"xxh3: {xxh3}");
             Console.WriteLine($"image: 0x{image.ImageBase:X8}..0x{image.ImageBase + image.SizeOfImage:X8}, " +
                 $"{image.Sections.Count} sections");
