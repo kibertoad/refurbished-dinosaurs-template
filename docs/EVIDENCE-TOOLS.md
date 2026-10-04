@@ -100,7 +100,8 @@ The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
 same name from `@scientific-method/executable-reader`, which hands every one
 but `pointers` to `scientific-method-engine`. Install both with `pnpm install`
 and `python -m pip install -r requirements-evidence.txt`; `EVIDENCE_PYTHON`
-selects the Python executable. [Bounded instruction reports](BOUNDED-EVIDENCE-REPORTERS.md)
+selects the Python executable, and without it the first of `python` and `python3`
+that is Python 3.12 or later runs. [Bounded instruction reports](BOUNDED-EVIDENCE-REPORTERS.md)
 covers setup and links the toolkit's input contract and supported subset.
 
 `tools/evidence/legacy-image.mjs` re-exports the reader's MZ/FBOV parser, so the

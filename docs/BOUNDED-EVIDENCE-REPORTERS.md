@@ -18,9 +18,12 @@ pnpm install
 python -m pip install -r requirements-evidence.txt
 ```
 
-`EVIDENCE_PYTHON` selects another Python executable, which must have the engine
-installed. The reader refuses an engine that speaks another prepared-config
-protocol; update the older of the two.
+Where only `python3` is Python 3.12 or later, install with `python3 -m pip`.
+`EVIDENCE_PYTHON` selects the Python executable, which must have the engine
+installed. Without it, `tools/evidence/report.mjs` and the evidence tests use the
+first of `python` and `python3` that starts as Python 3.12 or later, and `python`
+when neither does. The reader refuses an engine that speaks another
+prepared-config protocol; update the older of the two.
 
 ## Running a report
 

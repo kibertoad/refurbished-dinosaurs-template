@@ -165,7 +165,7 @@ test("command interface checks identity and writes only the canonical inventory 
 
 test("x86 commands reach scientific-method-engine through the executable reader", (t) => {
   // A synthetic MZ whose resident code makes a far call through a relocated segment to a routine that
-  // loads AX and returns far. The engine comes from EVIDENCE_PYTHON, or python.
+  // loads AX and returns far. The interpreter comes from tools/evidence/python.mjs.
   const dir = mkdtempSync(join(tmpdir(), "evidence-x86-")); t.after(() => rmSync(dir, { recursive: true, force: true }));
   const bytes = Buffer.alloc(512);
   bytes.write("MZ"); bytes.writeUInt16LE(1, 4); bytes.writeUInt16LE(4, 8);
