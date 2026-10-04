@@ -54,7 +54,10 @@ and 1 means failure. It makes no changes. A new commit with identical files is r
 does not require refresh. Review differences before selecting explicit revisions.
 
 Refresh downloads all files, and the checker version the toolkit commit
-carries, before writing any of them, requires the Standard's v1 declaration,
+carries, before writing any of them. The toolkit commit must be the one the
+toolkit tagged `@scientific-method/standard-checker@<version>`: a later commit can
+carry the same version with unreleased checker changes, which CI would run and
+the published package would not. Refresh also requires the Standard's v1 declaration,
 updates the CI checker pin and the `package.json` pin, and writes the lock last.
 Run `pnpm install` afterwards to update `pnpm-lock.yaml`. Individual
 files are replaced atomically; an interruption across files is detected by digest

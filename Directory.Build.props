@@ -13,5 +13,9 @@
          that redirects BaseIntermediateOutputPath would otherwise glob generated files left in a
          project's conventional obj directory as source, producing duplicate assembly attributes. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);**/bin/**;**/obj/**</DefaultItemExcludes>
+    <!-- The RefurbishedDinosaurs.* runtime packages release together and are pinned exactly. Every
+         project that references one uses this version, so a bump is one edit and the projects
+         that reference each other cannot pin conflicting versions. -->
+    <RefurbishedDinosaursVersion>1.4.0</RefurbishedDinosaursVersion>
   </PropertyGroup>
 </Project>

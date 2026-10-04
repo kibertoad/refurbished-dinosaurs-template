@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, cpSync, rmSync, ex
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream, ciCheckerArgs, checkerEntry, main } from "../../tools/upstream.mjs";
 import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
@@ -44,6 +44,7 @@ test("a checker version other than the action's is rejected", t => {
   writeFileSync(path, JSON.stringify(manifest));
   assert.throws(() => verifySnapshot(dir), /exactly/);
   assert.throws(() => checkerEntry({ ...lock, checker: { ...lock.checker, version: "0.0.1" } }), /run pnpm install/);
+  assert.throws(() => checkerEntry(lock, pathToFileURL(resolve(tmpdir(), "no-install", "x.mjs")).href), /not installed; run pnpm install/);
   assert.match(checkerEntry(lock), /standard-checker/);
 });
 test("local runs take the checker inputs the CI step gives", () => {
@@ -73,13 +74,20 @@ test("docs passes CI's images to the checker, and a command-line value wins", as
 test("refresh stages exact explicit revisions and rejects lost v1 declaration or failed download", async () => {
   const rules = "a".repeat(40), toolkit = "b".repeat(40);
   const manifest = JSON.stringify({ name: "@scientific-method/standard-checker", version: "9.8.7" });
-  const fetcher = async url => Buffer.from(url.endsWith("documentation-standard.md") ? "follows version 1"
+  const tag = "https://api.github.com/repos/kibertoad/refurbished-dinosaurs-toolkit/git/ref/tags/@scientific-method/standard-checker@9.8.7";
+  const tagged = (sha, type = "commit") => Buffer.from(JSON.stringify({ object: { sha, type } }));
+  const fetcher = async url => url === tag ? tagged(toolkit) : Buffer.from(url.endsWith("documentation-standard.md") ? "follows version 1"
     : url.endsWith(`${toolkit}/packages/standard-checker/package.json`) ? manifest : "synthetic");
   const result = await prepareSnapshot(rules, toolkit, fetcher);
   assert.equal(result.staged.length, 4); validateLock(result.lock);
   assert.ok(result.lock.files.every(f => f.revision === rules));
   assert.deepEqual(result.lock.checker, { repository: "kibertoad/refurbished-dinosaurs-toolkit", revision: toolkit, version: "9.8.7" });
   await assert.rejects(prepareSnapshot(rules, toolkit, async url => url.endsWith("package.json") ? Buffer.from("{}") : fetcher(url)), /release version/);
+  // A commit after the release can carry the same version with unreleased checker changes.
+  await assert.rejects(prepareSnapshot(rules, toolkit, async url => url === tag ? tagged("c".repeat(40)) : fetcher(url)), /not the one tagged/);
+  const annotated = "d".repeat(40), viaAnnotatedTag = async url => url === tag ? tagged(annotated, "tag")
+    : url.endsWith(`/git/tags/${annotated}`) ? tagged(toolkit) : fetcher(url);
+  assert.equal((await prepareSnapshot(rules, toolkit, viaAnnotatedTag)).lock.checker.version, "9.8.7");
   await assert.rejects(prepareSnapshot("main", toolkit, fetcher), /full/);
   await assert.rejects(prepareSnapshot(rules, toolkit, async () => Buffer.from("version 2")), /Standard v1/);
   await assert.rejects(prepareSnapshot(rules, toolkit, async () => { throw Error("offline"); }), /offline/);

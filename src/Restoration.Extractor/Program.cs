@@ -13,7 +13,6 @@ static async Task<int> RunAsync(string[] args)
         if (args.Length == 0 || args[0] is "--help" or "-h") return Usage();
         var command = args[0].ToLowerInvariant();
         var requestedOutput = Option(args, "--output");
-        var packOutput = requestedOutput ?? OriginalContent.DefaultAssetPackPath();
         var editions = LoadManifests();
 
         if (command == "list-editions")
@@ -22,7 +21,12 @@ static async Task<int> RunAsync(string[] args)
             return 0;
         }
         if (command == "verify-pack")
+        {
+            // Resolved only here: the per-user default fails where no local application data folder
+            // exists, which must not stop the commands that never touch the pack.
+            var packOutput = requestedOutput ?? OriginalContent.DefaultAssetPackPath();
             return Report(await OriginalContent.VerifyInstalledAsync(packOutput), $"Verified asset pack at {packOutput}");
+        }
 
         if (command == "expand-installshield")
         {
@@ -31,8 +35,8 @@ static async Task<int> RunAsync(string[] args)
                 return Fail("cabinet_required", "--cabinet must name a legally owned InstallShield cabinet.", 64);
             if (string.IsNullOrWhiteSpace(requestedOutput))
                 return Fail("output_required", "--output must name a new empty extraction directory.", 64);
-            var files = await InstallShieldCabinetExtractor.ExtractAsync(cabinet, packOutput);
-            Console.WriteLine($"Expanded and verified {files.Count} InstallShield files at {packOutput}.");
+            var files = await InstallShieldCabinetExtractor.ExtractAsync(cabinet, requestedOutput);
+            Console.WriteLine($"Expanded and verified {files.Count} InstallShield files at {requestedOutput}.");
             return 0;
         }
 

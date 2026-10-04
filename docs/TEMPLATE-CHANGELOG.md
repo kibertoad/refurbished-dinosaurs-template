@@ -25,7 +25,8 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   `a260e39`, the commit that released it. `tools/upstream-lock.json` records both,
   `tools/upstream.mjs verify` fails when the CI pin, the lock and `package.json`
   disagree, `docs` refuses an installed checker of another version, and `refresh`
-  moves all three together. (`docs/UPSTREAM-RULES.md`.)
+  moves all three together, refusing a toolkit commit other than the one tagged
+  for that checker release. (`docs/UPSTREAM-RULES.md`.)
 - **Evidence reporters.** `tools/evidence/x86-reporter/`, `x86-lock.json`,
   `sync-x86.mjs` and the copied reporter tests are gone. The `x86-` commands of
   `tools/evidence/report.mjs` run `@scientific-method/executable-reader` 0.2.0,
@@ -44,7 +45,7 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   stay.
 - **Runtime libraries.** `Restoration.Resources`, the Extractor, the game and
   Inspect reference `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats`
-  at exactly 1.4.0. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
+  at exactly 1.4.0, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
   `CueSheet` and `CueTrack` give way to `OriginalContentSource`, `ContentSourceKinds`,
   `ContentSourceEntry`, `CueBinSheet` and `CueBinTrack`; asset-pack staging and commit
   use `StagedAssetPack`, startup failures `StartupFailure` (still with no dialog in a

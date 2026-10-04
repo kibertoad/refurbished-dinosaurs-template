@@ -58,7 +58,12 @@ export function verifySnapshot(root = ROOT) {
 // The installed checker, resolved from this script's checkout. It must be the version the lock pins,
 // so a stale node_modules cannot check against other rules than CI.
 export function checkerEntry(lock, from = import.meta.url) {
-  const manifestPath = createRequire(from).resolve(`${CHECKER}/package.json`);
+  let manifestPath;
+  try { manifestPath = createRequire(from).resolve(`${CHECKER}/package.json`); }
+  catch (error) {
+    if (error.code !== "MODULE_NOT_FOUND") throw error;
+    throw new Error(`${CHECKER} is not installed; run pnpm install`);
+  }
   const manifest = JSON.parse(read(manifestPath, 65536));
   if (manifest.version !== lock.checker.version) throw new Error(`Installed ${CHECKER} is ${manifest.version}, not the pinned ${lock.checker.version}; run pnpm install`);
   return resolve(dirname(manifestPath), manifest.bin["standard-checker"]);
@@ -102,6 +107,16 @@ async function checkerVersion(toolkit, fetchFile) {
   if (name !== CHECKER || !VERSION.test(version ?? "")) throw new Error(`The toolkit commit carries no ${CHECKER} release version`);
   return version;
 }
+// The action runs the checker source at the pinned commit, and local runs the published package. The
+// two hold the same rules only at the commit the toolkit tagged for that release: a later commit can
+// carry the same version in package.json with unreleased changes.
+async function releasedChecker(toolkit, fetchFile) {
+  const version = await checkerVersion(toolkit, fetchFile), api = `https://api.github.com/repos/${TOOLKIT}/git`;
+  let { object } = JSON.parse(await fetchFile(`${api}/ref/tags/${CHECKER}@${version}`));
+  if (object?.type === "tag") ({ object } = JSON.parse(await fetchFile(`${api}/tags/${object.sha}`)));
+  if (object?.type !== "commit" || object.sha !== toolkit) throw new Error(`The toolkit commit is not the one tagged ${CHECKER}@${version}; pass the commit of that release`);
+  return version;
+}
 export async function prepareSnapshot(rules, toolkit, fetchFile = download) {
   if (!revision(rules) || !revision(toolkit)) throw new Error("Refresh requires explicit full --rules and --toolkit commit SHAs");
   const staged = await Promise.all(FILES.map(async ([repository, source, path]) => {
@@ -110,7 +125,7 @@ export async function prepareSnapshot(rules, toolkit, fetchFile = download) {
     return { metadata: { repository, revision: rules, source, path, sha256: digest(bytes) }, bytes };
   }));
   if (!V1.test(staged[0].bytes.toString("utf8"))) throw new Error("Refresh would change or lose Standard v1; review required");
-  const checker = { repository: TOOLKIT, revision: toolkit, version: await checkerVersion(toolkit, fetchFile) };
+  const checker = { repository: TOOLKIT, revision: toolkit, version: await releasedChecker(toolkit, fetchFile) };
   return { lock: { standardVersion: 1, captured: new Date().toISOString().slice(0, 10), checker, files: staged.map((x) => x.metadata) }, staged };
 }
 export async function checkUpstream(root = ROOT, fetchFile = download) {

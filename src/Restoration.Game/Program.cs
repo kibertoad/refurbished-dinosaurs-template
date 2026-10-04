@@ -29,8 +29,9 @@ try
         {
             var details = string.Join(Environment.NewLine,
                 diagnostics.Select(diagnostic => $"[{diagnostic.Code}] {diagnostic.Message}"));
+            // The startup failure report names the asset pack and how to recreate it.
             throw new InvalidDataException(
-                $"A verified local asset pack is required at '{assetPack}'." + Environment.NewLine + details);
+                "A verified local asset pack is required." + Environment.NewLine + details);
         }
     }
     using var game = new RestorationGame(platformSmoke);

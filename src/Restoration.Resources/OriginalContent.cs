@@ -176,7 +176,7 @@ public static class OriginalContent
         var manifestPath = Path.Combine(root, "manifest.json");
         if (!File.Exists(manifestPath))
             return [new("pack_manifest_missing",
-                $"Asset-pack manifest not found. Run {{PROJECT_NAME}}.Extractor against a supported GOG installation.",
+                $"Asset-pack manifest not found. Run {{PROJECT_NAME}}.Extractor against a legally owned copy of the original game.",
                 manifestPath)];
 
         AssetPackManifest? manifest;

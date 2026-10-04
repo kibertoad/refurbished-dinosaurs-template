@@ -2,6 +2,6 @@
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Hashing" Version="10.0.12" />
-    <PackageReference Include="RefurbishedDinosaurs.LegacyFormats" Version="[1.4.0]" />
+    <PackageReference Include="RefurbishedDinosaurs.LegacyFormats" Version="[$(RefurbishedDinosaursVersion)]" />
   </ItemGroup>
 </Project>
