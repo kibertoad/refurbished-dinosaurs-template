@@ -33,7 +33,7 @@ named after the disc (`CD`, `CD2`). `GAME_DIR/captures/` holds the dumps,
 captures, recordings, and saves that cannot be committed, each named by its
 hash. That includes the base save an experiment's patch applies to, and the
 save after patching. Every hash in the spec is the 128-bit xxHash3 the standard
-specifies (`xxhsum -H2`); `SpecHash` in `Restoration.Inspect` computes it, and
+specifies (`xxhsum -H2`); `FileFingerprint` in RefurbishedDinosaurs.Core computes it, and
 `Restoration.Inspect --source <dir>` prints it for every file of a source.
 `OriginalGameFiles` in the test project resolves both kinds of path, checks
 each file's hash before a test reads it, and skips the test when the file is

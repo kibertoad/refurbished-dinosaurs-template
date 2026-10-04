@@ -11,9 +11,12 @@ Original media is read through `OriginalContentSource` from the
 [`RefurbishedDinosaurs.LegacyFormats`](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md)
 NuGet package, which the template pins at an exact version. Its directory, ISO 9660 and CUE/BIN
 readers expose deterministic normalized inventories and bounded streams; Extractor and Inspect
-consume that contract instead of parsing media independently. Resources keeps what is specific to
-this project: the edition manifests (`SourceManifest`), their fingerprint, source identification
-and the asset-pack manifest and its verification. Optional InstallShield expansion stays in
+consume that contract instead of parsing media independently. Edition manifests are the
+package's `AssetManifest`, which `AssetVerifier.IdentifyAsync` matches against the owner's copy,
+and the asset pack's manifest is `InstalledAssetManifest`, checked by `InstalledAssetVerifier`;
+every hash is the XXH3-128 the spec's build entries give. Resources keeps only what is specific to
+this project: the game id, the pack format version, where the pack lives and that a pack holds
+nothing its manifest does not list (`OriginalContent`). Optional InstallShield expansion stays in
 Extractor because it is a staging transformation, runs in an isolated child process, and never
 becomes a runtime dependency of Game.
 

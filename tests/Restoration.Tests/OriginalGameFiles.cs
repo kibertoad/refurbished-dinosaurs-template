@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using RefurbishedDinosaurs.Core.Assets;
 using Restoration.Inspect;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace Restoration.Tests;
 /// its build ID, laid out as the build manifest's paths give them, with a file from a disc under a
 /// directory named after the disc (<c>CD:</c>, <c>CD2:</c>). Captures, dumps and recordings that
 /// cannot be committed, and the saves experiments start from, sit in <c>GAME_DIR/captures/</c>,
-/// named by their xxh3 (<see cref="SpecHash"/>). A test whose file is absent is skipped, and a
+/// named by their xxh3 (<see cref="FileFingerprint"/>). A test whose file is absent is skipped, and a
 /// file whose hash differs from the spec fails the test.
 /// </summary>
 public static partial class OriginalGameFiles
@@ -69,8 +70,7 @@ public static partial class OriginalGameFiles
         {
             return null;
         }
-        using var stream = File.OpenRead(file);
-        var actual = SpecHash.Xxh3(stream);
+        var actual = FileFingerprint.Xxh3(file);
         if (actual != xxh3)
         {
             throw new InvalidDataException($"{file} has xxh3 {actual}, but the spec gives {xxh3}.");

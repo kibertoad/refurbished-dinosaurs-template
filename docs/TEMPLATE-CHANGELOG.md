@@ -45,15 +45,25 @@ and its [runtime package migration](https://github.com/kibertoad/refurbished-din
   stay.
 - **Runtime libraries.** `Restoration.Resources`, the Extractor, the game and
   Inspect reference `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats`
-  at exactly 1.5.1, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
+  at exactly 2.0.0, set once as `RefurbishedDinosaursVersion` in `Directory.Build.props`. The local `OriginalContentSource`, `SourceKinds`, `SourceEntry`,
   `CueSheet` and `CueTrack` give way to `OriginalContentSource`, `ContentSourceKinds`,
   `ContentSourceEntry`, `CueBinSheet` and `CueBinTrack`; asset-pack staging and commit
   use `StagedAssetPack`, startup failures `StartupFailure` (still with no dialog in a
   platform smoke test or when `CI` is set, now through its `showDialog` overload),
   per-user paths `RestorationPaths`,
   manifest paths `PortableAssetPath.Relative` and pack paths `SafePath.Below`.
-  Edition manifests with `sourceKind`, source identification, the asset-pack manifest
-  and its verification, and InstallShield expansion stay in the template.
+  Edition manifests are `AssetManifest`, identified by `AssetVerifier.IdentifyAsync`,
+  and the asset pack's manifest is `InstalledAssetManifest`, checked by
+  `InstalledAssetVerifier` with unlisted files rejected; the template's `SourceManifest`,
+  `AssetPackManifest`, `ContentDiagnostic` and `SpecHash` are gone. InstallShield
+  expansion stays in the template.
+- **Hashes.** Edition manifests, the asset-pack manifest, InstallShield inventories and
+  `Restoration.Inspect` use XXH3-128 (`xxh3`), the hash the standard gives every file,
+  instead of SHA-256, so an edition manifest copies its hashes from the build entry.
+  `AssetPackFormatVersion` is 2, so a pack written before this change is reported as
+  incompatible and the owner imports again. Diagnostics print the toolkit's problem
+  names (`[WrongHash]`, `[Unlisted]`) instead of snake_case codes, and a copy two
+  edition manifests both match is refused as ambiguous.
 - **Behaviour.** Manifest paths that are drive-relative, end a component with a dot
   or space, or name a device are rejected on every host. The ISO 9660 reader checks
   extents against the declared volume, and the cue parser requires track 01 at

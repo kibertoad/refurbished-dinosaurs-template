@@ -1,5 +1,5 @@
-using System.Security.Cryptography;
 using System.Text.Json;
+using RefurbishedDinosaurs.Core.Assets;
 using RefurbishedDinosaurs.LegacyFormats;
 using Restoration.Inspect;
 
@@ -24,18 +24,13 @@ try
     var files = new List<object>();
     foreach (var entry in source.Files)
     {
-        string sha256;
-        await using (var stream = source.OpenRead(entry.Path))
-        {
-            sha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream));
-        }
         string xxh3;
         await using (var stream = source.OpenRead(entry.Path))
         {
-            xxh3 = SpecHash.Xxh3(stream);
+            xxh3 = await FileFingerprint.Xxh3Async(stream);
         }
-        // sha256 is what source manifests use; xxh3 is the hash spec build manifests give.
-        files.Add(new { path = entry.Path, size = entry.Size, sha256, xxh3 });
+        // The xxh3 an edition manifest and the spec's build entry both give.
+        files.Add(new { path = entry.Path, size = entry.Size, xxh3 });
     }
     Console.WriteLine(JsonSerializer.Serialize(new
     {

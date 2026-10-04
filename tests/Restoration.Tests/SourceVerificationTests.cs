@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
+using RefurbishedDinosaurs.Core.Assets;
 using RefurbishedDinosaurs.LegacyFormats;
-using Restoration.Resources;
 using Xunit;
 
 namespace Restoration.Tests;
@@ -8,7 +7,8 @@ namespace Restoration.Tests;
 /// <summary>
 /// Source verification through the kind an edition manifest declares. The readers themselves are
 /// RefurbishedDinosaurs.LegacyFormats' <see cref="OriginalContentSource"/>, tested in that package;
-/// these tests cover how the Extractor's manifests reach and judge them.
+/// these tests cover how edition manifests in the Extractor's form reach and judge them through
+/// <see cref="AssetVerifier"/>.
 /// </summary>
 public sealed class SourceVerificationTests
 {
@@ -24,14 +24,14 @@ public sealed class SourceVerificationTests
             var payload = new byte[] { 1, 2, 3, 4 };
             var source = await WriteMediaAsync(root, kind, payload);
 
-            Assert.Empty(await OriginalContent.VerifySourceAsync(source, Manifest(kind, payload),
-                TestContext.Current.CancellationToken));
+            Assert.True((await AssetVerifier.VerifyAsync(source, Manifest(kind, payload),
+                TestContext.Current.CancellationToken)).IsValid);
 
             var wrong = new byte[] { 4, 3, 2, 1 };
-            var diagnostic = Assert.Single(await OriginalContent.VerifySourceAsync(source,
-                Manifest(kind, wrong), TestContext.Current.CancellationToken));
-            Assert.Equal("source_hash_mismatch", diagnostic.Code);
-            Assert.Equal("GAME/TEST.BIN", diagnostic.Path);
+            var issue = Assert.Single((await AssetVerifier.VerifyAsync(source,
+                Manifest(kind, wrong), TestContext.Current.CancellationToken)).Issues);
+            Assert.Equal(AssetProblem.WrongHash, issue.Problem);
+            Assert.Equal("GAME/TEST.BIN", issue.Path);
         }
         finally { Directory.Delete(root, true); }
     }
@@ -47,9 +47,9 @@ public sealed class SourceVerificationTests
             var iso = await WriteMediaAsync(root, ContentSourceKinds.Iso9660, payload);
 
             // The manifest says cue-bin, but the owner pointed at a cooked ISO with no sheet beside it.
-            var diagnostic = Assert.Single(await OriginalContent.VerifySourceAsync(iso,
-                Manifest(ContentSourceKinds.CueBin, payload), TestContext.Current.CancellationToken));
-            Assert.Equal("source_unreadable", diagnostic.Code);
+            var issue = Assert.Single((await AssetVerifier.VerifyAsync(iso,
+                Manifest(ContentSourceKinds.CueBin, payload), TestContext.Current.CancellationToken)).Issues);
+            Assert.Equal(AssetProblem.Unreadable, issue.Problem);
         }
         finally { Directory.Delete(root, true); }
     }
@@ -67,9 +67,9 @@ public sealed class SourceVerificationTests
             image[(16 * SyntheticIso9660.CookedSectorSize) + 86] ^= 1;
             await File.WriteAllBytesAsync(path, image, TestContext.Current.CancellationToken);
 
-            var diagnostic = Assert.Single(await OriginalContent.VerifySourceAsync(path,
-                Manifest(ContentSourceKinds.Iso9660, [1]), TestContext.Current.CancellationToken));
-            Assert.Equal("source_unreadable", diagnostic.Code);
+            var issue = Assert.Single((await AssetVerifier.VerifyAsync(path,
+                Manifest(ContentSourceKinds.Iso9660, [1]), TestContext.Current.CancellationToken)).Issues);
+            Assert.Equal(AssetProblem.Unreadable, issue.Problem);
         }
         finally { Directory.Delete(root, true); }
     }
@@ -86,15 +86,21 @@ public sealed class SourceVerificationTests
                 TestContext.Current.CancellationToken);
 
             // The manifest's default source kind is a directory.
-            var manifest = new SourceManifest("game", "synthetic",
-                [new("game/test.bin", payload.Length, Convert.ToHexStringLower(SHA256.HashData(payload)))]);
-            Assert.Empty(await OriginalContent.VerifySourceAsync(root, manifest,
-                TestContext.Current.CancellationToken));
+            var manifest = new AssetManifest("game", "synthetic",
+                [new("game/test.bin", payload.Length, FileFingerprint.Xxh3(payload))]);
+            Assert.True((await AssetVerifier.VerifyAsync(root, manifest,
+                TestContext.Current.CancellationToken)).IsValid);
 
-            var missing = new SourceManifest("game", "synthetic",
-                [new("Game/OTHER.BIN", 1, new string('0', 64))]);
-            Assert.Equal("source_file_missing", Assert.Single(await OriginalContent.VerifySourceAsync(
-                root, missing, TestContext.Current.CancellationToken)).Code);
+            var missing = new AssetManifest("game", "synthetic",
+                [new("Game/OTHER.BIN", 1, new string('0', 32))]);
+            Assert.Equal(AssetProblem.Missing, Assert.Single((await AssetVerifier.VerifyAsync(
+                root, missing, TestContext.Current.CancellationToken)).Issues).Problem);
+
+            // Identification names the edition the copy is and why the others are not.
+            var identification = await AssetVerifier.IdentifyAsync(root, [missing, manifest with { SourceEdition = "match" }],
+                TestContext.Current.CancellationToken);
+            Assert.Equal("match", identification.Edition?.SourceEdition);
+            Assert.Equal(AssetProblem.Missing, Assert.Single(Assert.Single(identification.Mismatches).Issues).Problem);
         }
         finally { Directory.Delete(root, true); }
     }
@@ -102,8 +108,8 @@ public sealed class SourceVerificationTests
     [Fact]
     public void FingerprintIdentifiesContentRatherThanTransport()
     {
-        SourceManifest Manifest(string kind) => new("game", "edition",
-            [new("GAME/TEST.BIN", 4, new string('a', 64))], kind);
+        AssetManifest Manifest(string kind) => new("game", "edition",
+            [new("GAME/TEST.BIN", 4, new string('a', 32))], kind);
 
         Assert.Equal(Manifest(ContentSourceKinds.Directory).Fingerprint(),
             Manifest(ContentSourceKinds.Iso9660).Fingerprint());
@@ -112,14 +118,15 @@ public sealed class SourceVerificationTests
     }
 
     [Fact]
-    public void SourceManifestRejectsUnknownSourceKind()
+    public async Task ManifestWithAnUnknownSourceKindIsRejected()
     {
-        var manifest = new SourceManifest("game", "edition", [new("file", 0, new string('0', 64))], "zip");
-        Assert.Throws<InvalidDataException>(manifest.Validate);
+        var manifest = new AssetManifest("game", "edition", [new("file", 0, new string('0', 32))], "zip");
+        await Assert.ThrowsAsync<InvalidDataException>(() => AssetVerifier.VerifyAsync(
+            Path.GetTempPath(), manifest, TestContext.Current.CancellationToken));
     }
 
-    private static SourceManifest Manifest(string kind, byte[] payload) => new("game", "synthetic",
-        [new("GAME/TEST.BIN", payload.Length, Convert.ToHexStringLower(SHA256.HashData(payload)))], kind);
+    private static AssetManifest Manifest(string kind, byte[] payload) => new("game", "synthetic",
+        [new("GAME/TEST.BIN", payload.Length, FileFingerprint.Xxh3(payload))], kind);
 
     private static async Task<string> WriteMediaAsync(string root, string kind, byte[] payload)
     {

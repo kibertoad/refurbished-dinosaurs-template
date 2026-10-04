@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using RefurbishedDinosaurs.Core.Assets;
 
 namespace Restoration.Inspect;
 
@@ -34,7 +35,7 @@ public static class CitationCommand
                 return 1;
             }
             // The build manifest in spec/builds gives the executable's xxh3.
-            var xxh3 = SpecHash.Xxh3(bytes);
+            var xxh3 = FileFingerprint.Xxh3(bytes);
             var expectedXxh3 = Option(args, "--xxh3")?.Trim().ToLowerInvariant();
             if (expectedXxh3 is not null && expectedXxh3 != xxh3)
             {

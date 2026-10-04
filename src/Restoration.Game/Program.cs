@@ -24,11 +24,11 @@ try
     if (!platformSmoke)
     {
         assetPack = Option(args, "--asset-pack") ?? OriginalContent.DefaultAssetPackPath();
-        var diagnostics = await OriginalContent.VerifyInstalledAsync(assetPack);
-        if (diagnostics.Count != 0)
+        var verification = await OriginalContent.VerifyInstalledAsync(assetPack);
+        if (!verification.IsValid)
         {
             var details = string.Join(Environment.NewLine,
-                diagnostics.Select(diagnostic => $"[{diagnostic.Code}] {diagnostic.Message}"));
+                verification.Issues.Select(issue => $"[{issue.Problem}] {issue.Detail}"));
             // The startup failure report names the asset pack and how to recreate it.
             throw new InvalidDataException(
                 "A verified local asset pack is required." + Environment.NewLine + details);

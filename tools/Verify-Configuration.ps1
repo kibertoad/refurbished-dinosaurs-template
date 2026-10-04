@@ -86,7 +86,7 @@ foreach ($relative in $paths | Sort-Object -Unique) {
     if ($relative -like 'tools/*/source-manifests/*.json' -or
         $relative -like 'src/*.Extractor/source-manifests/*.json') {
         $manifest = [IO.File]::ReadAllText($file)
-        if ($manifest -match 'REPLACE\.ME' -or $manifest -match '"sha256"\s*:\s*"0{64}"' -or
+        if ($manifest -match 'REPLACE\.ME' -or $manifest -match '"xxh3"\s*:\s*"0{32}"' -or
             $manifest -match '"sourceEdition"\s*:\s*"replace-with-supported-edition"') {
             $findings.Add("sample source manifest is still a placeholder: $relative")
         }
