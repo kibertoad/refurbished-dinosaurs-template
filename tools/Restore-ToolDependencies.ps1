@@ -14,7 +14,11 @@ if (-not $NoRestore) {
             $relativePython = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'Scripts/python.exe' } else { 'bin/python' }
             $python = Join-Path $environment $relativePython
             if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
-                & python -m venv $environment
+                # Many Linux and macOS installs provide only python3.
+                $bootstrap = if (Get-Command python -CommandType Application -ErrorAction SilentlyContinue) { 'python' }
+                    elseif (Get-Command python3 -CommandType Application -ErrorAction SilentlyContinue) { 'python3' }
+                    else { throw 'Python 3.10+ is required (python or python3 on PATH), or set EVIDENCE_PYTHON.' }
+                & $bootstrap -m venv $environment
                 if ($LASTEXITCODE -ne 0) { throw 'Project-local Python environment creation failed.' }
             }
         }

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Runs the node checks of the fast gate (tools/Invoke-NodeChecks.mjs, which
-# tools/Invoke-Validation.ps1 also runs) before a commit, so a spec, queue or reporter-pin problem
+# tools/Invoke-Validation.ps1 also runs) before a commit, so a spec, queue or tooling dependency problem
 # fails here instead of in CI. The documentation check runs with --no-ksy, so .ksy compilation is
 # left to the gate and CI. Enable once per clone with:
 #   git config core.hooksPath .githooks

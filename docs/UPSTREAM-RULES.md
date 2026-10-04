@@ -18,9 +18,11 @@ node tools/upstream.mjs docs
 node tools/upstream.mjs links
 ```
 
-Verification checks snapshot digests and the exact CI action pin offline. The
-documentation runner passes CI checker inputs to the installed package; command
-line inputs override them. Without `--check`, it regenerates indexes and parity.
+Verification checks snapshot digests and the exact CI action pin offline, and
+requires the pin's `# @scientific-method/standard-checker@<version>` comment to
+name the checker version in `package.json`. The documentation runner passes CI
+checker inputs to the installed package; command line inputs override them.
+Without `--check`, it regenerates indexes and parity.
 `links --write` updates section line ranges. Canonical validation includes these
 checks. NoRestore requires installed locked dependencies and never restores.
 

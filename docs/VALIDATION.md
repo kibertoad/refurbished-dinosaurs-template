@@ -146,8 +146,10 @@ settings, and gives its xxh3. A test reads a copy from
 
 ## Static binary research
 
-`tools/ghidra/` holds bounded, clean-room Ghidra scripts for navigating a
-legally owned original executable. `docs/GHIDRA.md` documents the headless
+The installed engine's shared scripts and the project-specific ones in
+`tools/ghidra/` are bounded, clean-room Ghidra scripts for navigating a
+legally owned original executable; `tools/Get-GhidraScriptPath.ps1` prints the
+`-scriptPath` value that covers both. `docs/GHIDRA.md` documents the headless
 workflow and each script's arguments and output caps. Results are written up as
 finding entries in `spec/findings/`; decompiler output is never committed.
 

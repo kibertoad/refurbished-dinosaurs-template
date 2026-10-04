@@ -61,7 +61,12 @@ New-Item -ItemType Directory -Path $analysisRoot | Out-Null
 ```
 
 Reuse the local project with `-process <executable-name> -noanalysis` and a
-small script under `tools/ghidra`. Never redirect broad output into the
+small script. The shared scripts (the `Report*.java` queries other than
+`ReportJumpTable.java`, `ExportBoundedFlow.java` and `ExportFunctionInventory.java`)
+ship with the installed engine; `ReportJumpTable.java` and the edition-comparison
+`Export*.java` scripts stay in `tools/ghidra`. Pass both directories with
+`-scriptPath (./tools/Get-GhidraScriptPath.ps1)` after running
+`./tools/Restore-ToolDependencies.ps1`. Never redirect broad output into the
 repository.
 
 ## Bounded query pattern
@@ -84,8 +89,10 @@ inspect bounded instruction context when a conclusion depends on those details.
 
 ## Bounded reporting scripts
 
-Every script under `tools/ghidra` is a navigation aid for a small, reviewable
-question. Each caps its output so a mistake cannot dump the whole executable.
+Every script in the table is a navigation aid for a small, reviewable
+question. Only `ReportJumpTable.java` lives in `tools/ghidra`; the others come
+from the installed engine (see the `-scriptPath` note above). Each caps its
+output so a mistake cannot dump the whole executable.
 Their output is navigation metadata, never proof of a rule; trace each finding
 and confirm it against controlled original-game observations before changing
 compatibility logic. Never redirect broad output into the repository.

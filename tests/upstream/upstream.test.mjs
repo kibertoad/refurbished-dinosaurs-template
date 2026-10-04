@@ -15,7 +15,7 @@ const lock = JSON.parse(readFileSync(resolve(root, "tools/upstream-lock.json")))
 function fixture(t) {
   const dir = mkdtempSync(resolve(tmpdir(), "v1-snapshot-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
-  for (const path of [...lock.files.map(f => f.path), "tools/upstream-lock.json", ".github/workflows/ci.yml"]) {
+  for (const path of [...lock.files.map(f => f.path), "tools/upstream-lock.json", ".github/workflows/ci.yml", "package.json"]) {
     mkdirSync(dirname(resolve(dir, path)), { recursive: true }); cpSync(resolve(root, path), resolve(dir, path));
   }
   return dir;
@@ -37,6 +37,11 @@ test("CI drift is rejected", t => {
   const sha = readFileSync(path, "utf8").match(/check-documentation@([0-9a-f]{40})/)[1];
   writeFileSync(path, readFileSync(path, "utf8").replace(sha, "main"));
   assert.throws(() => verifySnapshot(dir), /exact commit pin/);
+});
+test("a CI checker tag that differs from the locked checker is rejected", t => {
+  const dir = fixture(t), path = resolve(dir, ".github/workflows/ci.yml");
+  writeFileSync(path, readFileSync(path, "utf8").replace(/standard-checker@\d+\.\d+\.\d+/, "standard-checker@99.0.0"));
+  assert.throws(() => verifySnapshot(dir), /tagged 99\.0\.0/);
 });
 test("local runs take the checker inputs the CI step gives", () => {
   const step = `      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@${"a".repeat(40)}\n`;

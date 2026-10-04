@@ -8,6 +8,24 @@ not here.
 
 A project created from this template may delete this file.
 
+## Published toolkit packages, 2026-10-04
+
+- **Packages.** The copied reporter (`tools/evidence/x86-reporter/`), its
+  tests, `vendor/check-documentation.mjs` and the shared Ghidra scripts are
+  removed. `package-lock.json` locks `@scientific-method/executable-reader`
+  0.2.0 and `@scientific-method/standard-checker` 0.1.0;
+  `tools/evidence/requirements.txt` locks `scientific-method-engine` 0.4.0 and
+  Capstone 5.0.7 by wheel hash.
+- **Restore.** `./tools/Restore-ToolDependencies.ps1` runs `npm ci` and installs
+  the wheels into `artifacts/evidence-python` (or `EVIDENCE_PYTHON`). The
+  validation gate calls it; `-NoRestore` only verifies installed versions.
+- **Checks.** `tools/tool-dependencies.mjs verify` replaces
+  `sync-x86.mjs --check` in the node checks. `node tools/upstream.mjs verify`
+  requires the CI checker pin's comment to name the locked checker version, and
+  `refresh` takes only `--rules`.
+- **Ghidra.** `tools/Get-GhidraScriptPath.ps1` prints a `-scriptPath` covering
+  the engine's shared scripts and `tools/ghidra`.
+
 ## Callee graph and near-pointer segment provenance, 2026-10-01
 
 - **Reporter.** The reporter pin moves from `1ef21ef` to toolkit `67340fc`

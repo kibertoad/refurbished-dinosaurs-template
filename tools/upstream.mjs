@@ -42,6 +42,10 @@ export function verifySnapshot(root = ROOT) {
   const ci = read(resolve(root, ".github/workflows/ci.yml")).toString("utf8");
   const pins = ci.split(/\r?\n/).filter(line => line.includes("kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@"));
   if (pins.length !== 1 || !/@[0-9a-f]{40}(?:\s|$)/.test(pins[0])) throw new Error("CI checker action must use an exact commit pin");
+  // The pin's comment names the checker release the action runs; it must be the one the local run installs.
+  const checker = JSON.parse(read(resolve(root, "package.json"), 65536)).devDependencies?.["@scientific-method/standard-checker"];
+  const tagged = /#\s*@scientific-method\/standard-checker@(\S+)\s*$/.exec(pins[0])?.[1];
+  if (!checker || tagged !== checker) throw new Error(`CI checker action is tagged ${tagged ?? "with no checker version"}, but package.json locks @scientific-method/standard-checker ${checker}`);
   return lock;
 }
 // The checker inputs the CI step gives under with:, as the arguments the action passes for them, so a

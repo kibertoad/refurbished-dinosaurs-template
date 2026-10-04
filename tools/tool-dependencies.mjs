@@ -50,9 +50,10 @@ export function ghidraScriptPath() {
 }
 export function main(args) {
   if (args.length !== 1 || !["verify", "ghidra"].includes(args[0])) throw new Error("Usage: tool-dependencies.mjs verify | ghidra");
-  verifyNpmPackages(); verifyEngine();
+  verifyNpmPackages();
+  // ghidraScriptPath verifies the engine itself.
   if (args[0] === "ghidra") console.log(ghidraScriptPath());
-  else console.log("Published npm/Python tooling versions and exact locks verified; upstream freshness not checked.");
+  else { verifyEngine(); console.log("Published npm/Python tooling versions and exact locks verified; upstream freshness not checked."); }
 }
 const invokedDirectly = (() => { try { return process.argv[1] && pathToFileURL(realpathSync(process.argv[1])).href === import.meta.url; } catch { return false; } })();
 if (invokedDirectly) {

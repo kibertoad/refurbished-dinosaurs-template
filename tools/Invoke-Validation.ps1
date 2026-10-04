@@ -89,7 +89,7 @@ try {
 
     # The node checks are listed once, in tools/Invoke-NodeChecks.mjs, which .githooks/pre-commit also runs.
     & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Node documentation, queue or reporter-pin checks failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Node documentation, queue or tooling dependency checks failed.' }
 
     & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/tool-dependencies.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed.' }
