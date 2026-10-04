@@ -7,6 +7,7 @@ import { run as runX86, sourceXxh3 } from "@scientific-method/executable-reader"
 import { readMz, incomingCalls } from "./legacy-image.mjs";
 import { reviewFlow, boundedTable } from "./review.mjs";
 import { joinInventories, inventoryPath, verifyInventory } from "./inventory.mjs";
+import { withEvidencePython } from "./python.mjs";
 
 function readBounded(path, max = 256 * 1024 * 1024) {
   const stat = statSync(path);
@@ -18,7 +19,7 @@ export function run(args) {
   if (!command || !configPath || extra.length) throw new Error("Usage: node tools/evidence/report.mjs <operand|incoming|flow|table|inventory|inventory-check|x86-COMMAND> <local-config.json>");
   const configFile = resolve(configPath);
   // The executable reader reads and bounds its own config, and runs scientific-method-engine for x86 commands.
-  if (command.startsWith("x86-")) return runX86([command.slice(4), configFile]);
+  if (command.startsWith("x86-")) return withEvidencePython(() => runX86([command.slice(4), configFile]));
   const config = JSON.parse(readBounded(configFile, 16 * 1024 * 1024)), base = dirname(configFile);
   const local = (p) => { if (typeof p !== "string" || !p) throw new Error("Expected an input path"); return resolve(base, p); };
   if (command === "flow") return reviewFlow(JSON.parse(readBounded(local(config.graph), 32 * 1024 * 1024)), config.entry, config.limit);

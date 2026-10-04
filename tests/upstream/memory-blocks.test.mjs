@@ -4,10 +4,11 @@ import {mkdtempSync,mkdirSync,writeFileSync,copyFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {evidencePython} from '../../tools/evidence/python.mjs';
 // ReportMemoryBlocks.java ships with scientific-method-engine; this checks the copy the pinned engine
-// carries, from the interpreter the evidence reports use (EVIDENCE_PYTHON, or python).
+// carries, from the interpreter the evidence reports use (tools/evidence/python.mjs).
 function packagedScript(name){
- const python=process.env.EVIDENCE_PYTHON||'python';
+ const python=evidencePython();
  const listed=spawnSync(python,['-B','-m','scientific_method_engine','ghidra-scripts'],{encoding:'utf8'});
  assert.equal(listed.status,0,listed.error?.message??listed.stderr);
  return join(listed.stdout.trim(),name);
