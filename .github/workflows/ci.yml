@@ -63,14 +63,15 @@ jobs:
           fetch-depth: 0
       # The action runs the checker source at this toolkit commit. tools/upstream-lock.json records
       # the commit and the @scientific-method/standard-checker version it carries, which package.json
-      # pins for local runs; `node tools/upstream.mjs refresh` moves all three together.
+      # pins for local runs; `node tools/upstream.mjs refresh` moves all three together. The commit
+      # carries a package release tag rather than an action version, so the pin has no version comment.
       # A plain 0x address in a code comment is checked only inside the original's image, which the
       # template cannot know. Once a finding records the image's base and size (for a PE, its
       # ImageBase and SizeOfImage), add them to this step, and cite that finding here:
       #   with:
       #     images: 0x00400000..0x004C9000
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@a260e391fe2dea67f0034d5480e2bb439b0663ac # zizmor: ignore[stale-action-refs]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@a260e391fe2dea67f0034d5480e2bb439b0663ac # zizmor: ignore[stale-action-refs,ref-version-mismatch]
   installer:
     name: Windows installer
     needs: verify
