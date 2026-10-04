@@ -36,6 +36,18 @@ pnpm install
 python -m pip install -r requirements-evidence.txt
 ```
 
+Dependabot proposes NuGet updates weekly (`.github/dependabot.yml`), except for
+`SabreTools.Serialization`, whose pinned version carries the InstallShield
+expansion evidence and is bumped by hand, and leaves these packages alone. The documentation checker moves only through
+`node tools/upstream.mjs refresh` (`docs/UPSTREAM-RULES.md`).
+`@scientific-method/executable-reader` in `package.json` and
+`scientific-method-engine` in `requirements-evidence.txt` speak one versioned
+protocol, so bump them in the same change, to releases that speak the same
+protocol version. Move the reader's `minimumReleaseAgeExclude` entry in
+`pnpm-workspace.yaml` to the new version, run `pnpm install` so `pnpm-lock.yaml`
+follows, and run `./tools/Invoke-Validation.ps1`, which runs the evidence tests,
+before committing.
+
 Build and test the complete solution with:
 
 ```powershell
