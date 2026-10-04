@@ -123,10 +123,11 @@ jobs:
       # Hosted runners expose only the GDI generic OpenGL renderer, which has no framebuffer objects,
       # so MonoGame cannot create a graphics device. The toolkit's action installs checksum-verified
       # Mesa llvmpipe under RUNNER_TEMP and fails the step if it cannot, so the platform smoke tests
-      # never silently run against the runner's own driver.
+      # never silently run against the runner's own driver. Toolkit actions are pinned by commit and
+      # carry no version of their own; the commit's only tag names a package release.
       - name: Provision software OpenGL for the platform smoke test
         id: software-opengl
-        uses: kibertoad/refurbished-dinosaurs-toolkit/actions/setup-software-opengl@6ab530df7851354c98e833a2beb76dbe0f71e421
+        uses: kibertoad/refurbished-dinosaurs-toolkit/actions/setup-software-opengl@6ab530df7851354c98e833a2beb76dbe0f71e421 # zizmor: ignore[ref-version-mismatch]
       - name: Hand the driver to the platform smoke test
         shell: pwsh
         env:
