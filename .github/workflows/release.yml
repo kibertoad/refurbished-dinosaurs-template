@@ -31,8 +31,6 @@ concurrency:
 jobs:
   prepare:
     name: Validate release
-    # Restrict release-signing environment deployment branches to main as well.
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -41,6 +39,14 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       commit: ${{ steps.version.outputs.commit }}
     steps:
+      # Fail rather than skip, so a dispatch from another branch does not finish green with
+      # nothing built. The release-signing environment also limits deployments to main.
+      - name: Require dispatch from main
+        shell: pwsh
+        env:
+          DISPATCH_REF: ${{ github.ref }}
+        run: |
+          if ($env:DISPATCH_REF -ne 'refs/heads/main') { throw "Releases run only from main, not '$env:DISPATCH_REF'." }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
@@ -49,6 +55,7 @@ jobs:
       - id: version
         shell: pwsh
         env:
+          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
           if ($env:RELEASE_TAG -notmatch '^(\d+\.\d+\.\d+)$') { throw 'Tag must be x.y.z.' }
@@ -61,6 +68,10 @@ jobs:
             $peeled = @($tags | Where-Object { $_ -match '\^\{\}$' })
             $target = if ($peeled.Count) { $peeled[0] } else { $tags[0] }
             if (($target -split '\s+')[0] -ne $commit) { throw 'Existing tag points to a different commit.' }
+            # A rerun only finishes a release whose tag was pushed without its Release. Stop before
+            # building and signing again when the Release exists, since publishing would fail.
+            gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --json tagName *> $null
+            if ($LASTEXITCODE -eq 0) { throw 'A GitHub Release already exists for this tag.' }
           }
           "version=$version" >> $env:GITHUB_OUTPUT
           "commit=$commit" >> $env:GITHUB_OUTPUT
@@ -114,12 +125,14 @@ jobs:
           ES_PASSWORD: ${{ secrets.ES_PASSWORD }}
           CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
           ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
-          ES_CERTIFICATE_THUMBPRINT: ${{ secrets.ES_CERTIFICATE_THUMBPRINT }}
         run: |
           $missing = @('ES_USERNAME', 'ES_PASSWORD', 'CREDENTIAL_ID', 'ES_TOTP_SECRET', 'ES_CERTIFICATE_THUMBPRINT') |
             Where-Object { -not [Environment]::GetEnvironmentVariable($_) }
           if ($missing.Count -ne 0) {
             throw "Missing release-signing environment secret(s): $($missing -join ', ')."
+          }
+          if ($env:ES_CERTIFICATE_THUMBPRINT -notmatch '^[A-Fa-f0-9]{40}$') {
+            throw 'ES_CERTIFICATE_THUMBPRINT must be the 40 hexadecimal digits of the signing certificate thumbprint.'
           }
       - name: Install pinned installer compiler
         shell: pwsh
@@ -195,7 +208,6 @@ jobs:
           ES_PASSWORD: ${{ secrets.ES_PASSWORD }}
           CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
           ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
-          ES_CERTIFICATE_THUMBPRINT: ${{ secrets.ES_CERTIFICATE_THUMBPRINT }}
         run: |
           ./tools/Invoke-ESigner.ps1 `
             -CodeSignToolPath $env:CODESIGNTOOL_PATH `
@@ -214,10 +226,6 @@ jobs:
             $destinations = @(Get-ChildItem $packageRoot -Recurse -File -Filter $file.Name)
             if ($destinations.Count -ne 1) { throw "Expected one destination for '$($file.Name)'." }
             Copy-Item $file.FullName $destinations[0].FullName -Force
-            $signature = Get-AuthenticodeSignature $destinations[0].FullName
-            if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
-              throw "Invalid or untimestamped signature on '$($destinations[0].FullName)'."
-            }
             ./tools/Assert-WindowsSignature.ps1 -Path $destinations[0].FullName -ExpectedThumbprint $env:ES_CERTIFICATE_THUMBPRINT
           }
       - name: Build installer from verified package
@@ -233,7 +241,6 @@ jobs:
           ES_PASSWORD: ${{ secrets.ES_PASSWORD }}
           CREDENTIAL_ID: ${{ secrets.CREDENTIAL_ID }}
           ES_TOTP_SECRET: ${{ secrets.ES_TOTP_SECRET }}
-          ES_CERTIFICATE_THUMBPRINT: ${{ secrets.ES_CERTIFICATE_THUMBPRINT }}
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           ./tools/Invoke-ESigner.ps1 `
@@ -246,10 +253,6 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           $installer = "artifacts/{{PACKAGE_ID}}-Setup-$env:RELEASE_VERSION.exe"
-          $signature = Get-AuthenticodeSignature $installer
-          if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
-            throw "Invalid or untimestamped signature on '$installer'."
-          }
           ./tools/Assert-WindowsSignature.ps1 -Path $installer -ExpectedThumbprint $env:ES_CERTIFICATE_THUMBPRINT
       - name: Smoke-test installed layout and shortcut
         shell: pwsh
@@ -267,10 +270,6 @@ jobs:
           $expectedTarget = [IO.Path]::GetFullPath((Join-Path $target 'Game/Restoration.Game.exe'))
           if ($link.TargetPath -ne $expectedTarget) { throw "Shortcut target is invalid: '$($link.TargetPath)'." }
           if ($env:SIGNED_RELEASE -ne 'none') {
-            $signature = Get-AuthenticodeSignature $link.TargetPath
-            if ($signature.Status -ne 'Valid' -or -not $signature.TimeStamperCertificate) {
-              throw "Installed executable has an invalid or missing timestamped signature."
-            }
             ./tools/Assert-WindowsSignature.ps1 -Path $link.TargetPath -ExpectedThumbprint $env:ES_CERTIFICATE_THUMBPRINT
           }
           # Same as the CI smoke test: bound the wait and surface the reason. Unbounded, a launch
@@ -433,8 +432,9 @@ jobs:
           pattern: release-*
           path: release-assets
           merge-multiple: true
-      # The asset count gates tag creation: a tag pushed without a Release blocks
-      # `prepare` from ever re-running this version until someone deletes it by hand.
+      # The asset count gates tag creation. A rerun can finish a tag pushed without a Release
+      # only while main is still at the tagged commit; after main moves, the tag must be
+      # deleted by hand before `prepare` accepts this version again.
       - name: Verify installer assets
         shell: bash
         env:

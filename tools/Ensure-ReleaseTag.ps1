@@ -9,7 +9,7 @@ $PSNativeCommandUseErrorActionPreference = $false
 function Invoke-GitHubJson {
     param([string[]]$Arguments)
     $result = @(& gh api @Arguments 2>&1)
-    if ($LASTEXITCODE -ne 0) { throw "GitHub request failed: $($result -join '\n')" }
+    if ($LASTEXITCODE -ne 0) { throw "GitHub request failed: $($result -join "`n")" }
     return ($result -join "`n") | ConvertFrom-Json
 }
 $endpoint = "repos/$Repository/git/ref/tags/$Tag"

@@ -9,7 +9,7 @@
 
 ## Unfinished
 
-No unfinished changes. Live signing and repository environment protection are release-time acceptance, not exercised by synthetic tests.
+No unfinished changes. Live signing and the repository's environment protection are checked only at release time; the synthetic tests do not exercise them.
 
 ## Blockers
 

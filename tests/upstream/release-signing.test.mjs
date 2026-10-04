@@ -39,7 +39,7 @@ if ($global:writes -ne ${writes}) {throw "Unexpected write count $global:writes 
 });
 test('release jobs are bounded, main-only, and check certificate identity at all three boundaries',()=>{
  const source=readFileSync(join(root,'.github/workflows/release.yml'),'utf8');
- assert.match(source,/if: github.ref == 'refs\/heads\/main'/);
+ assert.match(source,/DISPATCH_REF -ne 'refs\/heads\/main'/);assert.doesNotMatch(source,/^    if: github\.ref/m);
  assert.equal((source.match(/^    runs-on:/gm)||[]).length,(source.match(/^    timeout-minutes:/gm)||[]).length);
  assert.equal((source.match(/Assert-WindowsSignature.ps1/g)||[]).length,3);
  assert.match(source,/Ensure-ReleaseTag.ps1/);assert.doesNotMatch(source,/throw 'Tag already exists/);
