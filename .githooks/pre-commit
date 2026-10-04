@@ -17,10 +17,15 @@ git_dir=$(git rev-parse --absolute-git-dir)
 work_tree=$(git rev-parse --show-toplevel)
 # A separate step, so a failed mktemp stops the hook instead of leaving $staged empty.
 staged=$(mktemp -d)
-trap 'rm -rf "$staged"' EXIT
+# The node_modules link is removed first, so rm never descends into the checkout's packages.
+trap 'node -e "try { require(\"fs\").unlinkSync(process.argv[1]) } catch {}" "$staged/node_modules"; rm -rf "$staged"' EXIT
 trap 'exit 1' HUP INT TERM
 git checkout-index --all --prefix="$staged/"
-# The copy has no installed packages; the checks use the checkout's (pnpm install).
-if [ -d "$work_tree/node_modules" ]; then ln -s "$work_tree/node_modules" "$staged/node_modules"; fi
+# The copy has no installed packages; the checks use the checkout's (pnpm install). Node makes the
+# link: a junction on Windows, where Git Bash's ln -s copies the directory instead, and a symlink
+# elsewhere.
+if [ -d "$work_tree/node_modules" ]; then
+  node -e 'require("fs").symlinkSync(process.argv[1], process.argv[2], "junction")' "$work_tree/node_modules" "$staged/node_modules"
+fi
 export GIT_DIR="$git_dir" GIT_WORK_TREE="$staged"
 node "$staged/tools/Invoke-NodeChecks.mjs" --no-ksy

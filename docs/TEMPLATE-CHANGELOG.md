@@ -8,6 +8,19 @@ not here.
 
 A project created from this template may delete this file.
 
+## Pre-commit hook on Windows, 2026-10-04
+
+- **Behaviour.** `.githooks/pre-commit` links the checkout's `node_modules`
+  into its staged copy through Node (`fs.symlinkSync` with type `junction`)
+  instead of `ln -s`. Git Bash on Windows copies a directory for `ln -s` unless
+  symlinks are enabled, and copying pnpm's linked `node_modules` failed with
+  "Device or resource busy", so the hook blocked every commit. A junction needs
+  no privilege; on other systems Node makes an ordinary symlink. The exit trap
+  unlinks it before `rm -rf`, so the removal never descends into the checkout's
+  packages.
+- **Checks.** On Windows the hook now passes on a clean checkout and leaves
+  `node_modules` in place; the previous hook fails there with the `ln` error.
+
 ## Published standard checker, scientific-method packages and runtime libraries, 2026-10-04
 
 Follows the toolkit's
