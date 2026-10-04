@@ -13,10 +13,16 @@ public sealed class BootstrapTests
     public void CoreStateAdvancesDeterministically() =>
         Assert.Equal(new GameState(2, 42), GameState.Create(42).AdvanceTurn());
 
-    [Fact]
-    public void ManifestRejectsPathTraversal()
+    [Theory]
+    [InlineData("../outside")]
+    [InlineData("/rooted")]
+    [InlineData("C:drive-relative.dat")]
+    [InlineData("GAME/trailing-dot.")]
+    [InlineData("GAME/nul.dat")]
+    [InlineData("")]
+    public void ManifestRejectsPathsThatAreNotPortable(string path)
     {
-        var manifest = new SourceManifest("game", "edition", [new("../outside", 0, new string('0', 64))]);
+        var manifest = new SourceManifest("game", "edition", [new(path, 0, new string('0', 64))]);
         Assert.Throws<InvalidDataException>(manifest.Validate);
     }
 
@@ -134,6 +140,41 @@ public sealed class BootstrapTests
             Assert.False(File.Exists(Path.Combine(output, "stale.bin")));
             Assert.Empty(await OriginalContent.VerifyInstalledAsync(
                 output, TestContext.Current.CancellationToken));
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
+
+    [Fact]
+    public async Task AssetPackThatFailsVerificationLeavesThePreviousPackInPlace()
+    {
+        var root = TestRoot();
+        var output = Path.Combine(root, "pack");
+        Directory.CreateDirectory(output);
+        await File.WriteAllTextAsync(Path.Combine(output, "previous.bin"), "previous",
+            TestContext.Current.CancellationToken);
+        try
+        {
+            var failure = await Assert.ThrowsAsync<InvalidDataException>(() =>
+                AssetPackInstaller.InstallAsync(output, async staging =>
+                {
+                    var asset = Path.Combine(staging, "images", "synthetic.bin");
+                    Directory.CreateDirectory(Path.GetDirectoryName(asset)!);
+                    await File.WriteAllBytesAsync(asset, [8, 9], TestContext.Current.CancellationToken);
+                    // The recorded size is wrong, so the staged pack must not be committed.
+                    return new AssetPackManifest(
+                        OriginalContent.AssetPackFormatVersion,
+                        OriginalContent.GameId,
+                        "synthetic-edition",
+                        new string('b', 64),
+                        "test",
+                        [new("images/synthetic.bin", 3, await HashAsync(asset), "SOURCE.GFF",
+                            "application/octet-stream", "synthetic-test")]);
+                }));
+
+            Assert.Contains("pack_asset_size_mismatch", failure.Message, StringComparison.Ordinal);
+            Assert.Equal("previous", await File.ReadAllTextAsync(Path.Combine(output, "previous.bin"),
+                TestContext.Current.CancellationToken));
+            Assert.Equal(new[] { output }, Directory.GetDirectories(root));
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }

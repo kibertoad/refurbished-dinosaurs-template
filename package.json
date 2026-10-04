@@ -1,0 +1,13 @@
+{
+  "name": "restoration",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@scientific-method/executable-reader": "0.2.0",
+    "@scientific-method/standard-checker": "0.2.0"
+  }
+}

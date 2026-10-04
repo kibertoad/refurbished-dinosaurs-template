@@ -49,7 +49,11 @@ responsibilities instead.
 ## Repository projects
 
 - `Restoration.Core`: deterministic rules and serializable state.
-- `Restoration.Resources`: bounded binary parsing and original-content contracts.
+- `Restoration.Resources`: the edition and asset-pack manifests, source identification, and
+  verification. Media reading, path safety, staging and startup diagnostics come from the
+  `RefurbishedDinosaurs.Core` and `RefurbishedDinosaurs.LegacyFormats` NuGet packages; the
+  [shared runtime libraries guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md)
+  says what each covers.
 - `Restoration.Game`: MonoGame DesktopGL presentation with assetless smoke modes.
 - `Restoration.Extractor`: separate legal-copy verification and transactional extraction executable.
 - `Restoration.Inspect`: read-only inventory and research output, including the

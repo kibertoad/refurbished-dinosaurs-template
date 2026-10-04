@@ -103,72 +103,6 @@ While this checkout is unconfigured, the game-agnostic tooling work in
 request to address the ten accumulated research priorities. It introduces
 no game behavior and retains documentation Standard v1.
 
-## Bounded reporter tooling
-
-Integrate toolkit reports for variable uses, near-pointer segments, stack
-arguments, path effects, return widths, overlapping accesses, incoming calls,
-effective guards, allocation extents and dispatch inputs.
-This is research tooling; it changes no gameplay, evidence status or asset pack.
-
-The toolkit owns a bounded 16-bit x86 instruction reader and path reporter. The
-template ships an exact pinned copy and integrates its synthetic tests. The
-methodology website defines report acceptance, without claiming that guidance
-implements a reporter. Existing MZ/FBOV resolution and bounded table tools are
-reused under their MIT license. Only synthetic executable bytes enter tests.
-
-Reports must preserve source identity, explicit code-region and entry bounds,
-segment and byte-width provenance, ordered effects and individual exits. They
-must distinguish verified instruction paths from raw candidates, validate known
-positive controls, and expose unsupported instructions, unresolved callees,
-unknown aliases and exhausted limits. Unknown effects cannot prove preservation,
-safety, success, rollback, native reachability or a complete reading.
-
-Acceptance tests cover data between entries; segment mismatch and equality;
-near/far stack frames and widening; writes before failure; low-byte return tests;
-byte writes followed by word reads; late and aliased incoming calls; checked
-snapshots followed by writes or calls; allocation wrapping, unit conversion and
-failure effects; normalized dispatch equivalence and rejected indices. Invalid
-bounds, absent controls, instruction/path limits and malformed inputs fail or
-produce explicit incomplete reports. Tests require no original files or runtime.
-
-Exit: all ten cases have executable reports and synthetic regressions, the
-command interface and limits are documented, repository gates pass, and linked
-PRs identify the exact delivered scope for review before propagation.
-
-Align this integration with standards PR 26 as merged at
-`94f8f678afb05171567f48d9fb19488e48309f12`. Adopt its exact rules snapshots,
-regenerate section links, and preserve the current checker revision. The guide
-must put configurations and reports in `GAME_DIR` and keep each game's reporter
-request open until its own case passes. Adopt the toolkit's paired DS/SS
-acceptance regression. Exit: pin verification, section-link checks and the
-canonical validation gate pass; configured game repositories remain untouched.
-
-
-## Tooling refinement: game-case reporter verification
-
-Propagate the toolkit fixes verified against recorded restoration cases: explicit
-CFG operand discovery after unresolved calls, distinct unknown flag producers,
-push-CS/near-call far frames (including explicit modeled return widths), far
-indirect pointer provenance, effective-width conversions, XCHG and low-result
-IMUL. Operand discovery covers only the CFG reachable from a stopped trace, so
-fully traced accesses keep their values; LDS/LES count the full pointer, XLAT's
-implicit operand is a gap, and a four-byte call model reached without an
-executed push cs stops that path. Adopt the exact committed toolkit source and
-acceptance tests through sync-x86.mjs, pinned where toolkit PR 16 merged. No
-proprietary code, reports or game-specific case data is copied.
-
-Acceptance: source pin verification, synthetic reporter/bridge tests and the
-canonical Invoke-Validation.ps1 gate pass. Document that CFG operands retain
-unknown value/segment state and conditional callee returns; supported arithmetic
-and frame shapes do not supply a complete reading. Standard/protocol wording is
-proposed separately and is not refreshed before it is reviewed and merged.
-Exit: tested tooling commit, separate handover and upstream propagation PR.
-
-## PE32 bounded reporter extension
-
-Adopt toolkit revision `a0b91d65031e360c6599bcd52cc2a1d3c732c258`, where PR [17](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/17) merged on top of PR [15](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/pull/15) and PR 16, for Windows restoration research. Exact pin mappings add `x86/pe.py` and `tests/evidence/test_pe.py`. Acceptance covers all ten query interfaces, malformed source mappings and regions, alignment padding past VirtualSize, overlapping instruction paths, late/cross-region calls, stack cleanup, partial producers and exhausted limits. Existing rules/checker snapshots remain unchanged. PE32+ and unresolved imports/computed targets remain outside the declared model. Exit: reporter/rules pins, section links, synthetic acceptance and canonical validation pass.
-
-
 ## Bounded memory maps and JVM diagnostics
 
 Tooling batch, 2026-09-30. Outcome: a researcher can select a bounded page or exact named block from a large analyzed map without exporting the entire map, and JVM crash/replay diagnostics and heap dumps stay local even if someone force-stages an ignored file. Evidence: a configured project's analyzed map has 3,546 blocks and the old reporter fails before filtering; crash logs, replay files and heap dumps can contain original memory and local environment data. Acceptance: page offset/limit are explicit, output never exceeds 512 rows, exact-name selection diagnoses absence/ambiguity, headers state total/selected/emitted and partial scope; default still rejects an oversized whole-map request. Ignore rules and the repository policy's denied file-name patterns cover diagnostic basenames at any depth; synthetic scratch Git tests prove ordinary logs remain permitted, ignored diagnostics are omitted and forcibly staged diagnostics are rejected. Java tests use constructed maps; compile against the public installed Ghidra API and verify the recorded large map when available. No original bytes or reports committed. Exit: canonical fast gate, bounded-map cases and policy regressions pass; document upstream provenance and local-only storage. No owner questions.
@@ -187,18 +121,6 @@ synthetic window yields its own known painted colors; blank and invalid windows
 write no output. The fast gate includes that Windows regression. An inspected
 DOSBox client frame proves transport only, not gameplay-state control. Original
 pixels and runtime artifacts remain local. No game evidence status changes.
-
-## Bounded string reporter adoption
-
-Adopt the reviewed toolkit bounded-string candidate by exact commit. Outcome: sequential MOVS/STOS/LODS, conditional direction and intact saved-flag provenance are available to template researchers. Acceptance: synthetic segmented/flat controls, zero/unknown/budget limits, overlapping copy, pointer wrap, segment overrides and flags corruption pass; pin integrity and canonical validation pass. No native execution, proprietary fixtures or game behavior changes. IRET is out of this batch; the local-return adoption below covers it. Exit: source/guide/tests pinned together and canonical gate passes.
-
-## Explicit overlapping local return adoption
-
-Pin the follow-up toolkit candidate with verified direct-edge overlap proof and strictly local segmented16 IRET. Acceptance: preserve false-boundary rejection; saved/missing/corrupted/overwritten frame tests pass; source, guide and tests share one exact pin; canonical gate and build pass. External interrupts, hardware and flat IRET remain unsupported.
-
-## Instruction-owned operand adoption
-
-Pin the toolkit candidate with instruction-verified MOV/PUSH immediate ownership, declared segment provenance and effect-summary flag events. Exact guide/source/tests must share the pin; canonical gate proves synthetic boundary/width/CLI controls. Keep mapped addresses separate from native reachability and preserve unresolved raw words.
 
 ## Research queue tracking
 
@@ -227,38 +149,3 @@ existing artifact paths. Documentation states the prerequisite and normal CI pat
 Exit: canonical normal and offline validation pass; open a shared template PR and
 adopt only reviewed delivery. No new persisted file layout or owner decision.
 
-## Exact dispatch, pointer and ownership reporter adoption
-
-Tooling outcome: adopt merged toolkit c133cd48bfe6cc3cb7126616996e7d548982a068
-including evidenced near-jump tables, canonical relocated-pointer exact/alias
-inventories, bounded pointer-domain exclusions, owner ranges, boundary checks
-and source-derived overlay export provenance. Evidence: merged toolkit PRs
-33-37 and the configured-project source controls recorded separately.
-Acceptance: source/guide/tests remain exact and hashed; the mapping includes
-both new modules and dispatch tests; normal template validation runs the pinned
-tests unchanged, with no module-path override. Existing source identity, caps,
-partial-search and unresolved-flow safeguards remain intact. No original
-content, game claims or runtime access. Exit: exact pin, synthetic reporter
-checks and canonical template validation pass; publish a reviewable template PR.
-
-## Reviewed overlapping operand candidate reporter adoption
-
-Adopt toolkit PR 38's exact merged revision 1ef21ef46567dd108ea082a0a493f7024ba79a07.
-Outcome: encoded literal candidates retain widths, ordered/repeated prefixes and
-overlap groups with verified, rejected and unresolved entry-path classifications.
-Acceptance: exact source/test/guide hashes, source bridge, literal/width/overlap
-controls and every canonical validation check. Preserve configured identity and
-NoRestore behavior. No game claims or proprietary fixtures. Exit: template gate
-passes and reviewed adoption PR is published. No owner decision needed.
-
-## Reviewed callee graph and near-pointer provenance adoption
-
-Adopt toolkit PRs 39 and 40 at exact merged revision 67340fcb975449600c160ef5a4995119d4e8f127.
-Outcome: `x86-callees` separates shared-node reuse from active-path recursion
-with explicit limits and unread dependencies; argument and effect reports retain
-caller-formed near-pointer segment provenance without binding LEA defaults.
-Acceptance: exact source/test/guide hashes, source bridge, callee-graph and
-pointer-provenance controls and every canonical validation check. Preserve
-configured identity and NoRestore behavior. No game claims or proprietary
-fixtures. Exit: template gate passes and the adoption PR is updated. No owner
-decision needed.

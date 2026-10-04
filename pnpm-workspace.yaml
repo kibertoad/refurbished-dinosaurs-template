@@ -1,0 +1,4 @@
+# pnpm holds back releases younger than its minimum release age. A pin to a release newer than
+# that is listed here until the age passes.
+minimumReleaseAgeExclude:
+  - '@scientific-method/standard-checker@0.2.0'

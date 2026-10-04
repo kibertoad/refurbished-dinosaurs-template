@@ -4,7 +4,7 @@ import { readFileSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve, dirname, sep } from "node:path";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
-import { run as runX86 } from "./x86-reporter/report.mjs";
+import { run as runX86 } from "@scientific-method/executable-reader";
 import { readMz, incomingCalls } from "./legacy-image.mjs";
 import { reviewFlow, boundedTable } from "./review.mjs";
 import { joinInventories, inventoryPath, verifyInventory } from "./inventory.mjs";
@@ -18,7 +18,7 @@ export function run(args) {
   const [command, configPath, ...extra] = args;
   if (!command || !configPath || extra.length) throw new Error("Usage: node tools/evidence/report.mjs <operand|incoming|flow|table|inventory|inventory-check|x86-COMMAND> <local-config.json>");
   const configFile = resolve(configPath);
-  // The pinned reporter reads and bounds its own config.
+  // The executable reader reads and bounds its own config, and runs scientific-method-engine for x86 commands.
   if (command.startsWith("x86-")) return runX86([command.slice(4), configFile]);
   const config = JSON.parse(readBounded(configFile, 16 * 1024 * 1024)), base = dirname(configFile);
   const local = (p) => { if (typeof p !== "string" || !p) throw new Error("Expected an input path"); return resolve(base, p); };

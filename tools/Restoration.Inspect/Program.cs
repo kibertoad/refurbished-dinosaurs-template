@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using RefurbishedDinosaurs.LegacyFormats;
 using Restoration.Inspect;
-using Restoration.Resources;
 
 if (args.Length > 0 && args[0] == "citations")
 {
@@ -11,8 +11,8 @@ if (args.Length > 0 && args[0] == "citations")
 try
 {
     var sourcePath = Option(args, "--source") ?? (args.Length == 1 ? args[0] : null);
-    var sourceKind = Option(args, "--kind") ?? SourceKinds.Directory;
-    if (string.IsNullOrWhiteSpace(sourcePath) || !SourceKinds.IsSupported(sourceKind))
+    var sourceKind = Option(args, "--kind") ?? ContentSourceKinds.Directory;
+    if (string.IsNullOrWhiteSpace(sourcePath) || !ContentSourceKinds.IsSupported(sourceKind))
     {
         Console.Error.WriteLine("Usage: Restoration.Inspect --source <path> " +
             "[--kind directory|iso9660|cue-bin]\n" +

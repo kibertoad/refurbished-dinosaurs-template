@@ -1,0 +1,2 @@
+# The x86 commands of tools/evidence/report.mjs run this engine; it needs Python 3.12 or later.
+scientific-method-engine==0.9.1

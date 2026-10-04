@@ -58,8 +58,8 @@ runner could fetch it, so the marked tests skip there, and a skipped test does
 not fail the build. They run on a maintainer's machine with `GAME_DIR` set to a
 copy the maintainer owns. After a run of `./tools/Invoke-Validation.ps1` in
 which every test in every marked test file of a `validated` row passed and none
-was skipped, record the run with the documentation check from the pinned
-toolkit commit, naming the builds the run used, and commit the
+was skipped, record the run with the pinned documentation check, naming the
+builds the run used, and commit the
 `VALIDATION.md` it writes:
 
 ```sh
@@ -146,8 +146,10 @@ settings, and gives its xxh3. A test reads a copy from
 
 ## Static binary research
 
-`tools/ghidra/` holds bounded, clean-room Ghidra scripts for navigating a
-legally owned original executable. `docs/GHIDRA.md` documents the headless
+`scientific-method-engine ghidra-scripts` prints the directory of the bounded,
+clean-room Ghidra scripts the engine ships for navigating a legally owned
+original executable; `tools/ghidra/` holds the few the engine does not ship.
+`docs/GHIDRA.md` documents the headless
 workflow and each script's arguments and output caps. Results are written up as
 finding entries in `spec/findings/`; decompiler output is never committed.
 
@@ -158,7 +160,7 @@ The `Documentation standard` job in `.github/workflows/ci.yml` runs the
 [refurbished-dinosaurs-toolkit](https://github.com/kibertoad/refurbished-dinosaurs-toolkit),
 pinned to a full commit SHA, on every pull request. It checks `spec/`, `parity/`
 and `deviations/` against the standard's list of
-[checks](upstream/documentation-standard.md#checks) (lines 787-838), compiles each
+[checks](upstream/documentation-standard.md#checks) (lines 947-998), compiles each
 `.ksy` file with the Kaitai Struct compiler, checks that every spec and
 deviation ID cited in `src/`, `tests/` and `tools/` exists and is not
 superseded, fails when `spec/index/` or `PARITY.md` is stale, and fails a `validated`
@@ -182,12 +184,13 @@ comment fails, cite the finding that records the address, or write one.
 
 The verified offline runner and explicit refresh procedure are documented in
 [UPSTREAM-RULES](UPSTREAM-RULES.md). The canonical gate checks snapshot hashes,
-the matching CI pin, documentation, and synthetic evidence/snapshot tests.
+that the CI pin and the checker package agree, documentation, and synthetic
+evidence/snapshot tests.
 
 The check writes `spec/index/` and `PARITY.md`; nobody edits them by hand. After
-changing the spec, `parity/` or `deviations/`, run the script from the same
-toolkit commit the workflow pins, with Node.js 22 or newer, and commit what it
-writes:
+changing the spec, `parity/` or `deviations/`, run the checker package the
+workflow's commit carries, with Node.js 22 or newer after `pnpm install`, and
+commit what it writes:
 
 ```sh
 node tools/upstream.mjs docs

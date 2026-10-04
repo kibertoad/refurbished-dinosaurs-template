@@ -1,6 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using RefurbishedDinosaurs.Core.Assets;
+using RefurbishedDinosaurs.Core.IO;
+using RefurbishedDinosaurs.Core.Paths;
+using RefurbishedDinosaurs.LegacyFormats;
 
 namespace Restoration.Resources;
 
@@ -8,7 +12,7 @@ public sealed record SourceManifest(
     string GameId,
     string SourceEdition,
     IReadOnlyList<SourceFile> Files,
-    string SourceKind = SourceKinds.Directory)
+    string SourceKind = ContentSourceKinds.Directory)
 {
     public static SourceManifest Load(Stream stream)
     {
@@ -25,16 +29,16 @@ public sealed record SourceManifest(
         ArgumentException.ThrowIfNullOrWhiteSpace(SourceEdition);
         if (Files is null || Files.Count == 0)
             throw new InvalidDataException("A source manifest requires at least one fingerprint.");
-        if (!SourceKinds.IsSupported(SourceKind))
+        if (!ContentSourceKinds.IsSupported(SourceKind))
             throw new InvalidDataException($"Unsupported source kind '{SourceKind}'.");
 
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in Files)
         {
             if (file is null) throw new InvalidDataException("Source manifest contains a null file record.");
-            var path = Normalize(file.Path);
+            var path = PortableAssetPath.Relative(file.Path);
             if (!seen.Add(path)) throw new InvalidDataException($"Duplicate source path '{path}'.");
-            if (file.Size < 0 || !OriginalContent.IsSha256(file.Sha256))
+            if (file.Size < 0 || !FileFingerprint.IsSha256(file.Sha256))
                 throw new InvalidDataException($"Invalid fingerprint for '{path}'.");
         }
     }
@@ -46,17 +50,8 @@ public sealed record SourceManifest(
         // owner copied it into must fingerprint identically. The source kind is how the bytes are
         // reached, not what they are, and Validate() already rejects an unsupported one.
         var canonical = string.Join('\n', Files.OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
-            .Select(file => $"{Normalize(file.Path)}\0{file.Size}\0{file.Sha256.ToLowerInvariant()}"));
+            .Select(file => $"{PortableAssetPath.Relative(file.Path)}\0{file.Size}\0{file.Sha256.ToLowerInvariant()}"));
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
-    }
-
-    internal static string Normalize(string path)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        var normalized = path.Replace('\\', '/');
-        if (Path.IsPathRooted(path) || normalized.Split('/').Any(part => part is "" or "." or ".."))
-            throw new InvalidDataException($"Source path must be relative: '{path}'.");
-        return normalized;
     }
 }
 public sealed record SourceFile(string Path, long Size, string Sha256);
@@ -97,9 +92,15 @@ public static class OriginalContent
     public const string GameId = "{{GAME_ID}}";
     public const long MaximumManifestBytes = 4 * 1024 * 1024;
 
-    public static string DefaultAssetPackPath() => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "{{APP_DATA_DIRECTORY}}", "UserContent");
+    /// <summary>The per-user directory names the game and the Extractor share.</summary>
+    public static RestorationPathOptions PathOptions { get; } = new("{{APP_DATA_DIRECTORY}}");
+
+    /// <summary>The per-user directory for settings, saves and logs.</summary>
+    public static string StateRoot() => RestorationPaths.ResolveStateRoot(PathOptions,
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+
+    /// <summary>The per-user asset pack the Extractor writes and the game reads by default.</summary>
+    public static string DefaultAssetPackPath() => Path.Combine(StateRoot(), PathOptions.ContentDirectory);
 
     public static async Task<SourceIdentification> IdentifyAsync(
         string root,
@@ -143,7 +144,7 @@ public static class OriginalContent
         {
             foreach (var expected in manifest.Files)
             {
-                var relative = SourceManifest.Normalize(expected.Path);
+                var relative = PortableAssetPath.Relative(expected.Path);
                 if (!source.TryGetFile(relative, out var entry))
                 {
                     diagnostics.Add(new("source_file_missing",
@@ -203,7 +204,7 @@ public static class OriginalContent
         foreach (var asset in manifest.Files)
         {
             string path;
-            try { path = SafeTarget(root, asset.Path); }
+            try { path = SafePath.Below(root, PortableAssetPath.Relative(asset.Path)); }
             catch (InvalidDataException)
             {
                 diagnostics.Add(new("pack_path_unsafe", $"Asset path escapes the pack: {asset.Path}", asset.Path));
@@ -222,8 +223,7 @@ public static class OriginalContent
                     asset.Path, asset.Size.ToString(), actualSize.ToString()));
                 continue;
             }
-            await using var stream = File.OpenRead(path);
-            var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken));
+            var hash = await FileFingerprint.Sha256Async(path, cancellationToken);
             if (!hash.Equals(asset.Sha256, StringComparison.OrdinalIgnoreCase))
                 diagnostics.Add(new("pack_asset_hash_mismatch", $"Asset has the wrong SHA-256: {asset.Path}",
                     asset.Path, asset.Sha256.ToLowerInvariant(), hash));
@@ -248,9 +248,6 @@ public static class OriginalContent
         return diagnostics;
     }
 
-    internal static bool IsSha256(string? value) =>
-        value is { Length: 64 } && value.All(Uri.IsHexDigit);
-
     private static List<ContentDiagnostic> ValidatePackManifest(AssetPackManifest manifest)
     {
         var diagnostics = new List<ContentDiagnostic>();
@@ -262,7 +259,7 @@ public static class OriginalContent
                 GameId, manifest.GameId));
         if (string.IsNullOrWhiteSpace(manifest.SourceEdition))
             diagnostics.Add(new("pack_source_missing", "Asset-pack source edition is missing.", "manifest.json"));
-        if (!IsSha256(manifest.SourceFingerprintSha256))
+        if (!FileFingerprint.IsSha256(manifest.SourceFingerprintSha256))
             diagnostics.Add(new("pack_source_hash_invalid", "Asset-pack source fingerprint is invalid.", "manifest.json"));
         if (string.IsNullOrWhiteSpace(manifest.ExtractorVersion))
             diagnostics.Add(new("pack_extractor_version_missing", "Extractor version is missing.", "manifest.json"));
@@ -281,7 +278,7 @@ public static class OriginalContent
                 continue;
             }
             string normalized;
-            try { normalized = SourceManifest.Normalize(asset.Path); }
+            try { normalized = PortableAssetPath.Relative(asset.Path); }
             catch (InvalidDataException)
             {
                 diagnostics.Add(new("pack_path_unsafe", $"Asset path is unsafe: {asset.Path}", asset.Path));
@@ -289,7 +286,7 @@ public static class OriginalContent
             }
             if (!paths.Add(normalized))
                 diagnostics.Add(new("pack_path_duplicate", $"Asset path is duplicated: {normalized}", normalized));
-            if (asset.Size < 0 || !IsSha256(asset.Sha256))
+            if (asset.Size < 0 || !FileFingerprint.IsSha256(asset.Sha256))
                 diagnostics.Add(new("pack_fingerprint_invalid", $"Asset fingerprint is invalid: {normalized}", normalized));
             if (string.IsNullOrWhiteSpace(asset.SourcePath))
                 diagnostics.Add(new("pack_provenance_missing", $"Asset source path is missing: {normalized}", normalized));
@@ -297,19 +294,6 @@ public static class OriginalContent
                 diagnostics.Add(new("pack_conversion_missing", $"Asset media type or conversion is missing: {normalized}", normalized));
         }
         return diagnostics;
-    }
-
-    private static string SafeTarget(string root, string relative)
-    {
-        if (Path.IsPathFullyQualified(relative)) throw new InvalidDataException("Path must be relative.");
-        var normalized = SourceManifest.Normalize(relative).Replace('/', Path.DirectorySeparatorChar);
-        var fullRoot = Path.GetFullPath(root).TrimEnd(
-            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-        var target = Path.GetFullPath(Path.Combine(root, normalized));
-        if (!target.StartsWith(fullRoot, OperatingSystem.IsWindows()
-                ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-            throw new InvalidDataException("Path escapes content root.");
-        return target;
     }
 
     private static StringComparer PathComparer => OperatingSystem.IsWindows()

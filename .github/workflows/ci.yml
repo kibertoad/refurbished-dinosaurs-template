@@ -31,7 +31,13 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.12'
-      - run: python -m pip install -r tools/evidence/x86-reporter/requirements.txt
+      - run: python -m pip install -r requirements-evidence.txt
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.x
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Verify repository, build, and test
         shell: pwsh
         env:
@@ -55,14 +61,16 @@ jobs:
           # Full history, so the check can find where a pull request forked from main and fail
           # when it deletes a spec ID, area or deviation that exists there.
           fetch-depth: 0
-      # The toolkit publishes no tags, and its setup guide pins a commit on its main branch.
+      # The action runs the checker source at this toolkit commit. tools/upstream-lock.json records
+      # the commit and the @scientific-method/standard-checker version it carries, which package.json
+      # pins for local runs; `node tools/upstream.mjs refresh` moves all three together.
       # A plain 0x address in a code comment is checked only inside the original's image, which the
       # template cannot know. Once a finding records the image's base and size (for a PE, its
       # ImageBase and SizeOfImage), add them to this step, and cite that finding here:
       #   with:
       #     images: 0x00400000..0x004C9000
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@f7da1328b2adc0a45865de45b35d42c88afdbc6b # zizmor: ignore[stale-action-refs]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@a260e391fe2dea67f0034d5480e2bb439b0663ac # zizmor: ignore[stale-action-refs]
   installer:
     name: Windows installer
     needs: verify

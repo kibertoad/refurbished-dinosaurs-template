@@ -95,22 +95,14 @@ Coverage describes analyzer-discovered functions, not every function that exists
 The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
 `x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation`, `x86-dispatch`,
 `x86-operand`, `x86-operand-candidates`, `x86-target`, `x86-bounds`,
-`x86-owner`, `x86-callees` and `x86-pointers` commands use the pinned toolkit
-reporter. Install its Python dependency with
-`python -m pip install -r tools/evidence/x86-reporter/requirements.txt`.
-See [the complete input contract and supported subset](BOUNDED-EVIDENCE-REPORTERS.md).
-In that toolkit guide, standalone `tools/evidence/report.mjs` commands correspond
-to this template's `x86-` commands, and the requirements file lives in the
-`x86-reporter/` subdirectory. The Python executable can be selected with
-`EVIDENCE_PYTHON`.
+`x86-owner`, `x86-callees` and `x86-pointers` commands run the report of the
+same name from `@scientific-method/executable-reader`, which hands every one
+but `pointers` to `scientific-method-engine`. Install both with `pnpm install`
+and `python -m pip install -r requirements-evidence.txt`; `EVIDENCE_PYTHON`
+selects the Python executable. [Bounded instruction reports](BOUNDED-EVIDENCE-REPORTERS.md)
+covers setup and links the toolkit's input contract and supported subset.
 
-`tools/evidence/x86-lock.json` records the toolkit revision and exact hashes of
-its source, tests, documentation and license. `node tools/evidence/sync-x86.mjs
---check` verifies them offline. To adopt a reviewed revision, run the same command
-with a clean local toolkit checkout path instead of `--check`, then run the full
-validation gate. The command reads committed blobs to avoid checkout line-ending
-differences. It does not fetch upstream or change the local methodology snapshots.
-`tools/evidence/legacy-image.mjs` re-exports the pinned MZ/FBOV reader, so the
+`tools/evidence/legacy-image.mjs` re-exports the reader's MZ/FBOV parser, so the
 lightweight commands and the `x86-` commands share one parser.
 Existing lightweight `incoming`, `flow` and `table` commands retain their scope;
 the instruction-derived variants supply the additional analysis.
@@ -141,10 +133,13 @@ segment:offset pair naming a query target, split into exact pairs, aliases,
 unresolved and excluded rows. Its rows are word-pair candidates, never proof of
 runtime pointer use, and it reads only MZ/FBOV sources.
 
-## PE32 reporter adoption
+## PE32 executables
 
-The pinned toolkit reporter now accepts `sourceKind: "pe32"` for i386 executables. Its loader derives preferred-base mappings from validated source sections. Regions and entry/control sites are file offsets; flat memory query offsets are VAs. The full guide documents 32-bit frames, scaled addressing, the flat-segment assumption and unsupported indirect/runtime routes. MZ/FBOV queries keep the segmented 16-bit model, but shared behaviour changes for them too: overlapping entry-path instructions become unresolved boundary gaps, operand-size-prefixed control transfers and LEAVE stop the path, an executed `push cs` before a near call makes a four-byte frame, stopped traces still inventory reachable memory operands as unresolved observations (in `conditionalAccesses`, each naming the stops and untraced calls it depends on), separate unmodelled flag producers no longer share branch outcomes, XCHG and low-result IMUL are decoded, and every report adds `instructionModel`, `sourceMapping` and `declaredRegions`. Fast validation discovers both legacy and PE Python suites with `test*.py`. No game-specific question is closed by this adoption.
-
+The `x86-` commands also accept `sourceKind: "pe32"` for i386 executables. The
+loader derives preferred-base mappings from validated source sections. Regions
+and entry/control sites are file offsets; flat memory query offsets are VAs. The
+toolkit guide documents 32-bit frames, scaled addressing, the flat-segment
+assumption and the unsupported indirect and runtime routes.
 
 ## Committed inventory verification
 
@@ -154,7 +149,7 @@ The pinned toolkit reporter now accepts `sourceKind: "pe32"` for i386 executable
 prefix order/repeats, widths and overlap groups. Verified entry-path memory uses,
 rejected overlaps and unresolved boundaries remain distinct. Relative branches
 and implicit operands never match. Controls, scan caps and result caps keep
-partial search and incomplete groups explicit; see the pinned guide.
+partial search and incomplete groups explicit; see the toolkit guide.
 
 `x86-callees` reads a bounded call graph from the entry and established region
 entries. An edge back into the active path is `recursivePath`; an edge to an
@@ -169,4 +164,4 @@ near-pointer arguments and later dereferences to them, with the formation and
 dereference segments and registers. LEA's default segment never binds a pointer;
 storage merges only for propagated equal segments and identical or affine
 offsets. `pointerFormationLimit` keeps the most recent formations, and evicted
-ones stay counted and refuse merging; see the pinned guide.
+ones stay counted and refuse merging; see the toolkit guide.
