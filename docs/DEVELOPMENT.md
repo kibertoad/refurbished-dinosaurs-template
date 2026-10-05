@@ -45,18 +45,18 @@ expansion evidence and is bumped by hand, and leaves these packages alone. The d
 protocol, so bump them in the same change, to releases that speak the same
 protocol version. Move the reader's `minimumReleaseAgeExclude` entry in
 `pnpm-workspace.yaml` to the new version, run `pnpm install` so `pnpm-lock.yaml`
-follows, and run `./tools/Invoke-Validation.ps1`, which runs the evidence tests,
-before committing.
+follows, and run the evidence tests before committing.
 
-Build and test the complete solution with:
+Locally, build and run only the tests the change touches:
 
 ```powershell
-./tools/Invoke-Validation.ps1
+./tools/Invoke-Validation.ps1 -TestFilter <filter>
 ```
 
-The default gate skips tests tagged `Category=LongRunning`; pass
-`-IncludeLongRunningTests` to run them, `-TestFilter` to narrow a run, and
-`-MinimumExpectedTests` to fail when discovery drops below an expected count.
+The full gate is not run locally; CI runs it on every pull request (`AGENTS.md`, Commands). Without a filter the gate skips
+tests tagged `Category=LongRunning`, and `-IncludeLongRunningTests` runs them;
+`-MinimumExpectedTests` fails a run when discovery drops below an expected
+count.
 
 Tests that compare the rebuild with the original read its files from the
 directory named by `GAME_DIR`, laid out as `docs/VALIDATION.md` describes, and

@@ -85,8 +85,11 @@ alone. It runs `Verify-Repository.ps1` and `Verify-Configuration.ps1`, then
 restores (unless `-NoRestore` is given), builds in Release, and runs the test suite with a 30-minute safety
 timeout.
 
+Locally, run it only with `-TestFilter`, for the tests the change touches. The
+full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
+
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
-including the long tier:
+including the long tier, only when the user asks for it:
 
 ```powershell
 ./tools/Invoke-Validation.ps1 -IncludeLongRunningTests
