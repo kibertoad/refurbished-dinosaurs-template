@@ -20,7 +20,7 @@ never code or spec entries apart from new `unknown` entries.
    Record it in the plan. Do not move the stage forward on a criterion you
    could not check.
 2. Each slice in the plan names the spec areas or entries it needs and the
-   parity rows it must bring to `implemented` or `validated`, and each target
+   parity rows it must bring to `implemented`, `deviated` or `validated`, and each target
    is one `docs/RUNTIME.md` makes reachable: without runs of the original,
    format rows whose entries list files can reach `validated`, but rule and
    screen rows, and formats with no files (memory structures, messages), stop
