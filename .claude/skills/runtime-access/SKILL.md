@@ -36,14 +36,19 @@ is done.
      the harness loads the build, even where no agent may run the game, and
      `none` only while the harness does not exist yet.
 
-   Try each part of a capability that names several things: keyboard,
-   mouse and joystick input, frames and sound, memory reads, breakpoints
-   and dumps. One answer stands for every part the capability names, so
-   give one only when every part was tried and got that answer. Where the
-   parts differ, answer each part on its own under the capability
-   (`keyboard: agent`, `mouse: person`, `frames: agent`, `sound: none`),
-   each naming the attempt it comes from.
-3. **Write `docs/RUNTIME.md`** from its headings: each answer names the tool and
+   Try each part of a capability that names several things. The parts are
+   the ones the game has: for input, each device the game reads, and for
+   capture, sound only if the game makes any; memory reads, breakpoints
+   and dumps are parts too. One answer stands for every one of those
+   parts, so give one only when every part was tried and got that answer.
+   Where the parts differ, answer each part on its own under the
+   capability (`keyboard: agent`, `mouse: person`, `frames: agent`,
+   `sound: none`), each naming the attempt it comes from. For input,
+   `person` means a person has to give that input: the agent sends none to
+   a game a person runs, so the run is a live session in which the
+   maintainer plays.
+3. **Write `docs/RUNTIME.md`** from its headings, answering every capability,
+   or every part of it where the parts differ: each answer names the tool and
    version tried and what happened, and each `none` or `person` says what
    would change it. For the harness, record the Unicorn version, the builds
    it loads and the stubs it has.
@@ -53,10 +58,14 @@ is done.
    until a tooling batch writes the probe.
 4. **Move queue items** between `Emulated call`, `Agent run` and
    `Live session` where an answer changed, in the same commit. An item
-   uses the answer of each part it needs: it is an `Agent run` only if
-   every one of them is `agent`, a `Live session` if one is `person`, and
-   cannot be made if one is `none`. An item that needs only the keyboard
-   stays an `Agent run` in a game whose mouse needs a person, and its
-   experiment's Setup says it used only the keyboard.
+   uses the answer of each part it needs: its run cannot be made if any of
+   them is `none`, it is a `Live session` if any is `person`, and it is an
+   `Agent run` only if every one is `agent`. An item that needs only the
+   keyboard stays an `Agent run` in a game whose mouse needs a person, and
+   its experiment's Setup says it used only the keyboard. Where the record
+   answers the parts of a capability separately, each `Agent run` and
+   `Live session` item says in its `Settles it:` text which of those parts
+   its run needs, such as only the keyboard, so that the items a changed
+   part affects can be found.
 5. **Stop every process you started and delete the lock.** Commit, then print
    the status block from `research-item` with `Batch: runtime access`.

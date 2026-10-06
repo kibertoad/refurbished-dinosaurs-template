@@ -35,11 +35,14 @@ RAM, and the limits of what they test._ Emulated calls are always allowed, so th
 | Call a single function in the emulator harness (no run lock) | | | |
 
 Several capabilities name more than one thing, and the parts can get
-different answers: input from the keyboard, the mouse or a joystick, frames
-and sound, memory reads, breakpoints and dumps. One answer in a row stands
-for every part the row names, so write it only when every part was tried and
-got that answer. Where the parts differ, the row gives way to one row per
-part under the capability, and each names the attempt it comes from:
+different answers. The parts of a capability are the ones the game has: for
+input, each device the game reads, and for capture, sound only if the game
+makes any. One answer in a row stands for every one of those parts, so write
+it only when every part was tried and got that answer. Where the parts
+differ, the row gives way to one row per part under the capability, and each
+names the attempt it comes from. For input, `person` means a person has to
+give that input: the agent sends none to a game a person runs, so the run
+becomes a live session in which the maintainer plays.
 
 | Capability | Who | Tried | What would change it |
 |---|---|---|---|
@@ -48,11 +51,13 @@ part under the capability, and each names the attempt it comes from:
 | Capture frames and sound: frames | _agent_ | _tool, version, what happened_ | |
 | Capture frames and sound: sound | _none_ | _tool, version, what happened_ | _what would make it agent or person_ |
 
-A run uses the answer of each part it needs. It is an agent run only if every
-one of those parts is `agent`, a run that needs a part answered `person` is a
-live session, and one that needs a part answered `none` cannot be made. An
-item that needs only the keyboard can be an agent run in a game whose mouse
-needs a person, and its experiment's Setup says it used only the keyboard.
+A run uses the answer of each part it needs: it cannot be made if any of
+those parts is `none`, it is a live session if any is `person`, and it is an
+agent run only if every one is `agent`. An item that needs only the keyboard
+can be an agent run in a game whose mouse needs a person, and its
+experiment's Setup says it used only the keyboard. Where a capability is
+split, each `Agent run` and `Live session` item in `queue/` says in its
+`Settles it:` text which of these parts its run needs.
 
 Probe: _where the agent can start the build without a person, read its
 memory and set breakpoints, the probe's command line and anything the run
