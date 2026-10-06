@@ -68,7 +68,13 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    shared value through input, `Core`, presentation and a save and restore,
    with distinct values per axis, and test what a second actor sees at each
    `# visible:` point. A checkpoint or replay change follows the protocol's
-   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190).
+   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190)
+   and the Continuation cases subsection after it. Where the state that
+   decides how play continues sits in several components, test a field a
+   helper changes in one copy as the next consumer reads it, a state
+   published between two steps of a rule, each required field missing and an
+   explicit null, state published on a path that returns zero or fails, and
+   integer identities in different roles with different values.
    None of these tests validates a row.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and `./tools/Invoke-Validation.ps1`.

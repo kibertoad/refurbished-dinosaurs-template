@@ -8,6 +8,23 @@ not here.
 
 A project created from this template may delete this file.
 
+## Continuation cases, 2026-10-06
+
+[kibertoad/refurbished-dinosaurs#71](https://github.com/kibertoad/refurbished-dinosaurs/pull/71)
+adds a Continuation cases subsection after Checkpoints and replay in the work
+protocol, for
+[kibertoad/refurbished-dinosaurs#52](https://github.com/kibertoad/refurbished-dinosaurs/issues/52).
+It lists the forms a defect takes when the state that decides how play
+continues sits in several components, and the tests a game repository writes
+for each. The checkpoint summary in `AGENTS.md` and step 6 of the
+`implement-rows` skill now name the subsection and the cases a batch meets
+most often: a copied field a helper changes, a state published between two
+steps, a missing required field apart from an explicit null, state published
+on a zero-result or failure path, and identity roles with different values.
+`docs/upstream/` does not carry the subsection until the next refresh, so the
+two files name it without a link; the refresh turns the name into a section
+link with its line range.
+
 ## Deviated parity status, 2026-10-06
 
 - **Standard.** `docs/upstream/` moves from `c1758fd` to `11dbbc5`.
