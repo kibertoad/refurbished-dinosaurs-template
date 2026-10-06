@@ -19,7 +19,7 @@ We write a new engine from documentation of the original. A rebuild written agai
 
 No original code goes into a repository. Decompiler output, disassembly listings, byte dumps and analysis databases stay on the researcher's machine. What gets committed is a description of behaviour in our own words, such as a formula, a table layout or a state diagram, and the implementation is written from that description.
 
-Every finding names the exact build it came from: the edition, the version and the SHA-256 of the file it was found in. Supported editions are listed by hash, and the importer refuses files it does not recognise instead of guessing.
+Every finding names the exact build it came from: the edition, the version and the xxHash3 (128-bit) hash of the file it was found in. Supported editions are listed by hash, and the importer refuses files it does not recognise instead of guessing.
 
 ## Studying the original
 
@@ -45,7 +45,7 @@ The simulation is deterministic: the same inputs and seed give the same result o
 
 ## The parity matrix
 
-Every game repository has a parity matrix, kept apart from the spec: one file of rows per area under `parity/`, and `PARITY.md` with the totals. The spec says what the original does. The matrix says how much of that the rebuild does and how we know, with one row per rule, file format and screen in the spec. A row starts with the spec entry's status (unknown, sourced, supported, established or disputed). It becomes implemented when the code does everything the entry describes, and validated when the entry rests on evidence from the original (supported or established) and an automated test compares the rebuild with that evidence and passes. Manual play never makes a row validated, and neither does code that still contains a placeholder formula. The exact format is in the [documentation standard](/documentation-standard/#parity-matrix).
+Every game repository has a parity matrix, kept apart from the spec: one file of rows per area under `parity/`, and `PARITY.md` with the totals. The spec says what the original does. The matrix says how much of that the rebuild does and how we know, with one row per rule, file format and screen in the spec. A row starts with the spec entry's status (unknown, sourced, supported, established or disputed). It becomes implemented when the code does everything the entry describes, and validated when the entry rests on evidence from the original (supported or established) and an automated test compares the rebuild with that evidence and passes. A row whose entry the rebuild replaces entirely on purpose, with no setting to bring the original's behaviour back, becomes deviated instead once tests check that the rebuild does what the deviation log says. Manual play never makes a row validated, and neither does code that still contains a placeholder formula. The exact format is in the [documentation standard](/documentation-standard/#parity-matrix).
 
 The matrix is our answer to "how accurate is it", published so readers can check the answer.
 
