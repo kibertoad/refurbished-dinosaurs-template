@@ -35,6 +35,14 @@ is done.
      Emulated calls are always allowed, so the answer is `agent` wherever
      the harness loads the build, even where no agent may run the game, and
      `none` only while the harness does not exist yet.
+
+   Try each part of a capability that names several things: keyboard,
+   mouse and joystick input, frames and sound, memory reads, breakpoints
+   and dumps. One answer stands for every part the capability names, so
+   give one only when every part was tried and got that answer. Where the
+   parts differ, answer each part on its own under the capability
+   (`keyboard: agent`, `mouse: person`, `frames: agent`, `sound: none`),
+   each naming the attempt it comes from.
 3. **Write `docs/RUNTIME.md`** from its headings: each answer names the tool and
    version tried and what happened, and each `none` or `person` says what
    would change it. For the harness, record the Unicorn version, the builds
@@ -44,6 +52,11 @@ is done.
    recorded runs: give the probe's command line under Probe, or `none`
    until a tooling batch writes the probe.
 4. **Move queue items** between `Emulated call`, `Agent run` and
-   `Live session` where an answer changed, in the same commit.
+   `Live session` where an answer changed, in the same commit. An item
+   uses the answer of each part it needs: it is an `Agent run` only if
+   every one of them is `agent`, a `Live session` if one is `person`, and
+   cannot be made if one is `none`. An item that needs only the keyboard
+   stays an `Agent run` in a game whose mouse needs a person, and its
+   experiment's Setup says it used only the keyboard.
 5. **Stop every process you started and delete the lock.** Commit, then print
    the status block from `research-item` with `Batch: runtime access`.

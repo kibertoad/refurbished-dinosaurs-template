@@ -34,6 +34,26 @@ RAM, and the limits of what they test._ Emulated calls are always allowed, so th
 | Play back a recording the original made | | | |
 | Call a single function in the emulator harness (no run lock) | | | |
 
+Several capabilities name more than one thing, and the parts can get
+different answers: input from the keyboard, the mouse or a joystick, frames
+and sound, memory reads, breakpoints and dumps. One answer in a row stands
+for every part the row names, so write it only when every part was tried and
+got that answer. Where the parts differ, the row gives way to one row per
+part under the capability, and each names the attempt it comes from:
+
+| Capability | Who | Tried | What would change it |
+|---|---|---|---|
+| Send it input: keyboard | _agent_ | _tool, version, what happened_ | |
+| Send it input: mouse | _person_ | _tool, version, what happened_ | _what would make it agent_ |
+| Capture frames and sound: frames | _agent_ | _tool, version, what happened_ | |
+| Capture frames and sound: sound | _none_ | _tool, version, what happened_ | _what would make it agent or person_ |
+
+A run uses the answer of each part it needs. It is an agent run only if every
+one of those parts is `agent`, a run that needs a part answered `person` is a
+live session, and one that needs a part answered `none` cannot be made. An
+item that needs only the keyboard can be an agent run in a game whose mouse
+needs a person, and its experiment's Setup says it used only the keyboard.
+
 Probe: _where the agent can start the build without a person, read its
 memory and set breakpoints, the probe's command line and anything the run
 sets for the child process alone, such as a copy of the executable outside
