@@ -483,8 +483,8 @@ the rules publish between two steps of a rule; each required field removed
 on its own, and an explicit null apart from a missing field; state published
 on a path that returns zero or fails; integer identities in different roles
 given different values (army 2, slot 4, entity 7); and input that names one
-thing twice, such as numeric keys `11` and `011`, rejected before anything is
-built. These tests
+thing twice, such as numeric keys `11` and `011` read as decimal, rejected
+before anything is built. These tests
 compare the rebuild with the spec or with itself, so none of them validates a
 parity row; see the protocol's
 [Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
