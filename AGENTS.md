@@ -479,11 +479,22 @@ A checkpoint or replay API states what its identity covers (every field and
 behaviour-driving resource that decides how play continues, hashed in a
 stated, versioned encoding), rejects a mismatched checkpoint without changing
 the host, says whether a snapshot may be restored more than once, and never
-drops unsaved state such as a paused path search silently. These tests
-compare the rebuild with the spec or with itself, so none of them validates a
-parity row; see the protocol's
+drops unsaved state such as a paused path search silently. Where the state
+that decides how play continues sits in several components at once, such as
+a task record, a movement record, an actor and a paused search, the tests
+also cover how those parts compose: a helper changing a field that several
+components copy, checked in the next consumer and after a restore; a
+checkpoint taken between two steps of a rule accepted, while a value no step
+produces is rejected; each required field removed on its own, and an
+explicit null apart from a missing field; state published on a path that
+returns zero or fails; integer identities in different roles given different
+values (army 2, slot 4, entity 7); and input that names one thing twice, such
+as numeric keys `11` and `011` read as decimal, rejected before anything is
+built. These tests compare the rebuild with the spec or with itself, so none
+of them validates a parity row; see the protocol's
 [Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
-and [Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190).
+and [Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190),
+with the Continuation cases subsection that follows it.
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.
