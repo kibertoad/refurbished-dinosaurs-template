@@ -227,7 +227,10 @@ that page differ, the page wins.
   records the owner's decisions and moves its oldest entries to
   `docs/decisions/` before it passes 1,000 lines. A session ends by
   committing its handover on its own and pushing the branch; half-done work
-  never goes into a batch commit.
+  never goes into a batch commit. Under a goal whose condition does not
+  hold, the end of a session is a checkpoint: the next session starts at once,
+  in the same conversation, and `docs/goals/README.md` lists the only reasons
+  to stop.
 - Progress is what scripts compute: parity totals, entries by status,
   executable and file coverage, queue sizes. Never a hand-written percentage.
   Executable coverage is measured against the function inventories,

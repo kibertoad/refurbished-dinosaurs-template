@@ -1,6 +1,6 @@
 ---
 name: end-session
-description: Close a work session on this restoration - stop processes the session started and release the run lock, rewrite the handover (docs/HANDOVER.md, or the goal file's Handover) to the current state, commit it, push, and report. Use at the end of every session, before handing over, when a goal is met or dropped, or when stopping for any reason.
+description: Close a work session on this restoration - stop processes the session started and release the run lock, rewrite the handover (docs/HANDOVER.md, or the goal file's Handover) to the current state, commit it, push, and either start the next session (under a goal whose condition does not hold) or report. Use at the end of every session, before handing over, when a goal is met or dropped, or when stopping for any reason.
 ---
 
 # End a session
@@ -38,6 +38,11 @@ only the lines the link gives, and never a section already read this session.
 5. **Push** the branch unless `AGENTS.md` says the owner pushes or the user
    has instructed otherwise. Check Git directly for the branch's remote sync
    state when reporting it; do not copy a count into the handover.
-6. **Report** the final status block from `research-item`, followed by one
+6. **Continue or stop.** If the session worked under a goal whose condition
+   does not hold and none of the stop reasons in `docs/goals/README.md`
+   applies, the session's end is a checkpoint: run `start-session` now and
+   take the next item, without reporting or ending the turn. Otherwise go on
+   to the report, naming the stop reason that applies.
+7. **Report** the final status block from `research-item`, followed by one
    line on anything the owner has to decide or do, such as a live session
    request waiting for an answer.

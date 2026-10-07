@@ -72,6 +72,15 @@ Write the goal file from `docs/goals/README.md`, check that no other goal file
 claims the same areas, get the file onto the main branch before the goal's
 first batch (where sessions cannot push, run only one goal at a time), and
 give the user the condition to paste after `/goal`.
+
+When the owner wants work to go on until the game is restored, write a
+standing goal (`docs/goals/README.md`), with a condition such as:
+
+```text
+The plan is past Audit, every parity row that is not superseded is validated
+or deviated, and every queue item is closed or under Blocked with Waiting on;
+stop earlier only for a reason docs/goals/README.md lists.
+```
 Split research and implementation into separate goals. An implementation
 goal's condition allows no change under `spec/` beyond added open questions
 and `unknown` entries, and accepts a `partial` row only with a `Spec gap:` note. Never write a goal

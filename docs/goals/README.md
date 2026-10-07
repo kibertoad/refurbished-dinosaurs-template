@@ -49,3 +49,37 @@ what a research attempt tried on a question goes under its queue item's
 `Tried:`. `Handover` holds what `docs/HANDOVER.md` holds, for this goal only,
 and is rewritten at the end of every session under the goal. Progress is not
 written here: the queue and the commits show it.
+
+## Standing goals
+
+The owner may give a goal that ends only when the restoration does, such as
+"keep working until the whole game is restored". Its condition names that
+end, for example: the plan is past Audit, every parity row that is not
+superseded is `validated` or `deviated`, and every queue item is closed or
+under `Blocked` with `Waiting on:`. Its file has no turn limit.
+
+Under a standing goal, the end of a session is a checkpoint, not a stop:
+`end-session` commits the handover, and the agent runs `start-session` and
+takes the next item in the same conversation. The goal keeps going from
+session to session until its condition holds.
+
+An agent under any goal whose condition does not hold stops only when:
+
+- the owner says to stop;
+- every item the goal may take is under `Blocked`, `Live session` or an
+  `Agent run` that cannot run now, no `plan-work` step adds one within the
+  goal's scope, and no other stage or slice in scope has work;
+- a decision only the owner can make blocks all remaining work in scope,
+  written in `docs/DECISIONS.md` or the goal's Handover as a question.
+
+None of these is a reason to stop: a finished batch or status block, a
+committed handover, the length of the conversation (it is summarized when it
+grows long), a check running in the background (do other work meanwhile and
+use its result in a later commit), or a question the owner asks while the goal
+runs (answer it, then go on). Before stopping, the agent says which of the
+reasons above applies, in the Handover and in its last message.
+
+Where the repository's `.claude/settings.json` installs
+`tools/goal-stop-hook.mjs`, Claude Code holds back the first stop on a
+`goal/<name>` branch whose goal file exists and reminds the agent of these
+reasons; a second stop in a row goes through.
