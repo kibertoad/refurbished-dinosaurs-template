@@ -23,7 +23,7 @@ is done.
 2. **For each build that will be run**, record how it runs (natively, under
    Wine, in DOSBox-X or another emulator, in a virtual machine), then try each
    capability and answer it `agent`, `person` (only while a person runs the
-   game) or `none`:
+   game; for input, see below) or `none`:
    - start the original and bring it to a given state without a person;
    - send it input;
    - read its memory, set breakpoints and dump structures while it runs;
@@ -35,7 +35,20 @@ is done.
      Emulated calls are always allowed, so the answer is `agent` wherever
      the harness loads the build, even where no agent may run the game, and
      `none` only while the harness does not exist yet.
-3. **Write `docs/RUNTIME.md`** from its headings: each answer names the tool and
+
+   Try each part of a capability that names several things. The parts are
+   the ones the game has: for input, each device the game reads, and for
+   capture, sound only if the game makes any; memory reads, breakpoints
+   and dumps are parts too. One answer stands for every one of those
+   parts, so give one only when every part was tried and got that answer.
+   Where the parts differ, answer each part on its own under the
+   capability (`keyboard: agent`, `mouse: person`, `frames: agent`,
+   `sound: none`), each naming the attempt it comes from. For input,
+   `person` means a person has to give that input: the agent sends none to
+   a game a person runs, so the run is a live session in which the
+   maintainer plays.
+3. **Write `docs/RUNTIME.md`** from its headings, answering every capability,
+   or every part of it where the parts differ: each answer names the tool and
    version tried and what happened, and each `none` or `person` says what
    would change it. For the harness, record the Unicorn version, the builds
    it loads and the stubs it has.
@@ -44,6 +57,16 @@ is done.
    recorded runs: give the probe's command line under Probe, or `none`
    until a tooling batch writes the probe.
 4. **Move queue items** between `Emulated call`, `Agent run` and
-   `Live session` where an answer changed, in the same commit.
+   `Live session` where an answer changed, in the same commit. An item
+   uses the answer of each part it needs: its run cannot be made if any of
+   them is `none` (it goes under `Blocked`, with `Waiting on:` naming that
+   part), it is a `Live session` if any is `person`, and it is an
+   `Agent run` only if every one is `agent`. An item that needs only the
+   keyboard stays an `Agent run` in a game whose mouse needs a person, and
+   its experiment's Setup says it used only the keyboard. Where the record
+   answers the parts of a capability separately, each `Agent run` and
+   `Live session` item says in its `Settles it:` text which of those parts
+   its run needs, such as only the keyboard, so that the items a changed
+   part affects can be found.
 5. **Stop every process you started and delete the lock.** Commit, then print
    the status block from `research-item` with `Batch: runtime access`.
