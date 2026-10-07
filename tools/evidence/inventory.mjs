@@ -30,8 +30,10 @@ export function parseInventory(text) {
 }
 
 // The build entry's Code ranges for the file, as half-open file offsets. Only MZ overlay code is
-// located by offset, so each range must lie inside one overlay payload the image declares.
+// located by offset, so each range must lie inside one overlay payload the image declares. An MZ
+// image must also be read with its load image at the segment the standard's notation uses.
 function checkedCodeRanges(image, codeRanges = []) {
+  if (image.format !== "PE" && image.loadSegment !== STANDARD_LOAD_SEGMENT) throw new Error("An MZ inventory is written with the load image at segment 0x1000, where the standard's notation places it");
   if (!Array.isArray(codeRanges) || codeRanges.length > 4096) throw new Error("codeRanges must be a list of at most 4096 ranges");
   if (codeRanges.length && image.format === "PE") throw new Error("Code ranges locate MZ overlay code; a PE start is an address");
   for (const r of codeRanges)
@@ -45,15 +47,14 @@ function checkedCodeRanges(image, codeRanges = []) {
 // the file offset for MZ (resident or overlay) and the virtual address for PE. A segmented start
 // keeps its spelling. A file offset in the MZ load image is written as the segment:offset whose
 // offset is below 0x10, which names the same byte. A file offset in overlay code stays an offset,
-// and must lie in a row of the build's Code ranges.
-function notation(image, start, codeRanges) {
+// and is marked overlay: the caller checks it against the build's Code ranges (inCodeRanges).
+function notation(image, start) {
   if (image.format === "PE") {
     if (!/^0x[0-9A-Fa-f]{1,8}$/.test(start)) throw new Error("A PE inventory start is a 32-bit virtual address");
     const at = Number(start);
     if (!image.ranges.some((r) => at >= r.start && at < r.end)) throw new Error("Inventory start outside the executable sections");
     return { at, start: hex(at) };
   }
-  if (image.loadSegment !== STANDARD_LOAD_SEGMENT) throw new Error("An MZ inventory is written with the load image at segment 0x1000, where the standard's notation places it");
   const pair = /^([0-9A-Fa-f]{4}):([0-9A-Fa-f]{4})$/.exec(start);
   if (pair) return { at: image.address(parseInt(pair[1], 16), parseInt(pair[2], 16)), start: start.toUpperCase() };
   if (!/^0x[0-9A-Fa-f]+$/.test(start)) throw new Error("Inventory start must be segmented or a canonical file offset");
@@ -64,8 +65,12 @@ function notation(image, start, codeRanges) {
     if (segment > 0xFFFF) throw new Error("Resident start lies beyond segment FFFF");
     return { at, start: `${word(segment)}:${word(linear % 16)}` };
   }
+  return { at, start: hex(at), overlay: true };
+}
+
+// An overlay start written to or read from an inventory must lie in a row of the build's Code ranges.
+function inCodeRanges(codeRanges, at) {
   if (!codeRanges.some((r) => at >= r.start && at < r.end)) throw new Error(`Overlay start ${hex(at)} lies in no row of the build's Code ranges; supply codeRanges`);
-  return { at, start: hex(at) };
 }
 
 // Each view explicitly owns source ranges. No view silently replaces another. View ranges are in
@@ -86,9 +91,10 @@ export function joinInventories(image, manifest, views, { codeRanges } = {}) {
     owned.push(...sorted.map((r) => ({ view: v.name, start: r.start, end: r.end })));
     const rows = parseInventory(v.text); let accepted = 0, excluded = 0;
     for (const row of rows) {
-      const { at, start } = notation(image, row.start, code);
+      const { at, start, overlay } = notation(image, row.start);
       const range = v.ranges.find((r) => at >= r.start && at < r.end);
       if (!range) { excluded++; continue; }
+      if (overlay) inCodeRanges(code, at);
       // Size counts body bytes, possibly discontiguous. It is never used as start + size.
       if (row.size > v.ranges.reduce((n, r) => n + r.end - r.start, 0)) throw new Error("Body byte count exceeds view capacity");
       if (output.has(at)) throw new Error(`Conflicting view or aliased duplicate at ${start}; choose ownership explicitly`);
@@ -120,7 +126,8 @@ export function verifyInventory(image, build, manifest, text, path, { legacyPath
     const cells = line.split('\t');
     if (cells.length !== columns.length || cells.some(c=>c.length > 1024)) throw new Error('Invalid committed inventory row');
     const [start,size] = cells;
-    const { at, start: canonical } = notation(image, start, code);
+    const { at, start: canonical, overlay } = notation(image, start);
+    if (overlay) inCodeRanges(code, at);
     // A segmented start may be any spelling of its byte, in upper case. An address or an overlay
     // offset has one spelling, eight upper-case digits, as joinInventories writes it.
     if (start !== canonical && !/^[0-9A-F]{4}:[0-9A-F]{4}$/.test(start)) throw new Error('Inventory start is not in the standard notation for the file (noncanonical)');

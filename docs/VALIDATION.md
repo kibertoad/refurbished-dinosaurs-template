@@ -218,13 +218,16 @@ merge conflict in them, and its copies are as old as the `main` it last took
 in.
 
 The job in `.github/workflows/nightly-generated.yml` brings them up to date.
-It runs daily, and on a manual dispatch from `main`; a scheduled run that finds
-no commit in the last 26 hours touching `spec/`, `parity/` or `deviations/`
-outside `spec/index/` stops there and says so. Otherwise it runs
+It runs daily, and on a manual dispatch from `main`. A scheduled run looks up
+the `main` commit of the job's last successful run and stops, saying so, when
+no commit since then touches `spec/`, `parity/` or `deviations/` outside
+`spec/index/`. A failed or missed run does not move that commit, so its
+changes are picked up by the next run. With no earlier successful run, or when
+that commit is no longer on `main`, the run regenerates. Otherwise it runs
 `node tools/upstream.mjs docs --generate --no-ksy` on `main`, commits nothing
 when the check fails or the files are already current, and otherwise commits
-them as `github-actions[bot]` and pushes to `main`, fetching and regenerating
-up to three times when the push is rejected because `main` moved.
+them as `github-actions[bot]` and pushes to `main`. It tries the push up to
+three times, fetching `main` and regenerating after each rejection.
 
 The job pushes with the workflow's own token. Where `main` requires pull
 requests (a ruleset or branch protection), that push is rejected, and the

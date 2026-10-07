@@ -84,7 +84,7 @@ test("local runs take the checker inputs the CI step gives", () => {
   assert.deepEqual(ciCheckerArgs(step + "        with:\n          scheduled-generation: \"true\"\n          rebuild: src,tests\n"),
     ["--scheduled-generation", "--rebuild", "src,tests"]);
   assert.deepEqual(ciCheckerArgs(step + "        with:\n          scheduled-generation: \"false\"\n          rebuild: ''\n"), ["--rebuild", ""]);
-  assert.deepEqual(ciCheckerArgs(step + "        with:\n          scheduled-generation: True\n"), []);
+  assert.throws(() => ciCheckerArgs(step + "        with:\n          scheduled-generation: True\n"), /must be "true" or "false"/);
   assert.throws(() => ciCheckerArgs(step + "        with: { images: x }\n"), /block of key: value/);
   assert.throws(() => ciCheckerArgs(step + "        with:\n          images: |\n"), /Unsupported/);
   assert.deepEqual(ciCheckerArgs(readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8")), ["--scheduled-generation"]);

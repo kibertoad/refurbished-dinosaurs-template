@@ -102,8 +102,14 @@ export function ciCheckerArgs(ci) {
     if (!m) throw new Error(`Unsupported CI checker input line: ${line.trim()}`);
     const [, key, ...values] = m, value = values.find((v) => v !== undefined) ?? "";
     if (!INPUTS.includes(key)) continue;
-    // scheduled-generation is a flag, which the action passes only for the exact value "true".
-    if (key === "scheduled-generation") { if (value === "true") args.push("--scheduled-generation"); continue; }
+    // scheduled-generation is a flag, which the action passes only for the exact value "true". Other
+    // spellings are refused: GitHub's YAML may read an unquoted True or TRUE as a boolean and hand
+    // the action "true", where this reader would see a different string.
+    if (key === "scheduled-generation") {
+      if (!["true", "false", ""].includes(value)) throw new Error(`CI scheduled-generation must be "true" or "false", not ${value}`);
+      if (value === "true") args.push("--scheduled-generation");
+      continue;
+    }
     // The action always passes code, references and rebuild (an empty rebuild turns its check off),
     // and the other inputs only when they are set. Without a rebuild line, the checker's default
     // is the action's.

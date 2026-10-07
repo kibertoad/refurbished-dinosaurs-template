@@ -59,7 +59,7 @@ never code or spec entries apart from new `unknown` entries.
    (`--list` names the entries citing each function): a large function no
    entry cites gets a queue item against the nearest entry or a new
    `unknown` one. Its figures are printed when wanted and never committed;
-   the plan names the command, not a share it printed. The protocol's
+   the plan names the command and copies none of the shares it printed. The protocol's
    [Measuring progress](../../../docs/upstream/work-protocol.md#measuring-progress) (lines 423-476)
    says how to set an early baseline and report coverage by area.
 3. Move items that block the current slice to the top of their section.

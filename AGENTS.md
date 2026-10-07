@@ -261,8 +261,8 @@ that page differ, the page wins.
   is committed. Each start is written in the standard's notation for its
   file: `SSSS:OOOO` in an MZ load image, an eight-digit file offset inside a
   row of the build's Code ranges for overlay code, and an eight-digit address
-  for PE, LE and LX (`tools/evidence/report.mjs inventory` writes them so,
-  `docs/EVIDENCE-TOOLS.md`). `pnpm exec standard-coverage` prints how much of
+  for PE, LE and LX. `tools/evidence/report.mjs inventory` writes the MZ, FBOV
+  overlay and PE32 forms and refuses LE and LX files (`docs/EVIDENCE-TOOLS.md`). `pnpm exec standard-coverage` prints how much of
   each file the spec's locations cite; run it when the figures are needed,
   and commit none of its output.
 

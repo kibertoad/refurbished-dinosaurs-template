@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write # Pushes the regenerated files to main.
+      actions: read # Finds this job's last successful run.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -34,21 +35,30 @@ jobs:
           persist-credentials: false
           # Full history, for the log below and for the check's comparison with the base branch.
           fetch-depth: 0
-      - name: Look for spec changes since the last scheduled run
+      - name: Look for spec changes since the last successful run
         id: changes
         env:
           EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$EVENT_NAME" != "schedule" ]; then
             echo "Started by $EVENT_NAME, so the files are regenerated whatever changed."
             echo "run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # 26 hours rather than 24, because a scheduled run can start well after its time. A change
-          # seen twice costs one run that finds the files current and commits nothing.
-          changed=$(git log --since='26 hours ago' --format=%H origin/main -- spec parity deviations ':(exclude)spec/index')
+          # Changes are counted from the main commit of this job's last successful run, so a run that
+          # failed, had its push rejected or never started leaves them for the next one. A skipped run
+          # succeeds too, which is right: nothing had changed since the run before it.
+          base=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow nightly-generated.yml --branch main \
+            --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
+          if [ -z "$base" ] || ! git merge-base --is-ancestor "$base" origin/main; then
+            echo "No earlier successful run on the current main, so the files are regenerated."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git log --format=%H "$base..origin/main" -- spec parity deviations ':(exclude)spec/index')
           if [ -z "$changed" ]; then
-            echo "No commit in the last 26 hours changed spec/, parity/ or deviations/ outside spec/index/, so nothing is regenerated."
+            echo "No commit since $base changed spec/, parity/ or deviations/ outside spec/index/, so nothing is regenerated."
             echo "run=false" >> "$GITHUB_OUTPUT"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
@@ -85,6 +95,9 @@ jobs:
             git commit --quiet -m "Regenerate spec indexes and parity totals"
             if git push "$remote" HEAD:main; then
               exit 0
+            fi
+            if [ "$attempt" = 3 ]; then
+              break
             fi
             echo "The push was rejected (attempt $attempt of 3); regenerating on the current main."
             git fetch --quiet "$remote" +refs/heads/main:refs/remotes/origin/main

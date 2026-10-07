@@ -1,5 +1,6 @@
 // Read-only section layout of a PE32 executable, for inventories whose starts are flat addresses.
-// No original bytes or names are emitted: sections are reported by index, not by their names.
+// No original bytes or names are emitted: each section is reported as section-<index>, and its
+// name is never read.
 import { span } from "./legacy-image.mjs";
 
 const CODE = 0x00000020, EXECUTE = 0x20000000;
@@ -13,6 +14,7 @@ export function readPe32(bytes) {
   if (bytes.toString("ascii", 0, 2) !== "MZ") throw new Error("Unsupported executable: expected an MZ stub");
   const pe = bytes.readUInt32LE(0x3C);
   span(pe, 24, bytes.length, "PE header");
+  if (pe < 64) throw new Error("PE header overlaps the MZ stub");
   const signature = bytes.toString("ascii", pe, pe + 4);
   if (signature !== "PE\0\0") {
     const kind = bytes.toString("ascii", pe, pe + 2);
@@ -24,19 +26,29 @@ export function readPe32(bytes) {
   const magic = bytes.readUInt16LE(optional);
   if (magic === 0x20B) throw new Error("Unsupported executable: PE32+ addresses have sixteen digits");
   if (magic !== 0x10B || optionalSize < 96) throw new Error("Invalid PE32 optional header");
-  const imageBase = bytes.readUInt32LE(optional + 28), sizeOfImage = bytes.readUInt32LE(optional + 56);
+  const imageBase = bytes.readUInt32LE(optional + 28), sizeOfImage = bytes.readUInt32LE(optional + 56), sizeOfHeaders = bytes.readUInt32LE(optional + 60);
   if (!sizeOfImage || imageBase + sizeOfImage > 2 ** 32) throw new Error("PE image does not fit in 32-bit addresses");
   if (!count || count > 96) throw new Error("Invalid PE section count");
   const table = optional + optionalSize;
   span(table, count * 40, bytes.length, "PE section table");
+  if (sizeOfHeaders < table + count * 40 || sizeOfHeaders > bytes.length || sizeOfHeaders > sizeOfImage) throw new Error("Invalid PE image/header extent");
+  // The section checks of the executable reader's PE loader (pe-imports.js), so the inventory and the
+  // x86 reports accept the same files and map every address to the same section.
   const sections = [];
   for (let i = 0; i < count; i++) {
     const entry = table + i * 40, virtualSize = bytes.readUInt32LE(entry + 8), address = bytes.readUInt32LE(entry + 12);
-    const size = virtualSize || bytes.readUInt32LE(entry + 16), characteristics = bytes.readUInt32LE(entry + 36);
-    if (!size) continue;
-    if (address + size > sizeOfImage) throw new Error("PE section lies outside SizeOfImage");
-    const section = { view: `section-${i}`, start: imageBase + address, end: imageBase + address + size, code: !!(characteristics & (CODE | EXECUTE)) };
-    if (sections.some((s) => section.start < s.end && s.start < section.end)) throw new Error("Overlapping PE sections");
+    const rawSize = bytes.readUInt32LE(entry + 16), rawStart = bytes.readUInt32LE(entry + 20), characteristics = bytes.readUInt32LE(entry + 36);
+    const size = Math.max(virtualSize, rawSize);
+    if (!size || address < sizeOfHeaders || address + size > sizeOfImage) throw new Error("PE section escapes image or overlaps headers");
+    if (rawSize) {
+      span(rawStart, rawSize, bytes.length, "PE section raw bytes");
+      if (rawStart < sizeOfHeaders) throw new Error("PE section raw bytes overlap headers");
+    }
+    const section = { view: `section-${i}`, start: imageBase + address, end: imageBase + address + size, rawStart, rawSize, code: !!(characteristics & (CODE | EXECUTE)) };
+    for (const s of sections) {
+      if (section.start < s.end && s.start < section.end) throw new Error("Overlapping PE sections");
+      if (rawSize && s.rawSize && rawStart < s.rawStart + s.rawSize && s.rawStart < rawStart + rawSize) throw new Error("Overlapping PE raw sections");
+    }
     sections.push(section);
   }
   const ranges = sections.filter((s) => s.code).map(({ view, start, end }) => ({ view, start, end }));

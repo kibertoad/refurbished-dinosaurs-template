@@ -129,6 +129,8 @@ test("inventory views report exclusions and reject aliased ownership conflicts",
   assert.equal(joined.tsv, "start\tsize\n1001:0000\t8\n0x00000210\t2\n"); assert.equal(joined.views[1].excluded, 1);
   // An overlay offset must lie in a row of the build's Code ranges, and each row inside an overlay payload.
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped]), /Code ranges/);
+  // An overlay start that the view does not own is excluded, and needs no Code ranges row.
+  assert.equal(joinInventories(image, "GAME.EXE", [{ ...view, text: mapped.text }]).views[0].excluded, 1);
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped], { codeRanges: [{ start: 530, end: 540 }] }), /Code ranges/);
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped], { codeRanges: [{ start: 100, end: 120 }] }), /overlay payload/);
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped], { codeRanges: [{ start: 528, end: 600 }] }), /overlay payload/);
@@ -240,14 +242,14 @@ test('committed inventory validates identity, columns, numeric aliases and expli
 
 // A synthetic PE32 based where no executable of the period loads, with an executable .text at
 // 0x7F001000..0x7F001100 and a data section at 0x7F002000..0x7F002200.
-function syntheticPe({ magic = 0x10B, signature = "PE\0\0" } = {}) {
+function syntheticPe({ magic = 0x10B, signature = "PE\0\0", sizeOfHeaders = 0x200, textAddress = 0x1000, dataVirtualSize = 0x200 } = {}) {
   const b = Buffer.alloc(0x400), section = (at, virtualSize, address, characteristics) => {
     b.writeUInt32LE(virtualSize, at + 8); b.writeUInt32LE(address, at + 12); b.writeUInt32LE(characteristics, at + 36);
   };
   b.write("MZ"); b.writeUInt32LE(0x80, 0x3C); b.write(signature, 0x80, "latin1");
   b.writeUInt16LE(0x14C, 0x84); b.writeUInt16LE(2, 0x86); b.writeUInt16LE(0xE0, 0x94);
-  b.writeUInt16LE(magic, 0x98); b.writeUInt32LE(0x7F000000, 0x98 + 28); b.writeUInt32LE(0x3000, 0x98 + 56);
-  section(0x178, 0x100, 0x1000, 0x60000020); section(0x1A0, 0x200, 0x2000, 0xC0000040);
+  b.writeUInt16LE(magic, 0x98); b.writeUInt32LE(0x7F000000, 0x98 + 28); b.writeUInt32LE(0x3000, 0x98 + 56); b.writeUInt32LE(sizeOfHeaders, 0x98 + 60);
+  section(0x178, 0x100, textAddress, 0x60000020); section(0x1A0, dataVirtualSize, 0x2000, 0xC0000040);
   return b;
 }
 
@@ -265,6 +267,10 @@ test("PE inventories write flat virtual addresses inside executable sections", (
   assert.throws(() => check("start\tsize\nGAME.EXE+0x7F001000\t8\n"), /32-bit virtual address/);
   assert.throws(() => readPe32(syntheticPe({ magic: 0x20B })), /PE32\+/);
   assert.throws(() => readPe32(syntheticPe({ signature: "LE\0\0" })), /LE has no PE section table/);
+  // The executable reader's loader refuses these files, so the inventory refuses them too.
+  assert.throws(() => readPe32(syntheticPe({ sizeOfHeaders: 0x100 })), /header extent/);
+  assert.throws(() => readPe32(syntheticPe({ textAddress: 0x100 })), /overlaps headers/);
+  assert.throws(() => readPe32(syntheticPe({ dataVirtualSize: 0 })), /escapes image or overlaps headers/);
   // The command interface reads a pe32 source for inventories only.
   const dir = mkdtempSync(join(tmpdir(), "evidence-pe-")); t.after(() => rmSync(dir, { recursive: true, force: true }));
   const bytes = syntheticPe(); writeFileSync(join(dir, "game.exe"), bytes); writeFileSync(join(dir, "view.tsv"), view.text);
