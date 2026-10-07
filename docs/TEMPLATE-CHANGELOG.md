@@ -24,8 +24,8 @@ found that keyboard input worked for an agent while the mouse needed a
 person, and a single `agent` in the input row could be read as covering the
 mouse. The text follows the paragraph and the queue rule
 [kibertoad/refurbished-dinosaurs#65](https://github.com/kibertoad/refurbished-dinosaurs/pull/65)
-adds to the protocol. `docs/upstream/` is not refreshed here; they reach the
-local copy with the next refresh.
+adds to the protocol. `docs/upstream/` is not refreshed here; the protocol's
+new text reaches the local copy with the next refresh.
 A record that gives one answer per capability still follows the protocol,
 so the standard stays version 1.
 

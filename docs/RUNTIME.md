@@ -20,7 +20,7 @@ virtual machine, with versions._
 
 Emulator harness: _the Unicorn version, whether `tools/emu/` loads this build,
 and the stubs it has, including any port models and video memory mapped as
-RAM, and the limits of what they test._ Emulated calls are always allowed, so the last row is
+RAM, and the limits of what they test._ Emulated calls are always allowed, so the emulator harness row is
 `agent` wherever the harness loads the build, whoever may run the game, and
 `none` only until a tooling batch builds the harness.
 
@@ -37,12 +37,15 @@ RAM, and the limits of what they test._ Emulated calls are always allowed, so th
 Several capabilities name more than one thing, and the parts can get
 different answers. The parts of a capability are the ones the game has: for
 input, each device the game reads, and for capture, sound only if the game
-makes any. One answer in a row stands for every one of those parts, so write
-it only when every part was tried and got that answer. Where the parts
+makes any; memory reads, breakpoints and dumps are parts too. One answer in
+a row stands for every one of those parts, so write it only when every part
+was tried and got that answer. Where the parts
 differ, the row gives way to one row per part under the capability, and each
 names the attempt it comes from. For input, `person` means a person has to
 give that input: the agent sends none to a game a person runs, so the run
-becomes a live session in which the maintainer plays.
+becomes a live session in which the maintainer plays. For example, a game
+that reads the keyboard and the mouse and makes sound could replace its
+input and capture rows in the table above with these:
 
 | Capability | Who | Tried | What would change it |
 |---|---|---|---|

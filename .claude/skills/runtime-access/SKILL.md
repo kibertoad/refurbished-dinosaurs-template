@@ -23,7 +23,7 @@ is done.
 2. **For each build that will be run**, record how it runs (natively, under
    Wine, in DOSBox-X or another emulator, in a virtual machine), then try each
    capability and answer it `agent`, `person` (only while a person runs the
-   game) or `none`:
+   game; for input, see below) or `none`:
    - start the original and bring it to a given state without a person;
    - send it input;
    - read its memory, set breakpoints and dump structures while it runs;
@@ -59,7 +59,8 @@ is done.
 4. **Move queue items** between `Emulated call`, `Agent run` and
    `Live session` where an answer changed, in the same commit. An item
    uses the answer of each part it needs: its run cannot be made if any of
-   them is `none`, it is a `Live session` if any is `person`, and it is an
+   them is `none` (it goes under `Blocked`, with `Waiting on:` naming that
+   part), it is a `Live session` if any is `person`, and it is an
    `Agent run` only if every one is `agent`. An item that needs only the
    keyboard stays an `Agent run` in a game whose mouse needs a person, and
    its experiment's Setup says it used only the keyboard. Where the record

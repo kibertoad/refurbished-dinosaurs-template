@@ -61,8 +61,10 @@ only the lines the link gives, and never a section already read this session.
    code does not decide, and only while holding the run lock (path
    in `docs/RUNTIME.md`; take it with an exclusive create that fails if the
    file exists, record the ID of every process the run starts in it, and if
-   another agent holds it, do not wait). Never touch a process you did not
-   start. Where `docs/RUNTIME.md` gives a probe, the run follows the protocol's
+   another agent holds it, do not wait). Use only the parts of a capability
+   the item names, and say in the experiment's Setup which ones, such as
+   only the keyboard. Never touch a process you did not start. Where
+   `docs/RUNTIME.md` gives a probe, the run follows the protocol's
    [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 227-239):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
@@ -152,7 +154,10 @@ only the lines the link gives, and never a section already read this session.
    functions the reading covers (every rule the code decides gets one, even
    once established, since its fixture is what the row's tests replay). Only where the entry depends on something the code does not decide,
    and `docs/RUNTIME.md` allows a run, add an `Agent run` or `Live session`
-   item for the experiment that would confirm it; where no run is possible,
+   item for the experiment that would confirm it (where `docs/RUNTIME.md`
+   answers the parts of a capability separately, its `Settles it:` text
+   names the parts the run needs, such as only the keyboard, and the item's
+   section follows the answers of those parts); where no run is possible,
    say in the entry's Open questions which observation of the original would
    confirm it, so that a tester's capture can later, ending that bullet with
    `(No item: no run possible)`. Every Open questions bullet cites its item or
