@@ -33,7 +33,8 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       `data` an entry (`unknown` where nothing is known; CD audio tracks need
       none), export a function inventory of each file the analysis reads to
       `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an
-      `@CD` directory), add a screen entry for every
+      `@CD` directory), with each start in the standard's notation for the
+      file (`docs/EVIDENCE-TOOLS.md`), add a screen entry for every
       screen the manual mentions, and seed a `queue/<AREA>.md` for every
       area.
 
@@ -43,6 +44,11 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       canonical patched oracle, evidence ledgers, local tools, and validation
       commands while preserving its universal safety rules.
 - [ ] Fill in `tools/project-config.json` and run `./tools/Bootstrap-Project.ps1`.
+- [ ] If the main branch requires pull requests, let the scheduled job in
+      `.github/workflows/nightly-generated.yml` push to it: add GitHub Actions
+      to the ruleset's bypass list, or give the job a token that may bypass it
+      (`docs/VALIDATION.md`, "Spec checks"). Until then `spec/index/` and
+      `PARITY.md` on the main branch stop changing.
 - [ ] Run `./tools/Verify-Configuration.ps1` and resolve every finding.
 - [ ] Customize the player-facing README, acknowledgements, NOTICE description,
       and the supported/limited feature table.

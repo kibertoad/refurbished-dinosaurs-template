@@ -8,6 +8,63 @@ not here.
 
 A project created from this template may delete this file.
 
+## Standard, protocol and checker 2.5.0, 2026-10-07
+
+- **Standard and protocol.** `docs/upstream/` moves from `efa138b` to `e84495f`
+  of kibertoad/refurbished-dinosaurs (#78, #79, #85). The standard stays
+  version 1.
+  - Standard: a repository may update `spec/index/` and `PARITY.md` on its main
+    branch only, chosen by an option of the check script; every other change
+    leaves them as they were where it forked, and the check fails one that
+    edits, adds or removes them (#85). The checks list the rule that no spec
+    file names a path or source file of the rebuild (#78).
+  - Protocol: batches leave the generated files alone in such a repository
+    (#85). Measuring progress gains early baselines, creating and checking an
+    inventory, checking the denominator and reporting coverage by area; an
+    inventory start is written in the standard's notation for its file, a
+    discontiguous body may list its ranges in a further column, and
+    `.provenance.tsv` and `.regions.tsv` files sit beside each inventory (#79).
+- **Checker.** `@scientific-method/standard-checker` moves from 2.2.0 to 2.5.0,
+  the release of toolkit `3591b66`. It adds `--scheduled-generation` (and the
+  action's `scheduled-generation` input), the `standard-coverage` command,
+  address checks on the addresses code uses as numbers or in strings and in
+  PowerShell comments, `--message` for a commit message, and `--rebuild`
+  (default `src,tests`), which fails a spec file that names the rebuild.
+- **Generated files on main.** The CI documentation step sets
+  `scheduled-generation: "true"`, and `.github/workflows/nightly-generated.yml`
+  regenerates `spec/index/` and `PARITY.md` on `main` daily when the spec,
+  parity rows or deviations changed in the last 26 hours, commits them as
+  `github-actions[bot]` and pushes, retrying on a moved `main`. A protected
+  `main` must let the job push (`docs/VALIDATION.md`, `docs/BOOTSTRAP-CHECKLIST.md`).
+  `tools/upstream.mjs docs` reads the `rebuild` and `scheduled-generation`
+  inputs, and `--generate` drops the latter so a local run or the job writes
+  the files. `tools/Test-TemplateInfrastructure.ps1` fails when CI sets the
+  input without the nightly workflow. `AGENTS.md`, `docs/VALIDATION.md`,
+  `docs/DEVELOPMENT.md`, `docs/UPSTREAM-RULES.md` and the research-item and
+  start-session skills say that branches never change the files and how to
+  read current copies.
+- **Address checks.** `.githooks/commit-msg` runs `docs --message` on each
+  commit message. `AddressCitationTests` places its synthetic PE at
+  `0x7F000000`, where no executable of the period loads, and builds its
+  neutral names at run time: the checker reads a neutral name written in code
+  as an address of the original, and no entry records the synthetic image's.
+- **Inventories.** `tools/evidence/inventory.mjs` writes and requires starts
+  in the standard's notation, which `standard-coverage` reads, in place of the
+  manifest-prefixed file offsets it wrote before: `SSSS:OOOO` in an MZ load
+  image (with the load image at segment `0x1000`), an eight-digit file offset
+  for FBOV overlay code inside a row of the build's Code ranges (the config's
+  new `codeRanges`), and an eight-digit virtual address for PE32
+  (`sourceKind: "pe32"`, read by the new `tools/evidence/pe-image.mjs`).
+  PE32+, LE, LX and NE files are refused until a reader models them.
+  `docs/EVIDENCE-TOOLS.md` no longer names an `ExportFunctionInventory.java`
+  the template never shipped, and documents `pnpm exec standard-coverage`,
+  as do `AGENTS.md`, `docs/EVIDENCE-REVIEW.md` and the plan-work and
+  start-session skills: its figures are printed on demand and not committed.
+  Checker 2.5.0 accepts only the start, size, name and out_of_scope columns
+  and reads every `.tsv` under `coverage/` as an inventory, so the template
+  does not yet ask for the protocol's ranges column or provenance and regions
+  files.
+
 ## Shared libraries, 2026-10-07
 
 - **Runtime libraries.** `RefurbishedDinosaursVersion` in `Directory.Build.props`
@@ -709,7 +766,7 @@ sets how restoration work is planned, tracked and handed on.
 ## Spec file size limit, 2026-09-25
 
 Follows the documentation standard's new
-[File size](upstream/documentation-standard.md#file-size) (lines 104-118) section,
+[File size](upstream/documentation-standard.md#file-size) (lines 106-120) section,
 which limits every Markdown file it defines to 1,000 lines and splits the files
 that grew with the whole project.
 
@@ -738,7 +795,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1068-1094)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1071-1097)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

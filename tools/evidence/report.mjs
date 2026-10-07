@@ -7,6 +7,7 @@ import { run as runX86, sourceXxh3 } from "@scientific-method/executable-reader"
 import { readMz, incomingCalls } from "./legacy-image.mjs";
 import { reviewFlow, boundedTable } from "./review.mjs";
 import { joinInventories, inventoryPath, verifyInventory } from "./inventory.mjs";
+import { readPe32 } from "./pe-image.mjs";
 import { withEvidencePython } from "./python.mjs";
 
 function readBounded(path, max = 256 * 1024 * 1024) {
@@ -32,7 +33,11 @@ export function run(args) {
   let result;
   if (command === "table") result = boundedTable(bytes, config.table);
   else {
-    const image = readMz(bytes, config.loadSegment);
+    // Inventories of a PE32 file name flat addresses; every other command reads MZ and FBOV only.
+    const pe = config.sourceKind === "pe32";
+    if (pe && !command.startsWith("inventory")) throw new Error(`${command} reads MZ sources only`);
+    if (config.sourceKind !== undefined && !pe && config.sourceKind !== "mz") throw new Error("sourceKind must be mz or pe32");
+    const image = pe ? readPe32(bytes) : readMz(bytes, config.loadSegment);
     if (command === "operand") result = image.resolveOperand(config.site, config.targetOffset);
     if (command === "incoming") result = incomingCalls(image, config.target, { limit: config.limit, controls: config.controls });
     if (command === "inventory-check") {
@@ -44,11 +49,11 @@ export function run(args) {
         throw new Error('Inventory input path does not end with its declared repositoryPath');
       result = verifyInventory(image, config.build, config.manifest,
         readBounded(file, 32 * 1024 * 1024).toString('utf8'),
-        inventory.repositoryPath, inventory);
+        inventory.repositoryPath, { ...inventory, codeRanges: config.codeRanges });
     }
     if (command === "inventory") {
       const views = config.views.map((v) => ({ ...v, text: readBounded(local(v.path), 32 * 1024 * 1024).toString("utf8") }));
-      result = joinInventories(image, config.manifest, views);
+      result = joinInventories(image, config.manifest, views, { codeRanges: config.codeRanges });
       const relative = inventoryPath(config.build, config.manifest);
       result.destination = relative;
       if (config.writeRoot) {

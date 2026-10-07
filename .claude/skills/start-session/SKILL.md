@@ -38,6 +38,12 @@ This skill is the procedure; where they differ, the protocol wins.
    checks") describes. A failure on a clean tree is the first thing to fix.
 5. Read the plan's stage and current slice in `docs/IMPLEMENTATION-PLAN.md`,
    and check `docs/live-sessions/` for a request the owner has accepted.
+   Where `coverage/` holds function inventories, `pnpm exec standard-coverage`
+   prints how much of each file the spec cites and which functions no entry
+   cites; read the figures there and commit none of them. `spec/index/` and
+   `PARITY.md` on a branch are as old as the main branch it last took in;
+   `node tools/upstream.mjs docs --generate` writes current copies, which are
+   read and not committed.
 6. Pick the next work:
    - Research: first triage the open reports in `docs/reports/` that the
      goal may take (`triage-report`). Then turn every `Spec gap:` note in

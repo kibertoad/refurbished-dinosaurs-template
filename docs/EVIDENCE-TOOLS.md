@@ -66,30 +66,61 @@ fallback reads into neighboring target data.
 
 ## Inventories from multiple views
 
-Run `ExportFunctionInventory.java <new-output.tsv>` in each relevant Ghidra
-view. The exporter writes only `start` and `size` (body byte count), without
-analyzer names, code or strings. Raw segmented exports need the same documented
-load mapping as the resolver. For a different overlay import, first convert
-its starts to canonical `0x` file offsets using that import's documented map.
+Export each relevant Ghidra view's functions to a local TSV with the header
+`start\tsize` and one row per function: its start as the view shows it and its
+body byte count. Leave out analyzer names, code and strings; `inventory` refuses
+any other column. Raw segmented exports need the same documented load mapping
+as the resolver. For a different overlay import, first convert its starts to
+`0x` file offsets using that import's documented map.
 
 An `inventory` config includes source identity, `build`, `manifest`, and
 `views`. Each view has a distinct `name`, an input `path` and explicit ownership
-`ranges` with numeric inclusive `start` and exclusive `end` file offsets.
-Ranges must lie in the resolver's declared source regions, and no two views may
-own overlapping ranges. Segmented starts map only into the resident image. The report counts
-accepted and excluded rows per view and rejects duplicate or aliased ownership.
-Choose which view owns a region explicitly; never overwrite conflicting rows.
-An inventory size counts body bytes, so it cannot define an end address.
+`ranges` with numeric inclusive `start` and exclusive `end`. Ranges must lie in
+the reader's mapped source regions, and no two views may own overlapping ranges.
+The report counts accepted and excluded rows per view and rejects duplicate or
+aliased ownership. Choose which view owns a region explicitly; never overwrite
+conflicting rows. An inventory size counts body bytes, so it cannot define an
+end address.
+
+The output writes each start in the standard's notation for the file's format,
+which is what `pnpm exec standard-coverage` reads:
+
+- MZ (the default `sourceKind`, or `mz`): ranges are file offsets, and the
+  config keeps `loadSegment` at its default 4096, the segment the standard
+  places the load image at. A start in the load image is written `SSSS:OOOO`.
+  A segmented input keeps its spelling; a file offset there becomes the
+  segment:offset whose offset is below `0x10`, which names the same byte.
+  Segmented starts map only into the load image. A start in a Borland FBOV
+  overlay is written as an eight-digit file offset (`0x00000210`) and must lie
+  inside a row of the build entry's Code ranges for the file, which the config
+  gives as `codeRanges`, a list of numeric half-open `start` and `end` file
+  offsets, each inside one overlay payload. Without a matching row the join
+  fails, as the coverage check would.
+- PE32 (`sourceKind: "pe32"`): ranges and starts are virtual addresses at the
+  header's image base, and a start must lie in an executable section. It is
+  written with eight digits (`0x00401000`). PE32+, LE, LX and NE files are
+  refused: the reader has no section model for them yet.
 
 The result gives TSV and the canonical destination, such as
-`coverage/BLD-EXAMPLE/@CD/GAME.EXE.tsv` for manifest `CD:GAME.EXE`. Each start
-retains the manifest prefix (`CD:GAME.EXE+0x00000210`). Optional `writeRoot`
-creates that path with exclusive creation and never overwrites an inventory.
-Review replacements before moving a new TSV into place. Reject unsafe or
-nonportable manifest paths rather than silently renaming them. Commit only the
+`coverage/BLD-EXAMPLE/@CD/GAME.EXE.tsv` for manifest `CD:GAME.EXE`. Optional
+`writeRoot` creates that path with exclusive creation and never overwrites an
+inventory. Review replacements before moving a new TSV into place. Reject unsafe
+or nonportable manifest paths rather than silently renaming them. Commit only the
 permitted inventory columns; keep view reports/configs local. Document the
 selected views and exclusions in the build/Ghidra guide in project-authored words.
 Coverage describes analyzer-discovered functions, not every function that exists.
+The protocol's [Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 454-462)
+says how to export and check one. Checker 2.5.0 reads every `.tsv` file under
+`coverage/` as an inventory with only the four columns above, so the
+`.provenance.tsv` and `.regions.tsv` files and the column of body ranges that
+the protocol describes fail `standard-coverage` until a checker release reads
+them. Keep provenance and region totals local until then.
+
+`pnpm exec standard-coverage` reads the committed inventories and prints, per
+file, the share of in-scope functions and bytes that an entry's `locations`
+cite, and the uncited functions; `--list`, `--json` and `--require-complete`
+are its other modes. Run it when the figures are needed and read them from its
+output; they are printed on demand and never committed.
 
 ## Instruction-derived reports
 
@@ -145,7 +176,7 @@ assumption and the unsupported indirect and runtime routes.
 
 ## Committed inventory verification
 
-`inventory-check` uses the ordinary hash-guarded MZ/FBOV source, `build` and `manifest`. Its `inventory` object names a local input `path` and `repositoryPath`, which must match the generated portable coverage destination; the local `path` must end with that `repositoryPath`, so the file read is the one the destination check names. Every start must carry the same manifest prefix, be written as the standard's eight-digit uppercase file offset (as `inventory` writes it), be unique and lie in mapped source. Body byte counts are positive/bounded and are never interpreted as end addresses. Committed TSV columns are start, size, optional researcher-authored name and out_of_scope. No analyzer names/code/bytes belong there; analyzer default names such as `FUN_0040` are rejected. A configured project retaining a historical path supplies `legacyPath` plus nonempty `legacyEvidence`; the checker validates that exact safe path but continues to report the portable canonical destination. A legacy allowance is an explicit research input, not proof of an arbitrary path's provenance.
+`inventory-check` reads the same hash-guarded source as `inventory` (MZ/FBOV, or PE32 with `sourceKind: "pe32"`), with `build`, `manifest` and, for overlay starts, `codeRanges`. Its `inventory` object names a local input `path` and `repositoryPath`, which must match the generated portable coverage destination; the local `path` must end with that `repositoryPath`, so the file read is the one the destination check names. Every start must be in the standard's notation for the file, as `inventory` writes it: an upper-case `SSSS:OOOO` in the MZ load image (any spelling of the byte), an eight-digit upper-case file offset inside a Code ranges row in overlay code, or an eight-digit upper-case virtual address in an executable PE section. Starts must be unique, counting two spellings of one byte as the same start. Body byte counts are positive/bounded and are never interpreted as end addresses. Committed TSV columns are start, size, optional researcher-authored name and out_of_scope. No analyzer names/code/bytes belong there; analyzer default names such as `FUN_0040` are rejected. A configured project retaining a historical path supplies `legacyPath` plus nonempty `legacyEvidence`; the checker validates that exact safe path but continues to report the portable canonical destination. A legacy allowance is an explicit research input, not proof of an arbitrary path's provenance.
 
 `x86-operand-candidates` inventories encoded displacement/immediate matches with
 prefix order/repeats, widths and overlap groups. Verified entry-path memory uses,

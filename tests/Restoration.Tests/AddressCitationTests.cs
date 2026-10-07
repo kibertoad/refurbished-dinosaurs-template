@@ -6,19 +6,28 @@ namespace Restoration.Tests;
 
 public sealed class AddressCitationTests
 {
-    // Synthetic layout: headers at 0x00400000, .text 0x00401000..0x00401100 (code),
-    // .data 0x00402000..0x00402200 with only 0x80 bytes stored in the file.
+    // Synthetic layout: headers at 0x7F000000, .text 0x7F001000..0x7F001100 (code),
+    // .data 0x7F002000..0x7F002200 with only 0x80 bytes stored in the file. No executable of the
+    // period is based that high, so these addresses cannot be read as the original's, and they stay
+    // outside any image a restoration gives the documentation check.
     private static readonly byte[] Executable = SyntheticPe();
+
+    // The neutral names of synthetic functions and globals are built at run time. The documentation
+    // check reads a neutral name written out in code as an address of the original, which an entry
+    // must record, and these name bytes of the synthetic image above.
+    private static string Fn(uint address) => $"fn_{address:X8}";
+
+    private static string G(uint address) => $"g_{address:X8}";
 
     [Fact]
     public void ReadsSectionLayout()
     {
         var image = PortableExecutableImage.Read(Executable);
 
-        Assert.Equal(0x0040_0000u, image.ImageBase);
+        Assert.Equal(0x7F00_0000u, image.ImageBase);
         Assert.Collection(image.Sections,
-            text => Assert.Equal((".text", 0x0040_1000u, true), (text.Name, text.Start, text.IsCode)),
-            data => Assert.Equal((".data", 0x0040_2000u, false), (data.Name, data.Start, data.IsCode)));
+            text => Assert.Equal((".text", 0x7F00_1000u, true), (text.Name, text.Start, text.IsCode)),
+            data => Assert.Equal((".data", 0x7F00_2000u, false), (data.Name, data.Start, data.IsCode)));
     }
 
     [Fact]
@@ -38,18 +47,18 @@ public sealed class AddressCitationTests
         var results = CheckDocs(new()
         {
             ["findings/synthetic-finding.md"] =
-                "location: 0x00401010..0x00401100\n" +
-                "Reads g_00402010 and the zero-filled table at 0x00402100.\n" +
-                "The loop in fn_00401040 exits at 0x00401080.\n",
-            ["notes.md"] = "Field unk_2A sits at file offset 0x0000002A. Mask 0xFFFFFFFF. Typo at 0x00409000.\n"
+                "location: 0x7F001010..0x7F001100\n" +
+                $"Reads {G(0x7F00_2010)} and the zero-filled table at 0x7F002100.\n" +
+                $"The loop in {Fn(0x7F00_1040)} exits at 0x7F001080.\n",
+            ["notes.md"] = "Field unk_2A sits at file offset 0x0000002A. Mask 0xFFFFFFFF. Typo at 0x7F009000.\n"
         });
 
         Assert.Equal(
         [
-            "0x00401010 code", "0x00401040 code", "0x00401080 code", "..0x00401100 code",
-            "0x00402010 data", "0x00402100 uninitialized", "0x00409000 outside-sections"
+            "0x7F001010 code", "0x7F001040 code", "0x7F001080 code", "..0x7F001100 code",
+            "0x7F002010 data", "0x7F002100 uninitialized", "0x7F009000 outside-sections"
         ], results.Select(Describe));
-        Assert.Equal([0x0040_9000u], results.Where(result => result.Failed).Select(result => result.Address));
+        Assert.Equal([0x7F00_9000u], results.Where(result => result.Failed).Select(result => result.Address));
         var typo = Assert.Single(results[^1].Citations);
         Assert.Equal(("notes.md", 1), (typo.File, typo.Line));
     }
@@ -59,14 +68,14 @@ public sealed class AddressCitationTests
     {
         var docs = new Dictionary<string, string>
         {
-            ["retail.md"] = "---\nbuild: BLD-RETAIL-1.0\n---\nSee 0x00409000.\n",
-            ["gog.md"] = "---\nbuilds: [BLD-GOG-1.1, BLD-RETAIL-1.0]\n---\nSee 0x00401000.\n",
-            ["shared.md"] = "See 0x00402000.\n"
+            ["retail.md"] = "---\nbuild: BLD-RETAIL-1.0\n---\nSee 0x7F009000.\n",
+            ["gog.md"] = "---\nbuilds: [BLD-GOG-1.1, BLD-RETAIL-1.0]\n---\nSee 0x7F001000.\n",
+            ["shared.md"] = "See 0x7F002000.\n"
         };
 
-        Assert.Equal(["0x00401000 code", "0x00402000 data"],
+        Assert.Equal(["0x7F001000 code", "0x7F002000 data"],
             CheckDocs(docs, build: "BLD-GOG-1.1").Select(Describe));
-        Assert.Contains("0x00409000 outside-sections", CheckDocs(docs).Select(Describe));
+        Assert.Contains("0x7F009000 outside-sections", CheckDocs(docs).Select(Describe));
     }
 
     [Fact]
@@ -80,22 +89,22 @@ public sealed class AddressCitationTests
             File.WriteAllText(inventory,
                 "# schema=restoration-ghidra-analysis-v1\n# executable_sha256=ABC\n" +
                 "function\taddress\tbytes\tmnemonic\toperands\tflow\tsemantic\n" +
-                "00401040\t00401040\t55\tPUSH\tEBP\tFALL_THROUGH\tx\n" +
-                "00401040\t00401041\t8bec\tMOV\tEBP, ESP\tFALL_THROUGH\tx\n" +
-                "00401040\tram:00401043\te800000000\tCALL\t0x00401048\tUNCONDITIONAL_CALL\tx\n");
+                "7F001040\t7F001040\t55\tPUSH\tEBP\tFALL_THROUGH\tx\n" +
+                "7F001040\t7F001041\t8bec\tMOV\tEBP, ESP\tFALL_THROUGH\tx\n" +
+                "7F001040\tram:7F001043\te800000000\tCALL\t0x7F001048\tUNCONDITIONAL_CALL\tx\n");
             var instructions = InstructionInventory.Read(inventory);
             Assert.Equal("abc", instructions.ExecutableSha256);
 
             var results = CheckDocs(new()
             {
-                ["a.md"] = "fn_00401040 calls at 0x00401043, operand at 0x00401044, " +
-                    "table at 0x00401060, and fn_00401041 is wrong. Range 0x00401040..0x00401048."
+                ["a.md"] = $"{Fn(0x7F00_1040)} calls at 0x7F001043, operand at 0x7F001044, " +
+                    $"table at 0x7F001060, and {Fn(0x7F00_1041)} is wrong. Range 0x7F001040..0x7F001048."
             }, instructions: instructions);
 
             Assert.Equal(
             [
-                "0x00401040 function-entry", "0x00401041 not-a-function-entry", "0x00401043 instruction-start",
-                "0x00401044 inside-instruction", "..0x00401048 code", "0x00401060 not-disassembled"
+                "0x7F001040 function-entry", "0x7F001041 not-a-function-entry", "0x7F001043 instruction-start",
+                "0x7F001044 inside-instruction", "..0x7F001048 code", "0x7F001060 not-disassembled"
             ], results.Select(Describe));
         }
         finally
@@ -143,7 +152,7 @@ public sealed class AddressCitationTests
         BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(0x94), 0xE0);
         var optional = 0x98;
         BinaryPrimitives.WriteUInt16LittleEndian(file.AsSpan(optional), 0x10B);
-        BinaryPrimitives.WriteUInt32LittleEndian(file.AsSpan(optional + 28), 0x0040_0000);
+        BinaryPrimitives.WriteUInt32LittleEndian(file.AsSpan(optional + 28), 0x7F00_0000);
         BinaryPrimitives.WriteUInt32LittleEndian(file.AsSpan(optional + 56), 0x3000);
         BinaryPrimitives.WriteUInt32LittleEndian(file.AsSpan(optional + 60), 0x200);
         var table = optional + 0xE0;

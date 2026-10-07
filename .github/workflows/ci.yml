@@ -65,13 +65,17 @@ jobs:
       # the commit and the @scientific-method/standard-checker version it carries, which package.json
       # pins for local runs; `node tools/upstream.mjs refresh` moves all three together. The commit
       # carries a package release tag rather than an action version, so the pin has no version comment.
-      # A plain 0x address in a code comment is checked only inside the original's image, which the
-      # template cannot know. Once a finding records the image's base and size (for a PE, its
-      # ImageBase and SizeOfImage), add them to this step, and cite that finding here:
-      #   with:
+      # A plain 0x address in code or a code comment is checked only inside the original's image,
+      # which the template cannot know. Once a finding records the image's base and size (for a PE,
+      # its ImageBase and SizeOfImage), add them to this step's inputs, and cite that finding here:
       #     images: 0x00400000..0x004C9000
+      # scheduled-generation: spec/index/ and PARITY.md change only on main, where the job in
+      # nightly-generated.yml regenerates and commits them. The check neither writes nor compares
+      # them, and fails a pull request that edits, adds or removes one.
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@92a5592055559013373ea243a458f4ffc4fa05c4 # zizmor: ignore[stale-action-refs,ref-version-mismatch]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@3591b6642dcd67291b4061b05d1e7b9295a75fdf # zizmor: ignore[stale-action-refs,ref-version-mismatch]
+        with:
+          scheduled-generation: "true"
   installer:
     name: Windows installer
     needs: verify
