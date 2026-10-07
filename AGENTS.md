@@ -461,6 +461,25 @@ or change global Git configuration. The exception does not authorize a remote
 change or a push; verify the configured push destination under the project's
 repository instructions before pushing.
 
+## Pushing a branch
+
+Push with the configured remote name and an explicit refspec that names the
+destination branch: `git push origin HEAD:<branch>`, where `<branch>` is the
+pull request's head branch, or the main branch where a push to it is allowed.
+Never run a bare `git push` or `git push origin`. A branch created from
+`origin/main`, as `git worktree add -b <branch> <path> origin/main` creates
+one, tracks `origin/main`, so a bare push goes to the main branch or is
+refused, and `-q` hides the refusal. A branch checked out without `-b` may
+track nothing. Give `-u` on the first push (`git push -u origin HEAD:<branch>`)
+so the branch tracks its own remote branch from then on.
+
+After every push, confirm that it landed before reporting it or reading CI:
+`git ls-remote origin refs/heads/<branch>` must print what
+`git rev-parse HEAD` prints, and for a pull request
+`gh pr view <number> --json headRefOid` must name the same commit. CI results
+and mergeability belong to the pull request's head commit; until that is the
+local commit, they describe an older one.
+
 ## Context and process hygiene
 
 Treat logs, analysis listings, and experiments as a temporary working set.
