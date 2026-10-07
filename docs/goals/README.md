@@ -49,3 +49,77 @@ what a research attempt tried on a question goes under its queue item's
 `Tried:`. `Handover` holds what `docs/HANDOVER.md` holds, for this goal only,
 and is rewritten at the end of every session under the goal. Progress is not
 written here: the queue and the commits show it.
+
+## Standing goals
+
+The owner may give a goal that ends only when the restoration does, such as
+"keep working until the whole game is restored". Research and implementation
+never share a conversation, so that takes two standing goals, each run in its
+own conversation and worktree. Their files have no turn limit. Their
+conditions name the end of their own side, for example:
+
+- research: every queue item is closed or under `Blocked` with `Waiting on:`;
+- implementation: every parity row that is not superseded is `validated` or
+  `deviated`, or `partial` with a `Spec gap:` note naming an open queue item.
+
+When the implementation goal has nothing left but rows waiting on research, it
+stops for the second reason below. The owner, or a scheduled task, starts it
+again once research has closed some of those items.
+
+Under a standing goal, the end of a session is a checkpoint: `end-session`
+commits the handover, and the agent runs `start-session` and takes the next
+item in the same conversation. The goal keeps going from session to session
+until its condition holds.
+
+An agent under any goal whose condition does not hold stops only when:
+
+- the owner asks it to wrap up, and the wrap-up below is done;
+- the owner tells it to stop at once, without a wrap-up;
+- every item the goal may take is under `Blocked`, `Live session` or an
+  `Agent run` that cannot run now, no `plan-work` step adds one within the
+  goal's scope, and no other stage or slice in scope has work;
+- a decision only the owner can make blocks all remaining work in scope,
+  written in `docs/DECISIONS.md` or the goal's Handover as a question.
+
+None of these is a reason to stop: a finished batch or status block, a
+committed handover, the length of the conversation (it is summarized when it
+grows long), a check running in the background (do other work meanwhile and
+use its result in a later commit), or a question the owner asks while the goal
+runs (answer it, then go on). Before stopping, the agent runs
+`node tools/goal-run.mjs stop` and says which of the reasons above applies, in
+the Handover and in its last message.
+
+### Wrapping up
+
+When the owner asks to wrap up, the goal stops iterating, whether or not its
+condition holds:
+
+1. Spawn no new agents and start no new item, batch or session.
+2. Finish the batch in progress as one cohesive batch: its findings, spec
+   entries, parity rows, queue changes and tests, passing the documentation
+   check and the fast gate. Work that cannot be finished that way is left out
+   of the batch and described under Unfinished in the Handover, or committed to
+   `wip/<working branch>` where the working tree does not outlive the session.
+3. Run `end-session`: stop processes, rewrite the Handover with the next items
+   and `Stopped: owner asked to wrap up`, and commit it.
+4. Push the work to the main branch. The owner's request to wrap up is the
+   authorization for that push, unless `AGENTS.md` says the owner pushes.
+5. Run `node tools/goal-run.mjs stop`, report and stop. The goal file stays, so
+   a later session resumes it.
+
+### Run marker
+
+`start-session` runs `node tools/goal-run.mjs start <name>` in the session's
+worktree when it works under `docs/goals/<name>.md`. That writes a marker into
+the worktree's Git directory, so it is never committed and other worktrees do
+not see it. Where the repository's `.claude/settings.json` installs the hook
+(`node tools/goal-run.mjs hook`), the first stop after `start` binds the marker
+to that conversation, and Claude Code then holds back every stop of that
+conversation and reminds the agent of the reasons above, until the agent runs
+`node tools/goal-run.mjs stop` or the goal file is deleted. Other
+conversations are never held back, on any branch.
+
+If HEAD has not moved over three held-back stops in a row, the hook lets
+stops through until the next commit, so an agent that makes no progress ends
+its turn and the owner sees why. A marker left by a crashed session holds back
+no other conversation, and the next `start` in that worktree replaces it.
