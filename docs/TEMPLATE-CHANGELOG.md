@@ -18,6 +18,29 @@ A project created from this template may delete this file.
 - **Scaffolding.** `docs/DEVELOPMENT.md`, `docs/VALIDATION.md` and the
   implement-rows skill show the filtered gate in place of the full one.
 
+## Deviated parity status, 2026-10-06
+
+- **Standard.** `docs/upstream/` moves from `c1758fd` to `11dbbc5`.
+  [kibertoad/refurbished-dinosaurs#58](https://github.com/kibertoad/refurbished-dinosaurs/pull/58)
+  adds the parity status `deviated` and two optional deviation items:
+  - `Replaces` names the entries a `mandatory` deviation replaces entirely.
+  - `Tests` names the tests that check the rebuild does what the deviation
+    says.
+
+  A row a Replaces item names has no parity tests, and it is `deviated` once
+  every `mandatory` deviation it lists has a Tests item. The range also brings
+  #34, which names files by their xxHash3 hash in the methodology. Both are
+  minor changes, so the standard stays version 1. Section links are rewritten
+  to the new line ranges.
+- **Checker.** `@scientific-method/standard-checker` moves from 0.2.0 to 2.1.0,
+  the release of toolkit `92e35fc`, which checks the new items and the status.
+  The majors in between are 1.0.0, which checks `.fs` files for citations, and
+  2.0.0, which refuses a `starting_state` the standard does not define. Neither
+  touches the unconfigured template. `PARITY.md` gains a `deviated` row.
+- **Scaffolding.** The deviation template in `docs/SPEC-ENTRY-TEMPLATES.md`
+  shows the two items, and the plan-work skill lists `deviated` as a slice
+  target.
+
 ## Dependabot for NuGet packages, 2026-10-04
 
 `.github/dependabot.yml` proposes NuGet updates weekly, after a seven-day
@@ -617,7 +640,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1004-1025)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1004-1030)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

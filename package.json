@@ -8,6 +8,6 @@
   },
   "devDependencies": {
     "@scientific-method/executable-reader": "1.0.0",
-    "@scientific-method/standard-checker": "0.2.0"
+    "@scientific-method/standard-checker": "2.1.0"
   }
 }
