@@ -185,8 +185,12 @@ only the lines the link gives, and never a section already read this session.
    in a `Spec:` trailer listing the entries created or changed, and a
    `Parity:` trailer listing the rows whose status changed, if any, and a
    `Queue:` trailer listing the IDs of the items it closed.
-10. **Print the status block** (format below), then continue with the next item
-    if a goal is running, or `end-session` if not.
+10. **Print the status block** (format below). If a goal is running and its
+    condition does not hold, start the next item in the same turn, without
+    ending the turn on the status block; `docs/goals/README.md` lists the only
+    reasons to stop. When the owner has asked to wrap up, start nothing new and
+    run `end-session`, as that file's "Wrapping up" says. With no goal, run
+    `end-session`.
 
 ```text
 Status

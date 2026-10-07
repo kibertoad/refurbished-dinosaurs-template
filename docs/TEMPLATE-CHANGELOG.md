@@ -26,6 +26,16 @@ not carry the subsection until the next refresh, so the two files name it
 without a link. Whoever runs that refresh turns each name into a section link
 by hand, and `links --write` then adds its line range.
 
+## Relevant tests only, locally, 2026-10-06
+
+- **Rule.** `AGENTS.md` now says the full validation gate and the full test
+  suite are never run locally. A change runs only the tests directly relevant
+  to it, through `-TestFilter` or `dotnet test --filter`, and CI runs the gate
+  on every pull request. The definition of done asks for the relevant tests
+  and CI to pass.
+- **Scaffolding.** `docs/DEVELOPMENT.md`, `docs/VALIDATION.md` and the
+  implement-rows skill show the filtered gate in place of the full one.
+
 ## Deviated parity status, 2026-10-06
 
 - **Standard.** `docs/upstream/` moves from `c1758fd` to `11dbbc5`.
