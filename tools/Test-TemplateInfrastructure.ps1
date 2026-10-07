@@ -105,6 +105,17 @@ $ci = Get-Content -LiteralPath (Join-Path $root '.github/workflows/ci.yml') -Raw
 if ($ci -notmatch '(?m)^\s*(-\s+)?uses:\s*kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@[0-9a-f]{40}(\s|$)') {
     $failures.Add('CI workflow does not run the documentation standard check pinned to a full commit SHA')
 }
+# With scheduled-generation, pull requests never change spec/index/ or PARITY.md, so without the
+# scheduled job that regenerates them on main they would never change at all.
+if ($ci -match '(?m)^\s*scheduled-generation:\s*["'']?true["'']?\s*(#.*)?$') {
+    $nightlyPath = Join-Path $root '.github/workflows/nightly-generated.yml'
+    $nightly = if (Test-Path -LiteralPath $nightlyPath) { Get-Content -LiteralPath $nightlyPath -Raw } else { '' }
+    foreach ($required in @('schedule:', 'node tools/upstream.mjs docs --generate', 'HEAD:main')) {
+        if ($nightly.IndexOf($required, [StringComparison]::Ordinal) -lt 0) {
+            $failures.Add("CI sets scheduled-generation, but .github/workflows/nightly-generated.yml is missing '$required'")
+        }
+    }
+}
 
 # A test that reads the original runs only on a maintainer's machine, and says so with this
 # comment, which the documentation check needs to tell it from the tests CI runs.

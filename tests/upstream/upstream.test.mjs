@@ -80,9 +80,14 @@ test("local runs take the checker inputs the CI step gives", () => {
     "          code: ''", "          max-range: \"\"", "          base: main", "          kaitai-version: '0.11'",
     "      - run: echo", "        with:", "          images: 0x00000000..0x00000010"].join("\n")),
     ["--images", "0x00400000..0x004C9000", "--references", "multiplayer", "--code", ""]);
+  // scheduled-generation is a flag the action passes only for "true"; rebuild is passed even when empty.
+  assert.deepEqual(ciCheckerArgs(step + "        with:\n          scheduled-generation: \"true\"\n          rebuild: src,tests\n"),
+    ["--scheduled-generation", "--rebuild", "src,tests"]);
+  assert.deepEqual(ciCheckerArgs(step + "        with:\n          scheduled-generation: \"false\"\n          rebuild: ''\n"), ["--rebuild", ""]);
+  assert.throws(() => ciCheckerArgs(step + "        with:\n          scheduled-generation: True\n"), /must be "true" or "false"/);
   assert.throws(() => ciCheckerArgs(step + "        with: { images: x }\n"), /block of key: value/);
   assert.throws(() => ciCheckerArgs(step + "        with:\n          images: |\n"), /Unsupported/);
-  assert.deepEqual(ciCheckerArgs(readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8")), []);
+  assert.deepEqual(ciCheckerArgs(readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8")), ["--scheduled-generation"]);
 });
 test("docs passes CI's images to the checker, and a command-line value wins", async t => {
   const dir = fixture(t), ci = resolve(dir, ".github/workflows/ci.yml");
@@ -94,6 +99,18 @@ test("docs passes CI's images to the checker, and a command-line value wins", as
   writeFileSync(ci, readFileSync(ci, "utf8").replace(/(check-documentation@[0-9a-f]{40}.*\n)/, "$1        with:\n          images: 0x00400000..0x004C9000\n"));
   assert.notEqual(await run(), 0);
   assert.equal(await run("--images", ""), 0);
+});
+test("docs leaves the generated files alone under CI's scheduled-generation, and --generate writes them", async t => {
+  const dir = fixture(t);
+  for (const path of ["spec", "parity", "deviations", "PARITY.md"]) cpSync(resolve(root, path), resolve(dir, path), { recursive: true });
+  const parity = resolve(dir, "PARITY.md"), current = readFileSync(parity, "utf8");
+  writeFileSync(parity, "stale\n");
+  assert.equal(await main(["docs", "--check", "--no-ksy"], dir), 0);
+  assert.equal(await main(["docs", "--no-ksy"], dir), 0);
+  assert.equal(readFileSync(parity, "utf8"), "stale\n");
+  assert.notEqual(await main(["docs", "--generate", "--check", "--no-ksy"], dir), 0);
+  assert.equal(await main(["docs", "--generate", "--no-ksy"], dir), 0);
+  assert.equal(readFileSync(parity, "utf8"), current);
 });
 test("refresh stages exact explicit revisions and rejects lost v1 declaration or failed download", async () => {
   const rules = "a".repeat(40), toolkit = "b".repeat(40);
@@ -216,4 +233,15 @@ test("the gate and the pre-commit hook run one list of node checks", () => {
   assert.throws(() => runNodeChecks(["--check"]), /Usage/);
   assert.match(readFileSync(resolve(root, "tools/Invoke-Validation.ps1"), "utf8"), /tools\/Invoke-NodeChecks\.mjs'\)/);
   assert.match(readFileSync(resolve(root, ".githooks/pre-commit"), "utf8"), /tools\/Invoke-NodeChecks\.mjs" --no-ksy$/m);
+});
+test("the commit-msg hook checks the message's addresses against the entries it cites", async t => {
+  assert.match(readFileSync(resolve(root, ".githooks/commit-msg"), "utf8"), /tools\/upstream\.mjs" docs --message "\$1"$/m);
+  const dir = fixture(t);
+  for (const path of ["spec", "parity", "deviations", "PARITY.md"]) cpSync(resolve(root, path), resolve(dir, path), { recursive: true });
+  const message = resolve(dir, "COMMIT_EDITMSG");
+  writeFileSync(message, "Describe a change\n\nNo address here.\n");
+  assert.equal(await main(["docs", "--message", message], dir), 0);
+  // A neutral name is always an address, and no entry records this one.
+  writeFileSync(message, `Describe a change\n\nThe loop is in fn_${"7F001040"}.\n`);
+  assert.notEqual(await main(["docs", "--message", message], dir), 0);
 });

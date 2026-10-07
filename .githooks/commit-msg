@@ -1,0 +1,14 @@
+#!/bin/sh
+# Checks the addresses a commit message gives: each must be recorded in an entry the message cites,
+# as for a code comment (AGENTS.md, "Reverse-engineering discipline"). It runs the pinned checker
+# with the inputs the CI step gives, so a plain 0x address is checked only inside the images ci.yml
+# names, and a neutral name (fn_..., g_...) always. The entries are read from the working tree.
+# Enabled together with the pre-commit hook, once per clone:
+#   git config core.hooksPath .githooks
+set -e
+if ! command -v node >/dev/null 2>&1; then
+  echo "commit-msg: node is not on the path, so the message's addresses were not checked." >&2
+  exit 0
+fi
+root=$(git rev-parse --show-toplevel)
+exec node "$root/tools/upstream.mjs" docs --message "$1"

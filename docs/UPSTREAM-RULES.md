@@ -17,7 +17,7 @@ Use Node.js 22 or newer, after `pnpm install`:
 ```sh
 node tools/upstream.mjs verify
 node tools/upstream.mjs docs --check
-node tools/upstream.mjs docs
+node tools/upstream.mjs docs --generate
 node tools/upstream.mjs links
 ```
 
@@ -26,8 +26,11 @@ that section's line range, so agents read only those lines; `links --write`
 adds or corrects the ranges. The first command checks integrity, and that the CI
 action pin, the lock and `package.json` agree, without network access. The
 documentation runner also refuses an installed checker of another version, and
-verifies before executing it;
-without `--check` it regenerates the usual indexes and parity totals. The canonical
+verifies before executing it.
+It passes the checker the inputs the CI step gives, `scheduled-generation`
+included, so it neither writes nor compares `spec/index/` and `PARITY.md`;
+`--generate` drops that input, and without `--check` the checker then writes
+them, as the scheduled job on the main branch does (`docs/VALIDATION.md`). The canonical
 validation gate runs these offline checks. Kaitai and other dependencies required
 by the checker must already be installed for applicable entries; a snapshot does
 not install them or make the entire build network-independent.

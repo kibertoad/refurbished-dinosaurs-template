@@ -210,6 +210,13 @@ that page differ, the page wins.
   (extractor, Ghidra scripts, inventory export, the emulator harness in
   `tools/emu/`, live session measurements, headless runner, fixture harness)
   needs no decision.
+- `spec/index/` and `PARITY.md` change on the main branch only. The job in
+  `.github/workflows/nightly-generated.yml` regenerates them there and
+  commits the result; no batch or other branch changes them, and the
+  documentation check fails a change that edits, adds or removes one. A
+  branch's copies are as old as the main branch it last took in. To read
+  current ones, run `node tools/upstream.mjs docs --generate` and leave
+  what it writes uncommitted.
 - Commit messages end with a `Spec:` trailer naming the entries created or
   changed, any commit that changes a row's status adds `Parity:`, and any
   that closes queue items adds `Queue:` with their IDs. `Queue:` lists only
@@ -251,7 +258,13 @@ that page differ, the page wins.
   directory), one for each file the analysis reads. An inventory holds only each function's start address, its size, and
   optionally a name the researcher gave it and why it is out of scope, never
   code, bytes, strings, constants or names that came from the original, so it
-  is committed.
+  is committed. Each start is written in the standard's notation for its
+  file: `SSSS:OOOO` in an MZ load image, an eight-digit file offset inside a
+  row of the build's Code ranges for overlay code, and an eight-digit address
+  for PE, LE and LX. `tools/evidence/report.mjs inventory` writes the MZ, FBOV
+  overlay and PE32 forms and refuses LE and LX files (`docs/EVIDENCE-TOOLS.md`). `pnpm exec standard-coverage` prints how much of
+  each file the spec's locations cite; run it when the figures are needed,
+  and commit none of its output.
 
 The procedures are skills in `.claude/skills/`: `runtime-access`,
 `plan-work`, `start-session`, `research-item`, `implement-rows`,
@@ -315,8 +328,8 @@ certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
-[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 191-291)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 606-680) sections
+[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 193-293)
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 608-682) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored
@@ -351,7 +364,8 @@ Durable findings go in `spec/`, one entry per file named after its ID, and not
 in conversation history or large retained dumps. IDs are never reused or
 renumbered, and an entry that turns out wrong becomes `superseded`. The spec
 describes the original only and never names a class, file, or setting from this
-repository. It holds names, numbers, formulas, and tables in full, as a strategy
+repository; the documentation check fails a spec file that names a path under
+`src/` or `tests/`, or the file name of a source file there. It holds names, numbers, formulas, and tables in full, as a strategy
 guide would: the names of concepts and of the things a designer made (an
 enumeration value may be named `UNIT_ARCHER`), constants, and the per-unit or
 per-item statistics a designer filled in, with a table of more than 64 values in
@@ -367,9 +381,13 @@ Evidence lives in the spec, not in the code that relies on it. An address,
 offset or constant that a code comment, test or commit message gives as evidence
 must already be recorded in an entry it cites, directly or in the evidence of an
 entry that one cites; when none records it, write that finding first, in the
-same research batch. The documentation check enforces this for the neutral
-names (`fn_…`, `g_…`) a code comment gives, and for plain `0x…` addresses once
-the CI job gives the image's range (see `docs/VALIDATION.md`). Before taking a
+same research batch. The documentation check enforces this for the addresses a
+code comment gives and for those the code uses, as numbers or inside strings,
+which the comment trailing the line or the nearest comment above it must cite.
+It reads C#, TypeScript, JavaScript and PowerShell comments, treats a neutral
+name (`fn_…`, `g_…`) as an address always and a plain `0x…` value only once the
+CI job gives the image's range (see `docs/VALIDATION.md`), and the commit-msg
+hook applies the same rule to a commit message. Before taking a
 new ID, look for it on the open pull request branches as well as `main`,
 because parallel branches each take the next free number and the check sees
 only one branch:
@@ -571,9 +589,10 @@ test classes that cover the code and spec entries it touches, through
 it. `-MinimumExpectedTests` fails a run when discovery drops below an expected
 count.
 
-Enable the pre-commit hook once in each clone, before the first commit, with
-`git config core.hooksPath .githooks`, and do not bypass it with
-`--no-verify`. It runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
+Enable the hooks once in each clone, before the first commit, with
+`git config core.hooksPath .githooks`, and do not bypass them with
+`--no-verify`. The commit-msg hook checks the addresses a commit message
+gives against the entries it cites. The pre-commit hook runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
 on the staged tree in under a second, so a spec, queue or checker-pin problem
 fails before the commit instead of in CI.
 

@@ -36,6 +36,21 @@ pnpm install
 python -m pip install -r requirements-evidence.txt
 ```
 
+Enable the repository's Git hooks once per clone with
+`git config core.hooksPath .githooks`: the pre-commit hook runs the node checks
+on the staged tree, and the commit-msg hook checks the addresses a commit
+message gives.
+
+`spec/index/` and `PARITY.md` change on the main branch only. Pull requests
+leave them alone, and the documentation check fails one that edits them; the
+scheduled job in `.github/workflows/nightly-generated.yml` regenerates them on
+`main` and pushes the commit as `github-actions[bot]`. Where `main` requires
+pull requests, that push is rejected until the repository lets the job through,
+by adding GitHub Actions to the ruleset's bypass list or by giving the job a
+token that may bypass it (`docs/VALIDATION.md`, "Spec checks"). To read current
+copies locally, run `node tools/upstream.mjs docs --generate` and do not commit
+what it writes.
+
 Dependabot proposes NuGet updates weekly (`.github/dependabot.yml`), except for
 `SabreTools.Serialization`, whose pinned version carries the InstallShield
 expansion evidence and is bumped by hand, and leaves these packages alone. The documentation checker moves only through

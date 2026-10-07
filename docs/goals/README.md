@@ -2,7 +2,7 @@
 
 One file per long-running goal while it runs, named after it:
 `docs/goals/combat-static.md`. The
-[work protocol](../upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 446-497)
+[work protocol](../upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 482-533)
 says how to write the condition. The files here are the list of goals running
 (or, where sessions cannot push to the main branch, the `goal/` branches; see
 below).

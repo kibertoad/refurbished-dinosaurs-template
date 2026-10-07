@@ -7,7 +7,7 @@ description: Plan restoration work - record the project's stage, write or revise
 
 The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-82),
 [The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 84-123) and
-[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 446-497).
+[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 482-533).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,
@@ -55,8 +55,13 @@ never code or spec entries apart from new `unknown` entries.
    and Survey stays open. Every file the manifest lists as `data` without a format
    entry gets an `unknown` format entry and a queue item (CD audio tracks need
    none); so does every screen the manual mentions. Where function
-   inventories exist in `coverage/`, a large function no entry cites gets a
-   queue item against the nearest entry or a new `unknown` one.
+   inventories exist in `coverage/`, run `pnpm exec standard-coverage`
+   (`--list` names the entries citing each function): a large function no
+   entry cites gets a queue item against the nearest entry or a new
+   `unknown` one. Its figures are printed when wanted and never committed;
+   the plan names the command and copies none of the shares it printed. The protocol's
+   [Measuring progress](../../../docs/upstream/work-protocol.md#measuring-progress) (lines 423-476)
+   says how to set an early baseline and report coverage by area.
 3. Move items that block the current slice to the top of their section.
 
 ## Goals
