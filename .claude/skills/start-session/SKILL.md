@@ -18,7 +18,9 @@ This skill is the procedure; where they differ, the protocol wins.
    `docs/HANDOVER.md`. If the user gave a goal with no file, write the file
    first (see `docs/goals/README.md`), check that no other goal file claims
    the same areas, and get it onto the main branch before the first batch.
-   An implementation session reads no research goal files.
+   Then run `node tools/goal-run.mjs start <name>` in the session's worktree,
+   so the Stop hook holds the session to the goal (`docs/goals/README.md`,
+   "Run marker"). An implementation session reads no research goal files.
 3. Compare the handover with reality: `git status`, `git log --oneline -10`,
    the current branch, and any `wip/` branch the handover names. Anything
    uncommitted that the handover does not mention belongs to someone else or
