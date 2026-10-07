@@ -2,9 +2,21 @@
 
 One file per long-running goal while it runs, named after it:
 `docs/goals/combat-static.md`. The
-[work protocol](../upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 332-370)
-says how to write the condition. Delete the file in the commit that meets or
-drops the goal; git keeps it. The files here are the list of goals running.
+[work protocol](../upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 446-497)
+says how to write the condition. The files here are the list of goals running
+(or, where sessions cannot push to the main branch, the `goal/` branches; see
+below).
+
+The batch whose work meets the goal's condition leaves the file in place, and a
+later commit deletes it, moving what is still worth handing on to
+`docs/HANDOVER.md` and leaving the rest of that file as it was. For the
+session's own goal, met or dropped during the session, that is the session's
+handover commit. Any other goal, such as one dropped between sessions or found
+to have been met by an earlier batch, loses its file in a commit of its own. A
+commit that creates a goal file, changes the areas it claims or deletes it is
+not a batch: it changes nothing outside `docs/HANDOVER.md` and `docs/goals/`,
+leaves the documentation check and the fast gate passing, and carries no
+trailers. Git keeps the deleted file.
 
 A goal file:
 
@@ -40,10 +52,12 @@ None known.
 
 `Scope` names the areas the goal claims. A goal takes up a queue item only if
 every entry it names is in one of those areas, and adds an area to its scope
-only while no other goal file claims it. The file, and every change to its
-scope, reaches the main branch before the first batch that relies on it, so
-every session sees the claim; where sessions cannot push, only one goal runs
-at a time. `Dead ends` records tools and approaches that failed across the
+only while no other goal file claims it. Where sessions can push to the main
+branch, the file, and every change to its scope, reaches the main branch before
+the first batch that relies on it, so every session sees the claim. Where work
+lands through pull requests, that commit goes in a pull request of its own,
+merged before any batch that relies on it. Where sessions cannot push, see
+"Where sessions cannot push" below. `Dead ends` records tools and approaches that failed across the
 whole goal, in a line or two each, so a resumed session does not repeat them;
 what a research attempt tried on a question goes under its queue item's
 `Tried:`. `Handover` holds what `docs/HANDOVER.md` holds, for this goal only,
@@ -88,6 +102,30 @@ use its result in a later commit), or a question the owner asks while the goal
 runs (answer it, then go on). Before stopping, the agent runs
 `node tools/goal-run.mjs stop` and says which of the reasons above applies, in
 the Handover and in its last message.
+
+### Where sessions cannot push
+
+Where sessions cannot push to the main branch, because they lack the access or
+the owner's instructions forbid it, only one goal runs at a time, and its claim
+lives in the one clone that every session's worktree is made from:
+
+- The goal works on a branch named `goal/<file name without .md>`, and the
+  first commit on that branch creates the goal file.
+- At the start of every session, and again before it starts or resumes a goal,
+  a session runs `git branch --list 'goal/*'` and looks in `docs/goals/` at
+  the tip of each branch listed. A branch whose tip still has its goal file is
+  the running goal: a session resuming that goal continues on it, and no other
+  goal starts while it is there, even one that would claim different areas.
+- A session that starts a goal runs the listing again after that first commit.
+  If another listed branch has its goal file at the tip, it deletes its own
+  branch and starts no goal.
+- Deleting the goal file on the branch ends the claim, whether or not the owner
+  has merged the branch. A copy of the goal file that reaches the main branch
+  through the owner's merge claims nothing there, and the owner's next merge of
+  the branch removes it.
+- A separate clone or a cloud container sees none of these branches, even after
+  a fetch, so a session that does not run in a worktree of the shared clone
+  starts no goal unless the person running it says that none is running.
 
 ### Wrapping up
 

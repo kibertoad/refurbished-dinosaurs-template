@@ -5,7 +5,7 @@ description: Request, prepare and ingest a live session, in which a person runs 
 
 # Live session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 241-251).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 355-365).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 The maintainer's time is the scarcest resource the project has: prepare it so

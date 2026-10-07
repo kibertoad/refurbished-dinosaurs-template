@@ -21,7 +21,7 @@
 | Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |
 | Editions available for validation | _their `BLD-` IDs; `docs/SOURCE-EDITIONS.md` holds the detail_ |
 | Existing research relied on | _their `SRC-` IDs: manuals, community documentation, prior analysis_ |
-| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](upstream/work-protocol.md#stages) (lines 32-80) defines them. Move on only when the previous stage's exit criteria hold._ |
+| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](upstream/work-protocol.md#stages) (lines 32-82) defines them. Move on only when the previous stage's exit criteria hold._ |
 
 ## Scope
 

@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 143-156),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 147-160),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -65,7 +65,7 @@ only the lines the link gives, and never a section already read this session.
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 227-239):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 341-353):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -81,14 +81,17 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 253-289).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 367-403).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
    the type edges, cases for every branch and seeded random cases, run them
    all in the harness and in each reading, and compare exactly. Give every
    import, interrupt or port access the function reaches an explicit stub
-   (anything else must stop the run with an error naming it); name in Setup
+   (anything else must stop the run with an error naming it; a PE loader
+   fills each import address table slot with the stub for the import the
+   file's import tables name there, per STATUS-42, and a call through a slot
+   with no import stops the run naming the slot); name in Setup
    each stub, port model and video memory mapped as RAM, and what the
    comparison assumes of them; give port values by glossary name. A copy to
    video memory shows the bytes written, never the pixels. The fixture
@@ -104,7 +107,12 @@ only the lines the link gives, and never a section already read this session.
    nothing in the spec.
 5. **Record it** in `spec/` with the templates in `docs/SPEC-ENTRY-TEMPLATES.md`:
    one finding per observation, an experiment with a fixture for a controlled
-   run. Then give each entry it concerns the status the evidence supports
+   run. Its How to reproduce may name the tool, a script under `tools/` with
+   its commit, and the query, with every value from a `GAME_DIR`
+   configuration the result depends on. A correction to anything an existing
+   finding or experiment records supersedes the whole entry with replacements
+   under new IDs, starting at `recorded` (IDENTIFIERS-8); only edits that
+   change nothing it records are made in place. Then give each entry it concerns the status the evidence supports
    for everything the entry says, and put what the evidence does not reach in
    its Open questions. Only direct evidence counts: a finding that locates the
    code producing the behaviour. Circumstantial evidence (sizes that divide,
@@ -118,14 +126,22 @@ only the lines the link gives, and never a section already read this session.
    decide a result, and nothing left to interrupts or threads (`# may run:`),
    memory nothing wrote, timing, or the operating system. List its findings in
    the entry's `complete_reading`. The standard's
-   [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 181-273)
-   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 578-628)
+   [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 191-291)
+   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 606-680)
    sections list what that covers; the parts most often missed are the
    segment each access actually goes through, every part of a stored call
    target, the other byte of a word written a byte at a time, allocation
    sizes and units, a bound on the number of outputs, return values at the
    width each caller tests, cleanup read once per path into it, and errors
-   passed back through recursion. A "no other caller" finding needs a second
+   passed back through recursion. `docs/EVIDENCE-REVIEW.md` adds the checks
+   the standard gives for loop progress through a callee's register return,
+   the last write to each argument byte, ESP offsets across shared cleanup,
+   arguments a callee removes without reading, neighbouring dispatch tables,
+   allocate-fill-link and cleanup order, call-graph cycles, callers that
+   combine results, PE import slots and tables of pointers. An empty search
+   names a control whose target was located without the mapping under test,
+   and the kinds of reference it searched and did not. A "no other caller"
+   finding needs a second
    search independent of the analyzer's function boundaries, with each hit
    checked to decode as a call; a dispatch table finding reads how the input
    becomes an index and what bounds it. An `offset` into overlay code lies
@@ -189,7 +205,9 @@ only the lines the link gives, and never a section already read this session.
 9. **Commit** with a message saying what was found and on what evidence, ending
    in a `Spec:` trailer listing the entries created or changed, and a
    `Parity:` trailer listing the rows whose status changed, if any, and a
-   `Queue:` trailer listing the IDs of the items it closed.
+   `Queue:` trailer listing the IDs of the items it closed and no others (an
+   item given `Tried:`, split or moved stays out; with none closed, no
+   `Queue:` line).
 10. **Print the status block** (format below). If a goal is running and its
     condition does not hold, start the next item in the same turn, without
     ending the turn on the status block; `docs/goals/README.md` lists the only

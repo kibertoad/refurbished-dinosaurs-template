@@ -8,6 +8,65 @@ not here.
 
 A project created from this template may delete this file.
 
+## Shared libraries, 2026-10-07
+
+- **Runtime libraries.** `RefurbishedDinosaursVersion` in `Directory.Build.props`
+  moves from 2.0.0 to 10.0.0 for `RefurbishedDinosaurs.Core` and
+  `RefurbishedDinosaurs.LegacyFormats`. The template calls none of the members
+  the intervening majors renamed or changed (the toolkit's
+  [runtime libraries guide](https://github.com/kibertoad/refurbished-dinosaurs-toolkit/blob/main/docs/runtime-libraries.md#migrations)
+  lists them), and its InstallShield expansion still goes through
+  `SabreTools.Serialization`, so no source changes.
+- **Evidence reporters.** `@scientific-method/executable-reader` moves from 1.0.0
+  to 2.3.0 and `scientific-method-engine` from 1.0.1 to 12.0.0 in one change, since
+  both now speak prepared-config protocol 3 (`callModels[].preservesMemory`). The
+  reader adds the `imports` and `table` commands; the engine's majors change what
+  a report says about calls, returns and Ghidra's function ends. The reader's
+  `minimumReleaseAgeExclude` entry in `pnpm-workspace.yaml` follows the new version.
+
+## Standard, protocol and checker 2.2.0, 2026-10-07
+
+- **Standard and protocol.** `docs/upstream/` moves from `11dbbc5` to `efa138b`
+  of kibertoad/refurbished-dinosaurs (#59 to #75). The standard stays version 1.
+  - Standard: a row a deviation replaces has Tests `None` (#59); a rule's
+    Parameters section takes a countable list form, and `call` and `emit`
+    pass one argument per parameter (#60); How to reproduce may name tools,
+    scripts and queries (#64); a correction to anything a finding or
+    experiment records supersedes the whole entry (IDENTIFIERS-8, #66); PE
+    import slots are mapped from the import tables (STATUS-42, #67) and tables
+    of pointers are read from the build's bytes (STATUS-43, #68); an empty
+    search needs a control located without the mapping and lists the kinds
+    of reference searched (#69); and worked cases for register and stack
+    arguments, loop progress, neighbouring dispatch tables, call-graph
+    cycles, combined callee results, allocation and cleanup (#72, #74, #75).
+  - Protocol: `Queue:` lists only the items a batch closed (#61); commits that
+    create, re-scope or delete a goal file are not batches, and the batch that
+    meets a goal leaves its file for a later commit to delete (#62); where
+    sessions cannot push to the main branch, the one running goal lives on a
+    `goal/` branch of the shared clone (#63); the runtime record answers each
+    part of a capability (#65); Continuation cases (#71), Rules behind an
+    adapter (#70), Arithmetic at the original's widths (#73), Calls that
+    combine results (#74) and Allocation, containers and cleanup (#75) give
+    the tests implementation batches write; a PE harness fills import slots
+    from the import tables (#67).
+- **Checker.** `@scientific-method/standard-checker` moves from 2.1.0 to 2.2.0,
+  the release of toolkit `92a5592`, which counts the arguments of every `call`
+  and `emit` against the Parameters sections and names as a skipped step each
+  one it cannot count.
+- **Scaffolding.** `AGENTS.md`, `docs/goals/README.md` and the start-session,
+  end-session and plan-work skills follow the goal and handover commit rules
+  and the `goal/` branch procedure. `docs/EVIDENCE-REVIEW.md` and the
+  research-item skill carry the new reading checks, IDENTIFIERS-8, How to
+  reproduce, the `Queue:` rule and the harness's import slots. `AGENTS.md` and
+  step 6 of the implement-rows skill summarize the four new test subsections.
+  The rule template in `docs/SPEC-ENTRY-TEMPLATES.md` shows the countable
+  Parameters form, and its deviation notes say a replaced row's Tests is
+  `None`. The Continuation cases entry below left `AGENTS.md` and the
+  implement-rows skill naming that subsection without a link; both now link
+  it. The runtime capability parts (#65) were already reflected (see
+  "Runtime answers per part of a capability" below). Section links are
+  rewritten to the new line ranges.
+
 ## Continuation cases, 2026-10-06
 
 [kibertoad/refurbished-dinosaurs#71](https://github.com/kibertoad/refurbished-dinosaurs/pull/71)
@@ -679,7 +738,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1004-1030)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1068-1094)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

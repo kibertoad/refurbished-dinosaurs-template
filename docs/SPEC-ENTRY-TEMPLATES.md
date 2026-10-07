@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 468-945)
+sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 496-1008)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -10,7 +10,7 @@ it.
 Rules, formats, screens and bugs may also have `complete_reading`, a list of
 the static findings that together read all of the entry, which makes it
 `established` without a run (see the standard's
-[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 181-273)).
+[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 191-291)).
 Leave it out until such a reading exists.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
@@ -258,6 +258,8 @@ related: []
 
 ## Parameters
 
+None.
+
 ## Inputs
 
 ## Procedure
@@ -277,6 +279,21 @@ None known.
 
 ## Open questions
 ````
+
+Parameters is `None.` for a rule that takes none, or a list with one item per
+parameter, in the order a `call` or an `emit` passes them, and nothing else.
+Each item opens with one code span holding the name and type, written the way
+`define` writes them, directly followed by a colon:
+
+```markdown
+- `attacker: FMT-DATA-005`: the gang that attacks.
+- `defender: FMT-DATA-005`: the gang it attacks.
+```
+
+The checker counts these items against every `call` of the rule and every
+`emit` of an event the rule handles. Any other form, `None known.` or an item
+naming two parameters such as ``- `x`, `y`: the cell`` included, passes but
+cannot be counted, and the checker names each call and `emit` it skipped.
 
 A list of more than 64 values in a procedure is a `table` whose values come
 from a value file in `spec/rules/`, named after the ID and the table:
@@ -412,12 +429,14 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1004-1030)
+[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1068-1094)
 section sets out. Delete it otherwise. Keep the Replaces item only on a
 `mandatory` deviation that replaces some of the entries in Departs from
 entirely, and name only those; keep the Tests item only when test files check
 that the rebuild does what the Reason says. A row a Replaces item names becomes
-`deviated` once every `mandatory` deviation it lists has a Tests item. IDs are
+`deviated` once every `mandatory` deviation it lists has a Tests item, and its
+own Tests is `None`, since the tests of what the rebuild does in its place are
+the deviation's Tests item. IDs are
 never reused or renumbered, and a dropped deviation keeps its file.
 
 ````markdown

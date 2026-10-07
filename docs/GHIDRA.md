@@ -25,7 +25,7 @@ against its build entry before interpreting an address.
 Another version of the executable is another build, with its own
 `spec/builds/` entry, and a finding lists it only when it was checked there
 too, with a location in each build. Addresses are written in the
-[notation](upstream/documentation-standard.md#notation) (lines 349-386) for the
+[notation](upstream/documentation-standard.md#notation) (lines 375-412) for the
 executable's format: the full virtual address at the header's image base for
 PE, and `segment:offset` for MZ, COM, and NE, with the load segment the
 standard fixes for each.

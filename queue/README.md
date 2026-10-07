@@ -2,7 +2,7 @@
 
 The open research questions about the original, one file per spec area,
 named after the area: `queue/COMBAT.md`. The
-[work protocol](../docs/upstream/work-protocol.md#the-queue) (lines 82-121) defines the
+[work protocol](../docs/upstream/work-protocol.md#the-queue) (lines 84-123) defines the
 format; this file is a short reminder of it and stays in place when the area
 files arrive.
 

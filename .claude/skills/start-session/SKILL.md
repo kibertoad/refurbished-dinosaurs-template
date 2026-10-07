@@ -5,7 +5,7 @@ description: Resume restoration work at the start of a session. Use before any r
 
 # Start a session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 207-215).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 321-329).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 This skill is the procedure; where they differ, the protocol wins.
@@ -17,9 +17,14 @@ This skill is the procedure; where they differ, the protocol wins.
    the goal's file in `docs/goals/`; read the whole file. With no goal it is
    `docs/HANDOVER.md`. If the user gave a goal with no file, write the file
    first (see `docs/goals/README.md`), check that no other goal file claims
-   the same areas, and get it onto the main branch before the first batch.
-   Then run `node tools/goal-run.mjs start <name>` in the session's worktree,
-   so the Stop hook holds the session to the goal (`docs/goals/README.md`,
+   the same areas, and get it onto the main branch before the first batch, in
+   a commit of its own (a pull request of its own where work lands through
+   pull requests). Where sessions cannot push to the main branch, run
+   `git branch --list 'goal/*'` now and before starting or resuming a goal,
+   and follow "Where sessions cannot push" in `docs/goals/README.md`: one goal
+   at a time, on its `goal/` branch. Then run
+   `node tools/goal-run.mjs start <name>` in the session's worktree, so the
+   Stop hook holds the session to the goal (`docs/goals/README.md`,
    "Run marker"). An implementation session reads no research goal files.
 3. Compare the handover with reality: `git status`, `git log --oneline -10`,
    the current branch, and any `wip/` branch the handover names. Anything

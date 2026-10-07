@@ -5,9 +5,9 @@ description: Plan restoration work - record the project's stage, write or revise
 
 # Plan work
 
-The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-80),
-[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 82-121) and
-[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 332-370).
+The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-82),
+[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 84-123) and
+[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 446-497).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,
@@ -72,8 +72,11 @@ batch ended with a status block; or stop after 40 turns.
 
 Write the goal file from `docs/goals/README.md`, check that no other goal file
 claims the same areas, get the file onto the main branch before the goal's
-first batch (where sessions cannot push, run only one goal at a time), and
-give the user the condition to paste after `/goal`.
+first batch, in a commit (or pull request) of its own that is not a batch, and
+give the user the condition to paste after `/goal`. Where sessions cannot push
+to the main branch, only one goal runs at a time, on a `goal/` branch whose
+first commit creates the file ("Where sessions cannot push" in
+`docs/goals/README.md`).
 
 When the owner wants work to go on until the game is restored, write two
 standing goals (`docs/goals/README.md`), one research and one implementation,

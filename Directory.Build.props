@@ -16,6 +16,6 @@
     <!-- The RefurbishedDinosaurs.* runtime packages release together and are pinned exactly. Every
          project that references one uses this version, so a bump is one edit and the projects
          that reference each other cannot pin conflicting versions. -->
-    <RefurbishedDinosaursVersion>2.0.0</RefurbishedDinosaursVersion>
+    <RefurbishedDinosaursVersion>10.0.0</RefurbishedDinosaursVersion>
   </PropertyGroup>
 </Project>

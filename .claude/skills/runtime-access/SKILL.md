@@ -5,7 +5,7 @@ description: Find out and record in docs/RUNTIME.md what can be done with the or
 
 # Runtime access
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#runtime-access) (lines 42-60).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#runtime-access) (lines 42-62).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Many games cannot be controlled by an agent at all. Static reading is the main
@@ -14,7 +14,7 @@ possible, and it is the one time the original is run before the static work
 is done.
 
 1. **Take the run lock** as the protocol's
-   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 217-251)
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 331-365)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an
    exclusive create that fails if it exists (`[IO.File]::Open($path,
    'CreateNew')` in PowerShell), naming this repository, the session and the

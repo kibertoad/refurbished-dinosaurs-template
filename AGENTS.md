@@ -147,6 +147,9 @@ that page differ, the page wins.
   depends on interrupts (`# may run:`), timing, the operating system or the
   hardware. Every import, interrupt or port access the function reaches has
   an explicit stub, anything else stops the run with an error naming it, and
+  a PE loader fills each import address table slot with the stub for the
+  import the file's import tables name there (a slot with no import holds no
+  stub, and a call through it stops the run), and
   an experiment names in its Setup every stub, port model and video memory
   mapped as ordinary RAM, and gives each port value by its glossary name. A
   copy into video memory that ran to the end shows the bytes written, never
@@ -209,7 +212,9 @@ that page differ, the page wins.
   needs no decision.
 - Commit messages end with a `Spec:` trailer naming the entries created or
   changed, any commit that changes a row's status adds `Parity:`, and any
-  that closes queue items adds `Queue:` with their IDs.
+  that closes queue items adds `Queue:` with their IDs. `Queue:` lists only
+  the items the batch closed; an item worked on and left open (given
+  `Tried:`, split or moved) stays out of it.
 - A claim moves from an `unknown` listing (or `sourced` from a document),
   through competing readings kept in its entry's Open questions, each with a
   queue item, to a description at `supported` once direct evidence (the code
@@ -220,10 +225,16 @@ that page differ, the page wins.
   it `disputed`, and a wrong claim is superseded, never deleted. The
   protocol's "The life of a claim" section has the details.
 - `docs/HANDOVER.md` is the current state of work outside any goal, at most
-  200 lines, rewritten at the end of every session that works under no goal,
-  and names items and entries by ID without saying what research found.
+  200 lines, rewritten at the end of every session that works under no goal
+  and added to by the commit that deletes a goal file, and names items and
+  entries by ID without saying what research found.
   `docs/goals/` holds one file per running goal, which claims its areas and
-  has a handover of its own for sessions under it. `docs/DECISIONS.md`
+  has a handover of its own for sessions under it. The batch that meets a
+  goal leaves its file in place, and a later commit deletes it. Commits that
+  create, re-scope or delete a goal file, like the handover commit, are not
+  batches: they touch only `docs/HANDOVER.md` and `docs/goals/` and carry no
+  trailers. Where sessions cannot push to the main branch, one goal runs at a
+  time on a `goal/` branch (`docs/goals/README.md`). `docs/DECISIONS.md`
   records the owner's decisions and moves its oldest entries to
   `docs/decisions/` before it passes 1,000 lines. A session ends by
   committing its handover on its own and pushing the branch; half-done work
@@ -304,8 +315,8 @@ certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
-[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 181-273)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 578-628) sections
+[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 191-291)
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 606-680) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored
@@ -492,9 +503,29 @@ values (army 2, slot 4, entity 7); and input that names one thing twice, such
 as numeric keys `11` and `011` read as decimal, rejected before anything is
 built. These tests compare the rebuild with the spec or with itself, so none
 of them validates a parity row; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
-and [Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190),
-with the Continuation cases subsection that follows it.
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 162-178)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 256-264)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 266-292).
+
+The protocol adds test cases for four more shapes of rule, which also
+compare the rebuild with the spec and validate no row. A caller that combines
+its callees' results (stops at the first event, keeps the last result, ORs
+statuses, or calls a fallback on one exact status) is tested through the
+consumer of its result as well as alone, with an earlier callee reporting and
+a later one returning 0. A rule moved into the rules layer is tested directly
+and again through its adapter, which hands back the same shared objects and
+read-only collections, rejects no input the entry gives an outcome for, and
+keeps what a rule did before a failure. Arithmetic the entry says wraps,
+truncates or converts is tested at the edges of each type (largest and
+smallest values, shift counts of 0 and 32, a divisor of -1, values outside
+every narrower type through the adapter). Allocation, removal and cleanup are
+tested with a test-supplied allocator and release routine that record calls,
+return null, fill blocks with a pattern, and read or change the container
+when called. See the protocol's
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 180-196),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 198-214),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 216-232)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 240-254).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.

@@ -5,8 +5,8 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 
 # Implementation batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 158-174)
-and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 1000-1124).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 162-178)
+and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 1064-1188).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 
@@ -68,8 +68,9 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    shared value through input, `Core`, presentation and a save and restore,
    with distinct values per axis, and test what a second actor sees at each
    `# visible:` point. A checkpoint or replay change follows the protocol's
-   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190)
-   and the Continuation cases subsection after it. Where the state that
+   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 256-264)
+   and [Continuation cases](../../../docs/upstream/work-protocol.md#continuation-cases) (lines 266-292).
+   Where the state that
    decides how play continues sits in several components, test a field
    several components copy, changed by a helper and checked in the next
    consumer and after a restore; a checkpoint taken between two steps of a
@@ -78,7 +79,24 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    state published on a path that returns zero or fails; integer identities
    in different roles with different values; and input that names one thing
    twice, such as numeric keys `11` and `011` read as decimal, rejected
-   before anything is built.
+   before anything is built. Where the entry's shape calls for them, add the
+   cases of
+   [Calls that combine results](../../../docs/upstream/work-protocol.md#calls-that-combine-results) (lines 180-196)
+   (an earlier callee reports and a later one returns 0; a fallback taken on
+   one exact status, tested with 0, 1, 2 and a negative status),
+   [Rules behind an adapter](../../../docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 198-214)
+   (each case run on the rules layer directly and again through the adapter,
+   which keeps shared objects and read-only collections, rejects no input the
+   entry gives an outcome for, and keeps what the rule did before a failure),
+   [Arithmetic at the original's widths](../../../docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 216-232)
+   (operands at the largest and smallest values of their types, stores between
+   two writes, shift counts of 0 and 32, values outside every narrower type
+   through the adapter) and
+   [Allocation, containers and cleanup](../../../docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 240-254)
+   (a test-supplied allocator and release routine that record calls, return
+   null, fill blocks with a pattern and read or change the container when
+   called). A rule moved out of a screen handler is tested as Rules behind an
+   adapter says.
    None of these tests validates a row.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
    check and the tests the change touches
