@@ -497,16 +497,18 @@ raising the limit.
 ```powershell
 ./tools/Verify-Configuration.ps1   # placeholders and template leftovers
 ./tools/Verify-Repository.ps1      # original-content and large-file policy
-./tools/Invoke-Validation.ps1      # policy checks plus build and tests (fast gate)
+./tools/Invoke-Validation.ps1 -TestFilter <filter>   # policy checks, build, relevant tests
 dotnet build <Project>.slnx        # full solution
 dotnet run --project src/<Project>.Game -- --smoke-test
 ```
 
-`Invoke-Validation.ps1` is the canonical local validation entry point. Its
-default fast gate skips tests tagged `Category=LongRunning`; run
-`-IncludeLongRunningTests` only when the user asks for it or a change to that
-coverage needs it. Add `-TestFilter` to narrow a run and `-MinimumExpectedTests`
-to fail when discovery drops below an expected count.
+Never run the full validation gate (`Invoke-Validation.ps1` without
+`-TestFilter`) or the full test suite locally. CI runs the gate on every pull
+request. Locally, run only the tests directly relevant to the change: the
+test classes that cover the code and spec entries it touches, through
+`-TestFilter` or `dotnet test --filter`. Run more only when the user asks for
+it. `-MinimumExpectedTests` fails a run when discovery drops below an expected
+count.
 
 Enable the pre-commit hook once in each clone, before the first commit, with
 `git config core.hooksPath .githooks`, and do not bypass it with
@@ -516,7 +518,8 @@ fails before the commit instead of in CI.
 
 ## Definition of done
 
-A change is finished when the solution builds, `./tools/Invoke-Validation.ps1` passes, new
+A change is finished when the solution builds, the tests relevant to it pass
+locally and CI passes, new
 behavior has tests that exercise every branch its entry describes directly,
 not only the branches a play session reaches, the spec entries it relies on
 exist with the status their evidence supports, the documents that assert status
