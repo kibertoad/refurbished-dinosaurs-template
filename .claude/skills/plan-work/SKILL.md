@@ -40,7 +40,9 @@ never code or spec entries apart from new `unknown` entries.
    it names, with an ID from that file's `Next ID:` line. A question a static
    reading can settle goes under `Static`; a call of one function goes under
    `Emulated call`; a run of the game goes under `Agent run` or
-   `Live session` as `docs/RUNTIME.md` says. A `supported` entry gets a
+   `Live session` as `docs/RUNTIME.md` says for the parts of each capability
+   the run needs, and where the record answers those parts separately, the
+   item's `Settles it:` text names them. A `supported` entry gets a
    `Static` item to complete its reading and an `Emulated call` item where
    the harness reaches its functions, or, only where it depends on something
    the code does not decide, a run item to confirm it. Every rule the code

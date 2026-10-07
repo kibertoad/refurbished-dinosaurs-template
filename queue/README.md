@@ -47,7 +47,12 @@ a static reading. Runs do not wait for every `Static` item to be done: items
 are picked in the protocol's order of work, and within one step of it the
 `Static` items come first, then `Emulated call`, then runs of the game. An
 `Emulated call` item starts no process of the game and needs no run lock. When `docs/RUNTIME.md` changes, move the items it
-affects between `Agent run` and `Live session` in the same commit.
+affects between `Agent run` and `Live session` in the same commit. Where
+`docs/RUNTIME.md` answers the parts of a capability separately, an
+`Agent run` or `Live session` item says in its `Settles it:` text which of
+those parts its run needs, such as only the keyboard, so that the items a
+changed part affects can be found. An item whose run needs a part answered
+`none` goes under `Blocked`, with `Waiting on:` naming that part.
 
 Close an item by recording the answer in `spec/` and deleting the item in the
 same commit, which names it in a `Queue:` trailer so that it can still be

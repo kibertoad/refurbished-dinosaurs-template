@@ -8,6 +8,27 @@ not here.
 
 A project created from this template may delete this file.
 
+## Runtime answers per part of a capability, 2026-10-06
+
+`docs/RUNTIME.md` and the runtime-access skill show how to answer each part
+of a capability that names several things (each input device the game reads,
+frames and sound where the game makes sound, memory reads, breakpoints and
+dumps), and how a run uses the answer of each part it needs: it cannot be
+made if any part is `none`, it is a live session if any is `person`, and it
+is an agent run only if every part is `agent`. For input, `person` means the
+maintainer gives that input in a live session. Where the record splits a
+capability, `queue/README.md` and the skill have each `Agent run` and
+`Live session` item name the parts its run needs in its `Settles it:` text,
+so the items a changed part affects can be found. A game repository had
+found that keyboard input worked for an agent while the mouse needed a
+person, and a single `agent` in the input row could be read as covering the
+mouse. The text follows the paragraph and the queue rule
+[kibertoad/refurbished-dinosaurs#65](https://github.com/kibertoad/refurbished-dinosaurs/pull/65)
+adds to the protocol. `docs/upstream/` is not refreshed here; the protocol's
+new text reaches the local copy with the next refresh.
+A record that gives one answer per capability still follows the protocol,
+so the standard stays version 1.
+
 ## Relevant tests only, locally, 2026-10-06
 
 - **Rule.** `AGENTS.md` now says the full validation gate and the full test
