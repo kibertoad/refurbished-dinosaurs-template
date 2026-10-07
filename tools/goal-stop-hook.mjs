@@ -41,7 +41,8 @@ export function decide(input, directory) {
       `The goal in ${goal} is running on this branch. Finishing a batch, writing the handover ` +
       "or a long conversation is not a reason to stop. Unless a stop reason in " +
       "docs/goals/README.md applies, start the next item now (run start-session if the " +
-      "session's handover was just committed). If one applies, say which and stop.",
+      "session's handover was just committed). If one applies, including a finished wrap-up " +
+      "the owner asked for, say which and stop.",
   };
 }
 

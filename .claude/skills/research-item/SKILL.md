@@ -188,7 +188,9 @@ only the lines the link gives, and never a section already read this session.
 10. **Print the status block** (format below). If a goal is running and its
     condition does not hold, start the next item in the same turn, without
     ending the turn on the status block; `docs/goals/README.md` lists the only
-    reasons to stop. With no goal, run `end-session`.
+    reasons to stop. When the owner has asked to wrap up, start nothing new and
+    run `end-session`, as that file's "Wrapping up" says. With no goal, run
+    `end-session`.
 
 ```text
 Status

@@ -230,7 +230,9 @@ that page differ, the page wins.
   never goes into a batch commit. Under a goal whose condition does not
   hold, the end of a session is a checkpoint: the next session starts at once,
   in the same conversation, and `docs/goals/README.md` lists the only reasons
-  to stop.
+  to stop. When the owner asks to wrap up, no new agent or item starts: the
+  batch in progress is finished, documented, committed and pushed to the main
+  branch, and the goal stops, as that file's "Wrapping up" says.
 - Progress is what scripts compute: parity totals, entries by status,
   executable and file coverage, queue sizes. Never a hand-written percentage.
   Executable coverage is measured against the function inventories,

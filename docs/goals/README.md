@@ -65,7 +65,7 @@ session to session until its condition holds.
 
 An agent under any goal whose condition does not hold stops only when:
 
-- the owner says to stop;
+- the owner asks it to wrap up, and the wrap-up below is done;
 - every item the goal may take is under `Blocked`, `Live session` or an
   `Agent run` that cannot run now, no `plan-work` step adds one within the
   goal's scope, and no other stage or slice in scope has work;
@@ -78,6 +78,23 @@ grows long), a check running in the background (do other work meanwhile and
 use its result in a later commit), or a question the owner asks while the goal
 runs (answer it, then go on). Before stopping, the agent says which of the
 reasons above applies, in the Handover and in its last message.
+
+### Wrapping up
+
+When the owner asks to wrap up, the goal stops iterating, whether or not its
+condition holds:
+
+1. Spawn no new agents and start no new item, batch or session.
+2. Finish the batch in progress as one cohesive batch: its findings, spec
+   entries, parity rows, queue changes and tests, passing the documentation
+   check and the fast gate. Work that cannot be finished that way is left out
+   of the batch and described under Unfinished in the Handover, or committed to
+   `wip/<working branch>` where the working tree does not outlive the session.
+3. Run `end-session`: stop processes, rewrite the Handover with the next items
+   and `Stopped: owner asked to wrap up`, and commit it.
+4. Push the work to the main branch. The owner's request to wrap up is the
+   authorization for that push, unless `AGENTS.md` says the owner pushes.
+5. Report and stop. The goal file stays, so a later session resumes it.
 
 Where the repository's `.claude/settings.json` installs
 `tools/goal-stop-hook.mjs`, Claude Code holds back the first stop on a

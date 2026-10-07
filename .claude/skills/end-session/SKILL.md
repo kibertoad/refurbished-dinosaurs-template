@@ -42,7 +42,9 @@ only the lines the link gives, and never a section already read this session.
    does not hold and none of the stop reasons in `docs/goals/README.md`
    applies, the session's end is a checkpoint: run `start-session` now and
    take the next item, without reporting or ending the turn. Otherwise go on
-   to the report, naming the stop reason that applies.
+   to the report, naming the stop reason that applies. When the owner asked to
+   wrap up, follow "Wrapping up" in `docs/goals/README.md`: no new item starts,
+   and step 5 pushes to the main branch.
 7. **Report** the final status block from `research-item`, followed by one
    line on anything the owner has to decide or do, such as a live session
    request waiting for an answer.

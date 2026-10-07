@@ -77,4 +77,5 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
 9. **Print the status block** from `research-item`, with `Batch: implementation`
    and the rows' old and new statuses. Under a goal whose condition does not
    hold, start the next rows in the same turn (`docs/goals/README.md` lists the
-   only reasons to stop); with no goal, run `end-session`.
+   only reasons to stop); after the owner asks to wrap up, or with no goal,
+   run `end-session`.
