@@ -71,8 +71,12 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 182-190).
    None of these tests validates a row.
 7. **Update the parity rows** (Code, Tests, Notes) and run the documentation
-   check and `./tools/Invoke-Validation.ps1`.
+   check and the tests the change touches
+   (`./tools/Invoke-Validation.ps1 -TestFilter <filter>`); CI runs the rest.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
    (entries implemented) and `Parity:` (rows whose status changed) trailers.
 9. **Print the status block** from `research-item`, with `Batch: implementation`
-   and the rows' old and new statuses, then continue or run `end-session`.
+   and the rows' old and new statuses. Under a goal whose condition does not
+   hold, start the next rows in the same turn (`docs/goals/README.md` lists the
+   only reasons to stop); after the owner asks to wrap up, or with no goal,
+   run `end-session`.
