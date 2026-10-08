@@ -447,6 +447,15 @@ Keep numbers that define behavior, constrain validation, support evidence or
 justify a decision. A dated measurement belongs in prose only when that context
 needs it. Refer to the generating command instead of maintaining a copied total.
 
+A committed document never cites a file under `artifacts/` as evidence. The
+directory is gitignored, so such a file exists only on the machine that wrote it
+and is gone after a cleanup. State the result in the document instead: what ran,
+on which commit, and whether it passed. Commit a script that a result depends on,
+such as a research driver that declares regions, call models or assertions,
+under `tools/research/` or `tests/`. A configuration or report made from the
+original stays in `GAME_DIR`, as the standard's How to reproduce section says,
+and the document gives every value the result depends on.
+
 ## Git ownership in the Windows sandbox
 
 The Windows sandbox may run Git as a different account from the checkout owner.
