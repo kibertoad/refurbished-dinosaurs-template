@@ -8,6 +8,19 @@ not here.
 
 A project created from this template may delete this file.
 
+## No citations of local files, 2026-10-11
+
+- **Rule.** `AGENTS.md` ("Durable narrative documentation") now says a
+  committed document never cites a file in a gitignored directory, such as
+  `artifacts/` or `TestResults/`, as evidence, and states the result itself:
+  what ran, on which commit, and whether it passed. A run of the marked tests
+  is recorded in `VALIDATION.md`. A research driver a result depends on is
+  committed under `tools/research/`, a test under `tests/`, and a
+  configuration or report made from the original stays in `GAME_DIR`.
+- **Evidence.** A configured project's validation notes and audit documents
+  had drifted into about 300 references to local logs and uncommitted research
+  drivers, none of which a reader on another machine could open.
+
 ## Standard, protocol and checker 2.5.0, 2026-10-07
 
 - **Standard and protocol.** `docs/upstream/` moves from `efa138b` to `e84495f`
