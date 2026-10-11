@@ -21,6 +21,75 @@ A project created from this template may delete this file.
   had drifted into about 300 references to local logs and uncommitted research
   drivers, none of which a reader on another machine could open.
 
+## Evidence reporters, 2026-10-11
+
+- **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.0.0
+  to 4.1.0 and `scientific-method-engine` from 18.4.0 to 19.1.0. Both still
+  speak prepared-config protocol 3. The reader's `bodies` lays out FBOV files
+  whose resident descriptor spans overlap instead of failing. Engine 19 lists
+  inventory row starts at unresolved overlapping instructions in `rowStarts`
+  and leaves them out of `notRead`, and adds value ranges for table bounds;
+  19.1 lets a restoration declare single call sites that never return. The
+  template reads none of the changed `inventory-check` fields. The reader's
+  `minimumReleaseAgeExclude` entry follows the new version.
+
+## Standard, protocol and checker 4.2.0, 2026-10-11
+
+- **Standard and protocol.** `docs/upstream/` moves from `e84495f` to `d8ebc1f`
+  of kibertoad/refurbished-dinosaurs (#86 to #115). The standard stays
+  version 1, and the methodology and licence are unchanged.
+  - Standard: every range is half-open, a range that ends on an inventoried
+    function's last byte fails unless the entry lists it in
+    `ends_on_last_byte`, and such an end is corrected in place (#86, #87,
+    #110); a repository may squash superseded entries before anyone outside
+    relies on its IDs (#86); the Builds rules are numbered, and a build may
+    keep a listing record `BLD-*.listing.yaml`, with directory exclusions in
+    its list of other files (#88); validation runs are recorded as one file
+    per run in `validation/`, and a root `VALIDATION.md` fails (#89); NE import
+    reports and findings follow STATUS-44 (#102); a parity row's Tests lists
+    only files that read the original or name an experiment in the entry's
+    evidence (#103); a file that ships only inside an archive is listed in its
+    archive's `members` and cited as `ARCHIVE|MEMBER` (#104); a question
+    whether the code ever does something starts from a census of its mechanism
+    (#106); an imported routine marked as not returning is a lead (#97); a
+    mouse input row's Region cell names its event (#115).
+  - Protocol: new test cases for counts that wrap to zero, loop limits the loop
+    writes, stored `FLOAT32` bits, counts reloaded after allocation and more
+    continuation cases (#97, #98, #99); goals run across sessions, name a side,
+    may be standing goals, stop only for listed reasons and wrap up as stated,
+    and claims work when only some tasks authorize a push (#100, #105); an
+    implementation session settles each finding citation in `src/` by what the
+    code implements (#101); a repeated queue attempt counts only when it
+    changed what settles the item, and two in a row split or move it (#107); a
+    research batch sends a changed entry's row back to Code `partial` with a
+    `Defect` note (#109), moves citations of superseded entries in the
+    handover and goal files (#111) and of closed queue items in parity rows
+    and deviations (#108), and rechecks a `tools/` citation before moving it
+    (#113).
+  - `AGENTS.md`, `docs/goals/README.md`, the skills and the documents that
+    summarize these rules follow them. The goals README's example standing
+    goal conditions no longer count `Blocked` items or `Spec gap` rows as
+    done, which the protocol now rules out.
+- **Checker.** `@scientific-method/standard-checker` moves from 2.5.0 to 4.2.0,
+  the release of toolkit `1f3ce28`. It adds `--squashed`, the range-end check,
+  the inventory ranges column (and skips `.provenance.tsv` and `.regions.tsv`),
+  listing record checks, `validation/` run files, `unmeasured` inventories
+  and `sharedBytes` in `standard-coverage`, and a comparison with the base
+  branch's tip that finds an ID taken twice before two branches meet.
+
+## Shared libraries, 2026-10-11
+
+- **Runtime libraries.** `RefurbishedDinosaursVersion` moves from 10.0.0 to
+  12.0.0. The solution builds and its tests pass unchanged.
+- **Evidence reporters.** `@scientific-method/executable-reader` moves from 2.3.0
+  to 4.0.0 and `scientific-method-engine` from 12.0.0 to 18.4.0 in one change.
+  Both still speak prepared-config protocol 3. The reader adds `unpack` for
+  LZEXE, EXEPACK and PKLITE, `bodies`, `inventory-check` and FBOV descriptor
+  extents; its majors rename `packed.pklite.scrambled` and change `bodies` for
+  FBOV files, neither of which the template reads. Engine 18 requires
+  Capstone 5.0.9 and pypcode 4.0.1. The reader's `minimumReleaseAgeExclude`
+  entry follows the new version.
+
 ## Standard, protocol and checker 2.5.0, 2026-10-07
 
 - **Standard and protocol.** `docs/upstream/` moves from `efa138b` to `e84495f`
@@ -808,7 +877,7 @@ A deviation's Default is now `off`, `on` or `mandatory`. `mandatory` replaces
 `mandatory`, or `on` without being the fix of an unintended bug players do not
 rely on, carries a `Justification` item arguing that the rebuild's behavior is
 strictly better than the original's, as the
-[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1071-1097)
+[documentation standard](upstream/documentation-standard.md#deviation-log) (lines 1220-1246)
 now sets out. `AGENTS.md`, `DEVIATIONS.md` and `docs/VALIDATION.md` say so, and
 a test that reaches a mandatory deviation cites its ID and allows for it.
 

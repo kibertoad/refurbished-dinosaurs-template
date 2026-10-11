@@ -109,27 +109,45 @@ or nonportable manifest paths rather than silently renaming them. Commit only th
 permitted inventory columns; keep view reports/configs local. Document the
 selected views and exclusions in the build/Ghidra guide in project-authored words.
 Coverage describes analyzer-discovered functions, not every function that exists.
-The protocol's [Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 454-462)
-says how to export and check one. Checker 2.5.0 reads every `.tsv` file under
-`coverage/` as an inventory with only the four columns above, so the
-`.provenance.tsv` and `.regions.tsv` files and the column of body ranges that
-the protocol describes fail `standard-coverage` until a checker release reads
-them. Keep provenance and region totals local until then.
+The protocol's [Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 514-522)
+says how to export and check one. The pinned checker reads the protocol's
+`ranges` column, the half-open body ranges of a function whose body is not one
+range from its start, and does not read the `.provenance.tsv` and
+`.regions.tsv` files beside an inventory as inventories. The engine's
+`ExportFunctionInventory.java` Ghidra script (`docs/GHIDRA.md`) writes all
+three straight to the inventory's `coverage/` path from one analysis view, with
+ranges where a body needs them; the protocol commits the provenance and regions
+files beside the inventory. This template's `inventory` writes, and its
+`inventory-check` accepts, only the four columns above, so an inventory with a
+`ranges` column is checked by `standard-coverage`, the documentation check and
+the engine's `x86-inventory-check`.
 
 `pnpm exec standard-coverage` reads the committed inventories and prints, per
 file, the share of in-scope functions and bytes that an entry's `locations`
 cite, and the uncited functions; `--list`, `--json` and `--require-complete`
-are its other modes. Run it when the figures are needed and read them from its
+are its other modes. A byte that two rows list counts once, and the shared
+bytes are reported apart. An inventory with a row it cannot read gets no
+figures: it is printed as not measured, and `--json` lists it under
+`unmeasured`. Run it when the figures are needed and read them from its
 output; they are printed on demand and never committed.
+
+Once inventories exist, the documentation check also fails a range in an entry
+whose end is the last byte of an inventoried function, since ranges are
+half-open and such a range stops a byte short. The message gives the end the
+range should have. A range that ends there on purpose goes in the entry's
+`ends_on_last_byte` (`docs/SPEC-ENTRY-TEMPLATES.md`).
 
 ## Instruction-derived reports
 
 The `x86-trace`, `x86-uses`, `x86-arguments`, `x86-effects`, `x86-returns`,
 `x86-memory`, `x86-incoming`, `x86-guards`, `x86-allocation`, `x86-dispatch`,
 `x86-operand`, `x86-operand-candidates`, `x86-target`, `x86-bounds`,
-`x86-owner`, `x86-callees` and `x86-pointers` commands run the report of the
-same name from `@scientific-method/executable-reader`, which hands every one
-but `pointers` to `scientific-method-engine`. Install both with `pnpm install`
+`x86-owner`, `x86-callees`, `x86-reach`, `x86-call-order`,
+`x86-inventory-check`, `x86-pointers`, `x86-table`, `x86-bodies`,
+`x86-imports` and `x86-unpack` commands run the report of the same name from
+`@scientific-method/executable-reader`. It runs `pointers`, `table`, `bodies`,
+`imports` and `unpack` itself and hands every other one to
+`scientific-method-engine`. Install both with `pnpm install`
 and `python -m pip install -r requirements-evidence.txt`; `EVIDENCE_PYTHON`
 selects the Python executable, and without it the first of `python` and `python3`
 that is Python 3.12 or later runs. [Bounded instruction reports](BOUNDED-EVIDENCE-REPORTERS.md)
@@ -165,6 +183,20 @@ declared MZ relocations and FBOV fixups whose preceding word forms an adjacent
 segment:offset pair naming a query target, split into exact pairs, aliases,
 unresolved and excluded rows. Its rows are word-pair candidates, never proof of
 runtime pointer use, and it reads only MZ/FBOV sources.
+
+`x86-reach` lists the target sites a set of starts reaches over resolved calls
+and jumps, with the fewest-call chain to each and every reached transfer it
+could not resolve, which is the walk a census of a mechanism's sites starts
+from. `x86-inventory-check` lists the resolved direct call targets that no row
+of a committed inventory starts at. `x86-bodies` says where each byte of given
+function bodies lies by the MZ and FBOV tables, and gives every FBOV
+descriptor's words, span and loaded address. `x86-imports` gives the import a
+PE32 file's import tables put in each import address table slot, checked
+against a positive control. `x86-unpack` decodes an LZEXE 0.90 or 0.91, EXEPACK
+or PKLITE 1.00 to 2.01 executable without running its stub, writes the unpacked
+file by the reader's layout rule, and prints the `size`, `xxh3`, `format` and
+`tool` that the build's `unpacked` item gives. The toolkit guide covers their
+inputs and limits.
 
 ## PE32 executables
 

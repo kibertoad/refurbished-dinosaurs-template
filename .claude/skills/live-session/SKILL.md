@@ -5,7 +5,7 @@ description: Request, prepare and ingest a live session, in which a person runs 
 
 # Live session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 355-365).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#live-sessions) (lines 415-425).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 The maintainer's time is the scarcest resource the project has: prepare it so
@@ -62,8 +62,9 @@ the lock at the end, and set the request's Status to `held, YYYY-MM-DD`.
 2. Give the entries the status the evidence supports for everything they
    say, as `research-item` step 5 describes, and make the parity changes of
    `research-item` step 7.
-3. Delete the settled items from the queue; add `Tried:` to any step that did
-   not settle its item, and new items for new questions.
+3. Delete the settled items from the queue, moving their citations as
+   `research-item` step 7 says for a closed item; add one `Tried:` note to the
+   item of any step that did not settle it, and new items for new questions.
 4. Work one research batch per area: run the documentation check and commit,
    with a `Spec:` trailer, adding `Parity:` for the rows whose status
    changed and `Queue:` for the items it closed, and print the status block from `research-item` for each. The

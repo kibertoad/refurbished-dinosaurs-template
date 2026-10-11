@@ -123,11 +123,17 @@ that page differ, the page wins.
   `docs/RUNTIME.md` records what can be done with the original running, and
   whether an agent, only a person, or nobody can do it.
 - Survey lists the installation and the media the game reads in full, and
-  records how the listing was made. Every path in that listing is in the
-  build's manifest, which holds every file the game uses, studied or not, or
-  in the build entry's Other files section with the reason it is left out
-  (in `BLD-<alias>.other-files.yaml` beside the manifest when the list is
-  long). A file whose use is unknown stays in the manifest. Checking the
+  records how the listing was made, in a listing record
+  (`BLD-<alias>.listing.yaml`, named by the build's `listing` field) where the
+  build keeps one. Every path in that listing, other than a member of an
+  archive the listing went inside, is in the build's manifest, which holds
+  every file the game uses, studied or not, or in the build entry's Other
+  files section with the reason it is left out (in
+  `BLD-<alias>.other-files.yaml` beside the manifest when the list is long).
+  A path there that ends in `/` excludes every file under that directory, for
+  directories that ship empty or that something fills later. A file whose use
+  is unknown stays in the manifest. A file that ships only inside an archive
+  is listed in the archive's `members` and cited as `ARCHIVE|MEMBER`. Checking the
   format definitions against the few files whose hashes identify the release
   does not end Survey; until every path is accounted for, the plan says what
   is missing.
@@ -195,18 +201,36 @@ that page differ, the page wins.
   they need, in the area of the first entry they name, each with an ID
   (`Q-COMBAT-012`) that everything outside the queue refers to it by. An item
   is closed by recording its answer in `spec/` and deleting it in the same
-  commit. An item is taken up again only with new evidence, a new tool or a
-  new reading, and when that second attempt ends in the same place it moves
-  to the section of the evidence that would settle it, or to `Blocked` when
-  that evidence is out of reach.
+  commit. Each attempt that does not settle an item adds one `Tried:` note,
+  and the item is taken up again only with new evidence, a new tool or a new
+  reading. An attempt ends in a new place only if a finding it recorded took
+  part of the item's Settles it out, or moved a part into an item of its own;
+  reading more code, or naming a caller one step further on, does not count.
+  After two attempts in a row end in the same place, the batch that made the
+  second splits the item into parts that can be answered separately (the part
+  that still asks the item's question keeps the ID) or, for one question,
+  moves it to the section of the evidence that would settle it, or to
+  `Blocked` when that evidence is out of reach.
+- A question whether the original ever does something, such as start another
+  program, starts with a census of every site of the mechanism that
+  capability has to pass through, with a positive control for each kind of
+  site, and traces further only what the census leaves undecided.
 - A batch is one commit, and is research, implementation or tooling, never
   more than one. A session keeps to one side of the clean room. An
   implementation batch works from the spec alone, never opens analysis output
   or `queue/`, and under `spec/` only adds open questions and `unknown`
   entries; a gap becomes a `Spec gap:` note on the parity row, which the next
   research session turns into a queue item and removes once it is answered. A research batch makes the parity
-  and citation changes the documentation check requires of what it did to
-  the spec, and changes no other code apart from `tools/`. A tooling batch
+  and citation changes the work protocol's "Research batches" section lists,
+  and changes no other code apart from `tools/`: citations of an entry it
+  supersedes move in code, parity rows, deviations, `docs/HANDOVER.md` and the
+  goal files; a rule, format, screen or bug entry it changes in place gives an
+  implemented row Code `partial` and a `Defect (FND-...)` note; and a queue
+  item it closes stops being cited in `parity/` and deviations and in live
+  session requests. An implementation session first settles each citation of
+  a finding or experiment in `src/`: it moves to the entries that list that
+  evidence (their rows become `partial` with a note), and only code that no
+  entry describes is removed. A tooling batch
   (extractor, Ghidra scripts, inventory export, the emulator harness in
   `tools/emu/`, live session measurements, headless runner, fixture harness)
   needs no decision.
@@ -232,16 +256,20 @@ that page differ, the page wins.
   it `disputed`, and a wrong claim is superseded, never deleted. The
   protocol's "The life of a claim" section has the details.
 - `docs/HANDOVER.md` is the current state of work outside any goal, at most
-  200 lines, rewritten at the end of every session that works under no goal
-  and added to by the commit that deletes a goal file, and names items and
-  entries by ID without saying what research found.
+  200 lines, rewritten at the end of every session that works under no goal,
+  added to by the commit that deletes a goal file, and otherwise changed only
+  where a research batch moves a citation of an entry it supersedes. It names
+  items and entries by ID without saying what research found.
   `docs/goals/` holds one file per running goal, which claims its areas and
   has a handover of its own for sessions under it. The batch that meets a
   goal leaves its file in place, and a later commit deletes it. Commits that
   create, re-scope or delete a goal file, like the handover commit, are not
   batches: they touch only `docs/HANDOVER.md` and `docs/goals/` and carry no
-  trailers. Where sessions cannot push to the main branch, one goal runs at a
-  time on a `goal/` branch (`docs/goals/README.md`). `docs/DECISIONS.md`
+  trailers. A goal file may name its side, research or implementation, and
+  then a goal on the other side may claim the same areas. Where no session can
+  push to the main branch, one goal runs at a time on a `goal/` branch; where
+  only some sessions may, a goal keeps the form the session that started it
+  could use, and claims are checked in both places (`docs/goals/README.md`). `docs/DECISIONS.md`
   records the owner's decisions and moves its oldest entries to
   `docs/decisions/` before it passes 1,000 lines. A session ends by
   committing its handover on its own and pushing the branch; half-done work
@@ -255,8 +283,10 @@ that page differ, the page wins.
   executable and file coverage, queue sizes. Never a hand-written percentage.
   Executable coverage is measured against the function inventories,
   `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an `@CD`
-  directory), one for each file the analysis reads. An inventory holds only each function's start address, its size, and
-  optionally a name the researcher gave it and why it is out of scope, never
+  directory, and a member of an archive goes under `<archive path>@/`), one
+  for each file the analysis reads. An inventory holds only each function's start address, its size,
+  optionally a name the researcher gave it and why it is out of scope, and,
+  for a body that is not one range from its start, its ranges; never
   code, bytes, strings, constants or names that came from the original, so it
   is committed. Each start is written in the standard's notation for its
   file: `SSSS:OOOO` in an MZ load image, an eight-digit file offset inside a
@@ -294,7 +324,7 @@ skills print.
   of the game. Tests that read the original find it through `GAME_DIR`,
   report themselves skipped when it is absent, and carry the comment
   `// needs: GAME_DIR`. They run on a maintainer's machine, and the run is
-  recorded in `VALIDATION.md` (`docs/VALIDATION.md`).
+  recorded in a run file in `validation/` (`docs/VALIDATION.md`).
 - **Parse defensively.** Original files are untrusted input: bound every length,
   reject path traversal, and fail with a diagnosable error instead of throwing
   from deep inside a reader.
@@ -328,8 +358,8 @@ certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
-[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 193-293)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 608-682) sections
+[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 199-299)
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 739-823) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored
@@ -351,7 +381,12 @@ that are read as data, such as its header or a packer's header, are located
 with `kind: file-data` and an `offset` into the file as it ships; bytes the
 unpacker writes outside the load image add `unpacked: true` and take an offset
 into the unpacked file. A file-data location never locates code, so it cannot
-support a Code ranges row.
+support a Code ranges row. Every range is half-open, in locations, entry text
+and Code ranges rows: its end is the byte after the last one it covers, never
+the last byte that Ghidra reports as a function's or block's maximum address.
+Where `coverage/` has inventories, the check fails a range that ends on an
+inventoried function's last byte, unless the entry lists it in
+`ends_on_last_byte` because it stops just before a one-byte final instruction.
 
 Unidentified functions, globals, fields, and scripts keep neutral names
 (`fn_00478CD0`, `g_004C1F20`, `unk_2A`) until a finding or experiment shows what
@@ -381,7 +416,10 @@ Evidence lives in the spec, not in the code that relies on it. An address,
 offset or constant that a code comment, test or commit message gives as evidence
 must already be recorded in an entry it cites, directly or in the evidence of an
 entry that one cites; when none records it, write that finding first, in the
-same research batch. The documentation check enforces this for the addresses a
+same research batch. Code in `src/` cites the rule, format, screen or bug it
+implements, never a finding, even where the check's message suggests one; an
+address that no entry the code implements backs is a spec gap, and the code
+leaves it out. The documentation check enforces this for the addresses a
 code comment gives and for those the code uses, as numbers or inside strings,
 which the comment trailing the line or the nearest comment above it must cite.
 It reads C#, TypeScript, JavaScript and PowerShell comments, treats a neutral
@@ -459,7 +497,7 @@ name it; a spec file may not name a path under `tests/`, and a research batch
 changes no code outside `tools/`. A test that a validation result depends on
 goes under `tests/`. A configuration or report made from the original stays in
 `GAME_DIR`, as
-[Findings](docs/upstream/documentation-standard.md#findings) (lines 608-682)
+[Findings](docs/upstream/documentation-standard.md#findings) (lines 739-823)
 says, and the document gives every value the result depends on.
 
 ## Git ownership in the Windows sandbox
@@ -548,11 +586,14 @@ explicit null apart from a missing field; state published on a path that
 returns zero or fails; integer identities in different roles given different
 values (army 2, slot 4, entity 7); and input that names one thing twice, such
 as numeric keys `11` and `011` read as decimal, rejected before anything is
-built. These tests compare the rebuild with the spec or with itself, so none
-of them validates a parity row; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 162-178)
-[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 256-264)
-and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 266-292).
+built; a decision taken from a value read before a call not taken again after
+it, and each read of a value the entry reads more than once changed between
+reads; a failure whose leftover state changes the next call; and the source a
+request reads kept apart from the request and its destination. These tests compare the rebuild with the spec or with itself, so none
+of them validates a parity row or is listed in its Tests column; see the protocol's
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 206-224)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 308-316)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 318-350).
 
 The protocol adds test cases for four more shapes of rule, which also
 compare the rebuild with the spec and validate no row. A caller that combines
@@ -565,14 +606,19 @@ read-only collections, rejects no input the entry gives an outcome for, and
 keeps what a rule did before a failure. Arithmetic the entry says wraps,
 truncates or converts is tested at the edges of each type (largest and
 smallest values, shift counts of 0 and 32, a divisor of -1, values outside
-every narrower type through the adapter). Allocation, removal and cleanup are
+every narrower type through the adapter), including a value that passes a
+guard and becomes 0 after the transformation that follows it, a loop that
+runs its body before its test and wraps a count of 0, a loop limit its own
+writes change, the bits of each `FLOAT32` intermediate the original stores,
+and a copy that fits its record but runs into the next field. Allocation, removal and cleanup are
 tested with a test-supplied allocator and release routine that record calls,
-return null, fill blocks with a pattern, and read or change the container
-when called. See the protocol's
-[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 180-196),
-[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 198-214),
-[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 216-232)
-and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 240-254).
+return null, fill blocks with a pattern, read or change the container when
+called, and change a count the copy loads again after the check. Each caller
+of one target is tested with the statuses its own comparison tells apart. See the protocol's
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 226-242),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 244-260),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 262-282)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 290-306).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.

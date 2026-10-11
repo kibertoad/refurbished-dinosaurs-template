@@ -5,7 +5,7 @@ description: Resume restoration work at the start of a session. Use before any r
 
 # Start a session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 321-329).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 379-389).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 This skill is the procedure; where they differ, the protocol wins.
@@ -16,13 +16,16 @@ This skill is the procedure; where they differ, the protocol wins.
 2. Find the session's handover. Under a goal it is the Handover section of
    the goal's file in `docs/goals/`; read the whole file. With no goal it is
    `docs/HANDOVER.md`. If the user gave a goal with no file, write the file
-   first (see `docs/goals/README.md`), check that no other goal file claims
-   the same areas, and get it onto the main branch before the first batch, in
-   a commit of its own (a pull request of its own where work lands through
-   pull requests). Where sessions cannot push to the main branch, run
+   first (see `docs/goals/README.md`), naming its side, check that no other
+   goal on the same side (or whose file names no side) claims the same areas,
+   and get it onto the main branch before the first batch, in a commit of its
+   own (a pull request of its own where work lands through pull requests).
+   Where no session can push to the main branch, run
    `git branch --list 'goal/*'` now and before starting or resuming a goal,
-   and follow "Where sessions cannot push" in `docs/goals/README.md`: one goal
-   at a time, on its `goal/` branch. Then run
+   and follow "Where no session can push" in `docs/goals/README.md`: one goal
+   at a time, on its `goal/` branch. Where only some sessions may push, follow
+   "Where only some sessions can push" there before starting a goal or adding
+   an area. Then run
    `node tools/goal-run.mjs start <name>` in the session's worktree, so the
    Stop hook holds the session to the goal (`docs/goals/README.md`,
    "Run marker"). An implementation session reads no research goal files.
@@ -56,10 +59,17 @@ This skill is the procedure; where they differ, the protocol wins.
      items come first, then `Emulated call`, then runs of the game. An `Agent run` or `Live session` item needs its own
      static attempt under `Tried:`, unless it asks for the run that confirms
      a static reading.
-   - Implementation: first remove any code in `src/` that cites a finding or
-     an experiment (`FND-`, `EXP-`), with the tests that exercise it: its
-     entry was superseded because the mechanic does not exist. Then rows
-     whose Notes start with `Defect (R-...)`, adding a test that fails without
+   - Implementation: first settle each citation of a finding or an
+     experiment (`FND-`, `EXP-`) in `src/`, `PLACEHOLDER:` comments included,
+     as `implement-rows` says: a superseded one first moves to its
+     `superseded_by`; where the code implements a rule, format, screen or bug
+     that is not superseded (or a deviation that has not been dropped, through
+     its Departs from), the code stays and the citation moves to each of those
+     entries that lists it in `evidence`, or is deleted where none does, and
+     each row a citation newly moved to takes Code `partial` with a note
+     naming the finding or experiment; code that no such entry or deviation
+     describes is removed with the tests that exercise it. Then rows whose Notes start with `Defect (R-...)` or
+     `Defect (FND-...)`, adding a test that fails without
      the fix (extracting branch logic found in `Game` into `Core` first) and
      removing the note. Then parity rows of the current slice
      from the goal or the plan, whose spec status is at least `supported`. Do
