@@ -472,9 +472,13 @@ main branch where a push to it is allowed. Never run a bare `git push` or
 `git worktree add -b <branch> <path> origin/main` creates one, tracks
 `origin/main`, so a bare push is refused or, under `push.default=upstream`,
 updates the main branch, and with `-q` nothing says which branch it updated.
-A branch checked out without `-b` may track nothing. Give `-u` on the first
-push (`git push -u origin HEAD:<branch>`) so the branch tracks its own remote
-branch from then on.
+A branch checked out without `-b` may track nothing. When you create the
+branch yourself, add `--no-track`
+(`git worktree add --no-track -b <branch> <path> origin/main`) so it starts
+with no upstream; tools that create worktrees for you may not, so the
+explicit refspec is still required. Give `-u` on the first push
+(`git push -u origin HEAD:<branch>`) so the branch tracks its own remote branch
+from then on.
 
 After every push, confirm that it landed before reporting it or reading CI:
 the commit hash `git ls-remote origin refs/heads/<branch>` prints must be the
