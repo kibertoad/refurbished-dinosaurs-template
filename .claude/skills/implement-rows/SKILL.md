@@ -31,10 +31,11 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    the code does, remove the code with the tests that exercise it.
 2. **Pick rows**: rows whose Notes start with a `Defect` note first, whether
    it names a report (`Defect (R-...)`) or the finding or experiment that
-   changed the entry (`Defect (FND-...)`, `Defect (EXP-...)`) (fix the rebuild to what the entry says, add a test that fails without the fix,
+   changed the entry (`Defect (FND-...)`, `Defect (EXP-...)`). Fix the
+   rebuild to what the entry says, add a test that fails without the fix,
    and remove the note; when the fault is branch logic in `Game`, extract the
-   rule into `Core` first and pin every branch with a test), then parity rows
-   in `parity/<AREA>.md` that the current slice of
+   rule into `Core` first and pin every branch with a test. Then take parity
+   rows in `parity/<AREA>.md` that the current slice of
    `docs/IMPLEMENTATION-PLAN.md` names, whose Code is not `complete`. Prefer
    rows whose spec status is `supported` or `established`.
 3. **Read the entries** the rows name, and every rule, format and glossary term

@@ -229,8 +229,9 @@ that page differ, the page wins.
   goal files; a rule, format, screen or bug entry it changes in place gives an
   implemented row Code `partial` and a `Defect (FND-...)` or
   `Defect (EXP-...)` note; and a queue item it closes stops being cited in
-  `parity/` and deviations and in live session requests. An implementation session first settles each citation of
-  a finding or experiment in `src/`: it moves to the entries that list that
+  `parity/` and deviations and in live session requests. An implementation
+  session first settles each citation of a finding or experiment in `src/`:
+  it moves to the entries that list that
   evidence (their rows become `partial` with a note), and only code that no
   entry describes is removed. A tooling batch
   (extractor, Ghidra scripts, inventory export, the emulator harness in

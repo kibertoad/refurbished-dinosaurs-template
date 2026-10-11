@@ -197,8 +197,10 @@ only the lines the link gives, and never a section already read this session.
    why it did not settle the question (anything learned about the original is
    a finding first, and `Tried:` names it). Compare `Settles it:` with what
    it said before this attempt: if no finding of this attempt took a part out
-   or moved one to an item of its own, the attempt ended in the same place.
-   Where it did and the previous attempt did too, split or move the item now
+   or moved one to an item of its own, the attempt ended in the same place,
+   even where `Settles it:` now names a caller or callee one step further on.
+   Where this attempt and the previous one both ended in the same place, split
+   or move the item now
    (`tools/Check-ResearchTracking.mjs` warns about a `Static` item with more
    than three `Tried:` notes, a sign a batch skipped this). Split it
    when the attempts showed parts of `Settles it:` that can be answered

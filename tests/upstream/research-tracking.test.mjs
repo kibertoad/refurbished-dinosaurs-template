@@ -93,9 +93,10 @@ test('a Static item with more than three Tried notes warns without failing', t =
   write('queue/TEST.md', withTried(3));
   assert.deepEqual(researchTracking(root), { errors: [], warnings: [] });
   write('queue/TEST.md', withTried(4));
-  assert.deepEqual(researchTracking(root).errors, []);
-  assert.deepEqual(researchTracking(root).warnings.length, 1);
-  assert.match(researchTracking(root).warnings[0], /^Q-TEST-001: 4 Tried notes under Static/);
+  const { errors, warnings } = researchTracking(root);
+  assert.deepEqual(errors, []);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /^Q-TEST-001: 4 Tried notes under Static/);
   write('queue/TEST.md', queue.replace(item, 'None.\n').replace('## Emulated call\n\nNone.\n', `## Emulated call\n\n${item}${tried(4)}`));
   assert.deepEqual(researchTracking(root), { errors: [], warnings: [] });
   rmSync(join(root, 'queue/TEST.md'));
