@@ -11,7 +11,7 @@ every run of the original, including the checks behind this file, holds the
 machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
 Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
 `REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
-[Running the original](upstream/work-protocol.md#running-the-original) (lines 331-365).
+[Running the original](upstream/work-protocol.md#running-the-original) (lines 391-425).
 
 ## BLD-_alias_
 
@@ -66,6 +66,6 @@ Probe: _where the agent can start the build without a person, read its
 memory and set breakpoints, the probe's command line and anything the run
 sets for the child process alone, such as a copy of the executable outside
 the installation's compatibility settings. Otherwise `none`._ See the
-protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 341-353).
+protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 401-413).
 
 _Repeat the section for each build that will be run._

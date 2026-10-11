@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 498-1010)
+sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 512-1155)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -10,7 +10,7 @@ it.
 Rules, formats, screens and bugs may also have `complete_reading`, a list of
 the static findings that together read all of the entry, which makes it
 `established` without a run (see the standard's
-[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 193-293)).
+[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 199-299)).
 Leave it out until such a reading exists.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
@@ -31,7 +31,7 @@ lines. An entry that would pass the limit is split by what it describes, as
 the standard's [File size](upstream/documentation-standard.md#file-size) (lines 106-120)
 section says. The documentation standard check and
 `tools/Test-TemplateInfrastructure.ps1` both check the limit. Build manifests,
-lists of a build's other files, value files, Kaitai definitions, fixtures and
+lists of a build's other files, listing records, value files, Kaitai definitions, fixtures and
 save patches are not counted.
 
 ## Build
@@ -48,6 +48,7 @@ distribution: <GOG, Steam, CD-ROM, ...>
 languages: [<ISO 639-1 codes>]
 int_width: <16 or 32>
 manifest: BLD-<ALIAS>.files.yaml
+listing: BLD-<ALIAS>.listing.yaml   # only where the build keeps a listing record
 ---
 
 ## Obtaining
@@ -71,6 +72,44 @@ other_files:
     reason: <installer, wrapper, compatibility shim, ...>
 ```
 
+No path is in the manifest and the list of other files both, and neither lists
+a path twice. A path ending in `/` is a directory exclusion and stands for
+every file under it, for a directory that ships empty or that something fills
+after installation (DOSBox's `capture/`, saves); its reason says what fills
+it. No manifest path lies under one, and a link or a stopped item under it is
+still listed by its own path.
+
+A build may keep the listing itself in
+`spec/builds/BLD-<ALIAS>.listing.yaml`, named in the entry's `listing`
+field. Other files then names the tool that wrote it and need not repeat what
+its fields say. Each item has a `path` and exactly one of `size`, `link` (the
+target as stored, not followed) or `stopped` (why the listing could not give
+it as a file). A member of an archive the listing went inside is written
+`<archive path>|<member path>`. Items are sorted by path compared byte by byte,
+and no path appears twice. The checker compares the record with the manifest
+and the list of other files as the standard's
+[ENTRY-TYPES-18](upstream/documentation-standard.md#entry-types-18) (lines 671-681) says:
+
+```yaml
+tool: <program that made the listing, with its version or commit>
+date: <YYYY-MM-DD>
+links: <listed, followed or refused>
+cycles: null              # how a followed link back into its own directory was stopped, or null
+media:
+  - prefix: ""            # the installation directory
+    source: null
+    layout: null
+  - prefix: "CD:"
+    source: <disc image path as the manifest or other files write it, or null>
+    layout: "2048"        # 2048, MODE1/2352 or MODE2/2352
+archives:                 # each archive the listing went inside, or []
+  - path: <archive path>
+    depth: 1
+items:
+  - path: <path>
+    size: <bytes>
+```
+
 Code ranges is a table of the parts of each file that hold code located by
 offset, or `None.` where all code is located by address. A range is half-open,
 a location's `offset` into overlay code lies wholly inside one row, and each
@@ -82,6 +121,9 @@ row's finding has a location in that file that is not `kind: file-data`:
 | `<path>` | `0x<start>..0x<end>` | <overlay or bank number, or -> | `FND-<AREA>-<NNN>` |
 ```
 
+A row for a member of an archive writes the file as `CD:INSTALL.LIB\|SETUP2.EXE`:
+GitHub ends a table cell at any `|` that is not escaped, inside backticks too.
+
 A build has one executable that runs the game's rules. An installation that
 ships two, such as a DOS and a Windows version over the same data files, is two
 builds, and both list the shared files.
@@ -90,9 +132,21 @@ The build's files go in its manifest, `spec/builds/BLD-<ALIAS>.files.yaml`,
 whose only key is `files`. It lists every file the game uses, including files
 not studied yet, not only those whose hashes identify the release. A path uses forward slashes and is relative to the
 install directory, or starts with `CD:` (`CD1:`, `CD2:` for more than one disc)
-for a file read from the disc and never installed. A packed executable adds
+for a file read from the disc and never installed. A name on an ISO 9660 disc
+comes from the disc's primary volume, without its `;1` version suffix or the
+dot that ends a name with no extension (`CD:SETUP.EXE`, `CD:README`), unless
+dropping them would give two names one path. A packed executable adds
 `packer` and `unpacked`. `Restoration.Inspect --source <dir>` prints each
 file's size and `xxh3`.
+
+An archive whose members an entry cites, such as an installer's second stage
+that ships only inside a compressed library, lists them under `members`, each
+with the `path` the archive stores it under, and the `size`, `xxh3` and
+`format` of the expanded member and the `tool` that expanded it. A member is
+then written `<archive path>|<member path>` wherever an entry names it
+(`CD:INSTALL.LIB|SETUP2.EXE`), and its function inventory goes in
+`coverage/<build ID>/@CD/INSTALL.LIB@/SETUP2.EXE.tsv`. A member has no
+`packer`, `unpacked` or `members` of its own.
 
 ```yaml
 files:
@@ -100,6 +154,12 @@ files:
     format: <MZ, COM, NE, PE, LE, LX, ELF, cdda or data>
     size: <bytes>
     xxh3: <32 lower-case hex digits, as `xxhsum -H2` prints>
+    members:              # only for an archive whose members an entry cites
+      - path: <path inside the archive, forward slashes>
+        format: <format of the expanded member>
+        size: <bytes>
+        xxh3: <hash of the expanded member>
+        tool: <expanding program and version>
 ```
 
 ## Source
@@ -152,6 +212,16 @@ environment: null
 
 `environment` stays `null` for a static finding. A dynamic finding gives it in
 the form an experiment uses.
+
+Every range is half-open and ends at the byte after the last one it covers,
+where an analyzer usually gives the last byte. A function whose last byte
+Ghidra reports as `0x0045E7CD` is `0x0045E04D..0x0045E7CE`, and a range ending
+with a five-byte call at `0x00401010` ends at `0x00401015`. Where `coverage/`
+has inventories, the check fails a range that ends on an inventoried
+function's last byte. A range that does so on purpose, such as a body cited
+without its one-byte return, is listed in the entry's `ends_on_last_byte`
+field (`ends_on_last_byte: [0x00401000..0x0040103F]`), which any entry may
+have and which is left out when it would be empty.
 
 ## Experiment
 
@@ -399,6 +469,13 @@ None known.
 ## Open questions
 ````
 
+A Region cell names the region, a comma, then the event (`OK button, left
+release`, `Map, Shift+left press`, or `pointer enter`, `pointer leave` and
+`pointer move`); an event the list has no word for is written in plain words
+after the comma, and a cell with no comma says the event is not known. A
+region has a row for each event it responds to, and for each state in which
+one event has a different effect.
+
 ## Glossary term
 
 One file per term in `spec/glossary/`, named after the term as the pseudocode
@@ -429,7 +506,7 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1071-1097)
+[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1220-1246)
 section sets out. Delete it otherwise. Keep the Replaces item only on a
 `mandatory` deviation that replaces some of the entries in Departs from
 entirely, and name only those; keep the Tests item only when test files check
@@ -470,6 +547,12 @@ rows belong in. It also writes the totals and the area links in `PARITY.md`.
 | Spec ID | Title | Spec status | Code | Tests | Deviations | Status | Notes |
 |---|---|---|---|---|---|---|---|
 ````
+
+Tests lists only test files that compare the rebuild with the original: each
+carries `// needs: GAME_DIR`, or names by ID an experiment that the row's entry
+(or a bug whose `related` names it) lists in its `evidence`. Tests over
+synthetic state and a deviation's Tests are not listed, and a row with no
+other tests has Tests `None` (`docs/VALIDATION.md`).
 
 ## Reviewing a claim
 

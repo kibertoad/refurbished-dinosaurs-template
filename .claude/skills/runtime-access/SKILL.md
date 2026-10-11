@@ -14,7 +14,7 @@ possible, and it is the one time the original is run before the static work
 is done.
 
 1. **Take the run lock** as the protocol's
-   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 331-365)
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 391-425)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an
    exclusive create that fails if it exists (`[IO.File]::Open($path,
    'CreateNew')` in PowerShell), naming this repository, the session and the

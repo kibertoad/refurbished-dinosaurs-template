@@ -6,7 +6,7 @@ rules it applies are the Standard and Protocol in the local
 reasoning in findings, complete-reading citations and Open questions using the
 existing v1 fields; do not add unsupported schema fields.
 
-Apply the [bounded analysis report contracts](upstream/documentation-standard.md#bounded-analysis-reports) (lines 295-375)
+Apply the [bounded analysis report contracts](upstream/documentation-standard.md#bounded-analysis-reports) (lines 301-385)
 to each supported query. Keep configurations and reports in `GAME_DIR` and out
 of commits. A report's complete-search claim covers only its stated domain and
 model. A game's request for reporter behaviour stays open until the reporter
@@ -22,7 +22,11 @@ fixup and trampoline provenance. Equivalent runtime aliases share a canonical
 file target. See [evidence tools](EVIDENCE-TOOLS.md). Toolkit PR #11 permits file
 offsets for MZ overlays; COM, NE, PE, LE, LX and ELF executable locations still
 require addresses. Unknown formats require a standard decision, not a guessed
-checker exception. Packed files use their declared unpacked format.
+checker exception. Packed files use their declared unpacked format, and a
+member of an archive is located in its expanded form as `ARCHIVE|MEMBER`
+(`docs/SPEC-ENTRY-TEMPLATES.md`). Every range is half-open: its end is the byte
+after the last one it covers, never an analyzer's last byte or the start of the
+last instruction.
 
 A function entry and an analyzer body are leads. Follow reachable instructions,
 including shared tails and separately entered overlapping instruction streams.
@@ -148,27 +152,67 @@ still be entered by a conditional branch or fall-through, so a finding that
 calls code unreachable lists every kind as searched and states its assumptions
 about computed targets.
 
+A hit from a scan that does not depend on an analyzer's function bounds counts
+only where it is an instruction start that the code reaches from an established
+entry (the entry point, an export, a function table entry, an installed vector
+or callback, a jump table entry read up to its checked bound). Decoding from
+nearby offsets shows nothing, since an x86 decode started inside an instruction
+usually falls into step within a few bytes; such hits stay candidates.
+
+Whether the code ever does something, such as start another program, is
+answered by a census of the mechanism every use has to pass through (a DOS or
+operating-system service selected by a register value, an import slot, a port
+range, an interrupt vector, a runtime dispatcher), as the standard's
+[Findings](upstream/documentation-standard.md#findings) (lines 739-823) section describes, not by tracing the code that
+prepares the action. The census lists every site with the value that selects
+the service there, a site whose value is loaded or computed as undecided, and
+each kind of transfer that leaves the code it covers; each kind of site counts
+as searched only with a control of that kind. For DOS program starts the sites
+are interrupt `0x21` with `AX` of `0x4B00` or `0x4B01` (not `0x4B03`, which
+loads an overlay), far calls through a saved interrupt `0x21` vector after a
+`pushf`, and interrupt `0x2E`.
+
 ## Imports and pointer tables
 
 An operating-system or library function reached through a PE import address
 table is named by the slot's address and the import the file's import tables
-put there, read as [STATUS-42](upstream/documentation-standard.md#status-42) (lines 365-367)
+put there, read as [STATUS-42](upstream/documentation-standard.md#status-42) (lines 371-373)
 describes, never by its position in a listing such as `dumpbin /imports`. The
 query names a positive control slot. Arguments at a call site can confirm or
 contradict a mapping, never identify an import. A finding about what a table of
 pointers holds reads the entries from the build's bytes as
-[STATUS-43](upstream/documentation-standard.md#status-43) (lines 373-375) describes: address,
+[STATUS-43](upstream/documentation-standard.md#status-43) (lines 379-381) describes: address,
 stride, pointer offset and width, count and the code that bounds it, the
 mapping, and per entry the length read and its terminator. An analyzer listing
 is compared with the bytes, never used in their place, and an entry that points
 outside mapped or initialized memory or has no terminator is recorded as unread.
 
+An analyzer's mark that an imported function does not return, or a name that
+sounds like an error routine, is a lead. Keep apart the import the tables put in
+the slot, what the function's documentation says, and what the implementation
+loaded at run time does, which lies outside the build; an entry whose result
+depends on the last stays `supported` until a run settles it. Read the code
+after the call as a possible continuation until then.
+
+An NE file has no import slots: a record in a segment's relocation table names
+the target of a far call stored with a placeholder operand, and a record whose
+additive flag is clear covers a chain of sites linked through the words at each
+site up to `FFFF`. A finding names such a call by its `segment:offset` site,
+the record that covers it and the module and ordinal or name the record gives,
+read as [STATUS-44](upstream/documentation-standard.md#status-44) (lines 383-385) describes, with a positive-control site. An
+ordinal is a number until the exporting module's own names table, in a named
+copy from the period, or an outside table with its version names it.
+
 Give each queue item one falsifiable question and a `Settles it:` condition. If a
 question requires independent segment identity, caller bounds and hardware
 behavior, split it into separately identified items and cite dependencies. Close
 only what the spec answers, in the same commit. Keep competing readings and their
-support in the entry. A repeated attempt without new evidence follows the
-Protocol's move-to-settling-evidence rule; do not append an endless list of tasks.
+support in the entry. An attempt that neither took part of Settles it out with a
+finding nor moved part of the question into its own item ended in the same
+place, however much new code it read. After two such attempts in a row the item
+is split into parts with their own Settles it, or moved to the section of the
+evidence that would change the outcome, as
+[The queue](upstream/work-protocol.md#the-queue) (lines 84-163) says; do not append an endless list of tasks.
 
 ## Status and inventories
 
@@ -179,19 +223,32 @@ preserves history and transfers active citations to the replacements.
 A finding or experiment is edited in place only where nothing it records
 changes (spelling, formatting, a broken link, a rewording that states the same
 facts). Any correction to a recorded fact supersedes the whole entry under
-[IDENTIFIERS-8](upstream/documentation-standard.md#identifiers-8) (lines 154-162): the
+[IDENTIFIERS-8](upstream/documentation-standard.md#identifiers-8) (lines 156-168): the
 observations that still hold go into replacements under new IDs, which start
 `recorded` and say in Alternatives (an experiment's Conclusion) what was wrong
 and how it was found. Every citing entry and glossary claim then moves to the
 replacements it drew on and takes the status its remaining evidence supports.
+The one correction to a location made in place is a range end written as the
+last byte (or the first byte of the last item) where the intended bytes are not
+in doubt; it moves to the byte after that item everywhere the entry gives the
+range. A range the entry lists in `ends_on_last_byte`, or whose intended end is
+in doubt, is corrected by superseding. A value in `tools/`, such as a leaf
+routine list, that rested on the wrong observation is corrected too, and each
+finding or experiment recorded with a run made using the old value is
+superseded by one that records the run again. Before anyone outside the
+repository relies on its IDs, a repository may instead squash a superseded
+entry into its replacements, as
+[IDENTIFIERS-7](upstream/documentation-standard.md#identifiers-7) (lines 148-154) allows; the change lists it in the check's
+`squashed` input (`docs/VALIDATION.md`).
 
 A finding's How to reproduce may name the tool and version, a script under
 `tools/` with the commit it was run from, and the query, and gives every value
 from a configuration kept in `GAME_DIR` that the result depends on. Rules,
 formats, screens and bugs name no research tool; they cite the finding.
 
-Inventories contain only function starts, body sizes and permitted
-researcher-authored names/reasons. Export raw analyzer coordinates locally, map
+Inventories contain only function starts, body sizes, permitted
+researcher-authored names/reasons and, where a body is not one range from its
+start, its half-open ranges. Export raw analyzer coordinates locally, map
 them through declared views, reject ambiguous ownership and use portable paths.
 Coverage totals describe the measured inventory, including exclusions; they are
 not a percentage of understood behavior. `pnpm exec standard-coverage` computes
