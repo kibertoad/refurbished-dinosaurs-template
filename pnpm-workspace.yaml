@@ -3,5 +3,5 @@
 # version package.json pins.
 minimumReleaseAgeExclude:
   - '@scientific-method/standard-checker@4.2.0'
-  # The reader that speaks prepared-config protocol 3, as engine 18.4 does.
-  - '@scientific-method/executable-reader@4.0.0'
+  # The reader that speaks prepared-config protocol 3, as engine 19.1 does.
+  - '@scientific-method/executable-reader@4.1.0'

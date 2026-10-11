@@ -8,6 +8,18 @@ not here.
 
 A project created from this template may delete this file.
 
+## Evidence reporters, 2026-10-11
+
+- **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.0.0
+  to 4.1.0 and `scientific-method-engine` from 18.4.0 to 19.1.0. Both still
+  speak prepared-config protocol 3. The reader's `bodies` lays out FBOV files
+  whose resident descriptor spans overlap instead of failing. Engine 19 lists
+  inventory row starts at unresolved overlapping instructions in `rowStarts`
+  and leaves them out of `notRead`, and adds value ranges for table bounds;
+  19.1 lets a restoration declare single call sites that never return. The
+  template reads none of the changed `inventory-check` fields. The reader's
+  `minimumReleaseAgeExclude` entry follows the new version.
+
 ## Standard, protocol and checker 4.2.0, 2026-10-11
 
 - **Standard and protocol.** `docs/upstream/` moves from `e84495f` to `d8ebc1f`
