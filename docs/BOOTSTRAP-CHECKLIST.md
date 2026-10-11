@@ -27,13 +27,17 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       skill, answering every capability for the analysis build from an
       attempt.
 - [ ] Survey: list the installation and the media the game reads in full,
-      record how, list in the manifest every file the game uses and every
-      other path under the build entry's Other files with its reason, give
+      record how (in a `BLD-*.listing.yaml` listing record where the build
+      keeps one), list in the manifest every file the game uses and every
+      other path under the build entry's Other files with its reason, list
+      under an archive's `members` each member a location or inventory names
+      (`docs/SPEC-ENTRY-TEMPLATES.md`), give
       the format of every file listed as
       `data` an entry (`unknown` where nothing is known; CD audio tracks need
       none), export a function inventory of each file the analysis reads to
       `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an
-      `@CD` directory), with each start in the standard's notation for the
+      `@CD` directory, and an archive member goes under `<archive path>@/`),
+      with each start in the standard's notation for the
       file (`docs/EVIDENCE-TOOLS.md`), add a screen entry for every
       screen the manual mentions, and seed a `queue/<AREA>.md` for every
       area.

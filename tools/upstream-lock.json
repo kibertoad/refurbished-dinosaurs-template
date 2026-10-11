@@ -1,36 +1,36 @@
 {
   "standardVersion": 1,
-  "captured": "2026-10-07",
+  "captured": "2026-10-11",
   "checker": {
     "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-    "revision": "3591b6642dcd67291b4061b05d1e7b9295a75fdf",
-    "version": "2.5.0"
+    "revision": "1f3ce2845d58dc4d77eaa7c08ac953cd2faba789",
+    "version": "4.2.0"
   },
   "files": [
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "e84495f286382b7b82384a325b34581c9c08959d",
+      "revision": "d8ebc1f468a25d39ebd34a942bfd1e38adc359e2",
       "source": "website/content/english/pages/documentation-standard.md",
       "path": "docs/upstream/documentation-standard.md",
-      "sha256": "0b760d67e33ab9221bfba44f4c86f0d9ccc841f9e6d1a2b705b06fe5d62b248b"
+      "sha256": "48a3a3646fea4270beb38d334330bdd8529c292e595f5ea0ba4e692cd8a2d0bf"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "e84495f286382b7b82384a325b34581c9c08959d",
+      "revision": "d8ebc1f468a25d39ebd34a942bfd1e38adc359e2",
       "source": "website/content/english/pages/methodology.md",
       "path": "docs/upstream/methodology.md",
       "sha256": "d499140845bbe4eaf55dcf90c79710245094f54031da3f20b33711552c3b5093"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "e84495f286382b7b82384a325b34581c9c08959d",
+      "revision": "d8ebc1f468a25d39ebd34a942bfd1e38adc359e2",
       "source": "website/content/english/pages/work-protocol.md",
       "path": "docs/upstream/work-protocol.md",
-      "sha256": "716747fe9c9bbeec9f387216d8a92e4174c16ba4e89c3368b7b4a83ce625df5f"
+      "sha256": "f64ae0229e62b144226a075e84ef85a1fc3fda4a1a221e65e9a9320b61b3486e"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "e84495f286382b7b82384a325b34581c9c08959d",
+      "revision": "d8ebc1f468a25d39ebd34a942bfd1e38adc359e2",
       "source": "LICENSE",
       "path": "docs/upstream/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"
