@@ -195,8 +195,14 @@ only the lines the link gives, and never a section already read this session.
    item in the queue file of the area of the first entry it names, and add one
    `Tried:` note to an item you could not settle, saying what was examined and
    why it did not settle the question (anything learned about the original is
-   a finding first, and `Tried:` names it). Where this was the second attempt
-   in a row to end in the same place, split or move the item now. Split it
+   a finding first, and `Tried:` names it). Compare `Settles it:` with what
+   it said before this attempt: if no finding of this attempt took a part out
+   or moved one to an item of its own, the attempt ended in the same place,
+   even where `Settles it:` now names a caller or callee one step further on.
+   Where this attempt and the previous one both ended in the same place, split
+   or move the item now
+   (`tools/Check-ResearchTracking.mjs` warns about a `Static` item with more
+   than three `Tried:` notes, a sign a batch skipped this). Split it
    when the attempts showed parts of `Settles it:` that can be answered
    separately (callers that need different evidence, obligations a reading
    could each close, a value read at one point and what follows from each

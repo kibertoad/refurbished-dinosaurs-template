@@ -8,6 +8,25 @@ not here.
 
 A project created from this template may delete this file.
 
+## Repeated queue attempts and Defect notes, 2026-10-11
+
+- **Research tracking.** `tools/Check-ResearchTracking.mjs` warns, without
+  failing, about an item under Static with more than three `Tried:` notes,
+  naming the item and the count. Under the protocol's rule for repeated
+  attempts (kibertoad/refurbished-dinosaurs#107) one note inherited from a
+  split and two attempts is the most an item keeps, unless each later attempt
+  took part of `Settles it:` out, which the check cannot read from the text.
+  `researchTracking` returns the errors and the warnings;
+  `checkResearchTracking` still returns the errors alone. The `research-item`
+  skill's queue step compares `Settles it:` with what it said before the
+  attempt, counts an attempt that only moved it one caller or callee on as
+  ending in the same place, and names the warning.
+- **Defect notes.** A research batch that changes an entry in place gives its
+  row a `Defect (FND-...)` or `Defect (EXP-...)` note
+  (kibertoad/refurbished-dinosaurs#109). The `implement-rows` and `start-session` skills and `AGENTS.md` take every
+  `Defect` note first, whether it names a report, a finding or an
+  experiment; `implement-rows` matched only `Defect (R-...)`.
+
 ## Evidence reporters, 2026-10-11
 
 - **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.0.0

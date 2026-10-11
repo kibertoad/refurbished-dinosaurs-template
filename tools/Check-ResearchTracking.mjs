@@ -3,8 +3,10 @@
 import { readdirSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-export function checkResearchTracking(root) {
-  const errors = [], entries = new Map(), items = new Map(), next = new Map();
+export function checkResearchTracking(root) { return researchTracking(root).errors; }
+// Warnings point at text the check cannot judge alone; they never fail the gate.
+export function researchTracking(root) {
+  const errors = [], warnings = [], entries = new Map(), items = new Map(), next = new Map();
   const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '').replaceAll('\r\n', '\n');
   const files = dir => existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? files(join(dir, e.name)) : e.name.endsWith('.md') ? [join(dir, e.name)] : []) : [];
@@ -40,6 +42,10 @@ export function checkResearchTracking(root) {
     if (!text.includes('?') || !text.includes('Settles it:') || !/Blocks:\s*\S/.test(text))
       errors.push(`${qid}: missing question, evidence or blocking scope`);
     if (section === 'Blocked' && !text.includes('Waiting on:')) errors.push(`${qid}: blocked item has no Waiting on`);
+    // One note inherited from a split and two attempts; a fourth note means a batch skipped the split or move.
+    const tried = text.match(/\bTried:/g)?.length ?? 0;
+    if (section === 'Static' && tried > 3)
+      warnings.push(`${qid}: ${tried} Tried notes under Static, more than one from a split and two attempts: split or move it unless each later attempt took part of Settles it out`);
     items.set(qid, { refs, origin, number: Number(number) });
   };
   for (const area of areas) {
@@ -105,13 +111,14 @@ export function checkResearchTracking(root) {
       }
     }
   }
-  return errors;
+  return { errors, warnings };
 }
 // Compare real paths, as tools/upstream.mjs does, so a symlinked checkout still runs the check.
 const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();
 if (invokedDirectly) {
   const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-  const errors = checkResearchTracking(root);
+  const { errors, warnings } = researchTracking(root);
+  for (const warning of warnings) console.error(`Warning: ${warning}`);
   for (const error of errors) console.error(error);
   if (errors.length) process.exitCode = 1;
   else console.log('Area queues and active spec open-question references are consistent.');

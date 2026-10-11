@@ -68,8 +68,9 @@ This skill is the procedure; where they differ, the protocol wins.
      entries that lists it in `evidence`, or is deleted where none does, and
      each row a citation newly moved to takes Code `partial` with a note
      naming the finding or experiment; code that no such entry or deviation
-     describes is removed with the tests that exercise it. Then rows whose Notes start with `Defect (R-...)` or
-     `Defect (FND-...)`, adding a test that fails without
+     describes is removed with the tests that exercise it. Then rows whose
+     Notes start with `Defect (R-...)`, `Defect (FND-...)` or
+     `Defect (EXP-...)`, adding a test that fails without
      the fix (extracting branch logic found in `Game` into `Core` first) and
      removing the note. Then parity rows of the current slice
      from the goal or the plan, whose spec status is at least `supported`. Do
