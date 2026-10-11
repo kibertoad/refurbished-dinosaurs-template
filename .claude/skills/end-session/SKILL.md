@@ -48,13 +48,14 @@ only the lines the link gives, and never a section already read this session.
    Commit the handover on its own. It is not a batch: it changes nothing
    outside `docs/HANDOVER.md` and `docs/goals/`, and carries no trailers.
 5. **Push** the branch unless `AGENTS.md` says the owner pushes or the user
-   has instructed otherwise. When the owner asked to wrap up, push the work to
-   the main branch unless the request or `AGENTS.md` says otherwise; where
-   work lands through pull requests, or the session cannot push to the main
-   branch, push the working branch (and open or update its pull request)
-   instead, as "Wrapping up" in `docs/goals/README.md` says. Check
-   Git directly for the branch's remote sync state when reporting it; do not
-   copy a count into the handover.
+   has instructed otherwise, with the explicit refspec and the check that the
+   push landed from "Pushing a branch" in `AGENTS.md`. When the owner asked to
+   wrap up, push the work to the main branch unless the request or `AGENTS.md`
+   says otherwise; where work lands through pull requests, or the session
+   cannot push to the main branch, push the working branch (and open or update
+   its pull request) instead, as "Wrapping up" in `docs/goals/README.md` says.
+   Check Git directly for the branch's remote sync state when reporting it; do
+   not copy a count into the handover.
 6. **Continue or stop.** If the session worked under a goal whose condition
    does not hold and none of the stop reasons in `docs/goals/README.md`
    applies, the session's end is a checkpoint: run `start-session` now and
