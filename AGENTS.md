@@ -190,6 +190,8 @@ that page differ, the page wins.
   screenshots. Never wait for a report or plan around one. Record one at once
   in `docs/reports/` with the `triage-report` skill; a research session
   triages it into a `Defect (R-...)` parity note, a queue item or a finding.
+  An implementation session takes rows with a `Defect` note first, whether
+  it names a report or the finding or experiment that changed the entry.
   Screenshots are never committed: the rebuild's go in `GAME_DIR/reports/`,
   the original's in `GAME_DIR/captures/`, the durable local reference store.
 - Competing readings of an open question are written in the entry's Open
@@ -225,9 +227,9 @@ that page differ, the page wins.
   and changes no other code apart from `tools/`: citations of an entry it
   supersedes move in code, parity rows, deviations, `docs/HANDOVER.md` and the
   goal files; a rule, format, screen or bug entry it changes in place gives an
-  implemented row Code `partial` and a `Defect (FND-...)` note; and a queue
-  item it closes stops being cited in `parity/` and deviations and in live
-  session requests. An implementation session first settles each citation of
+  implemented row Code `partial` and a `Defect (FND-...)` or
+  `Defect (EXP-...)` note; and a queue item it closes stops being cited in
+  `parity/` and deviations and in live session requests. An implementation session first settles each citation of
   a finding or experiment in `src/`: it moves to the entries that list that
   evidence (their rows become `partial` with a note), and only code that no
   entry describes is removed. A tooling batch

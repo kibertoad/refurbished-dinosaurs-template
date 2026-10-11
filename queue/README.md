@@ -102,6 +102,10 @@ that would still pass is split by the kind of the first entry each item names:
 `queue/COMBAT/static/RULE.md`.
 
 Run `node tools/Check-ResearchTracking.mjs` to check area files, stable IDs and
-links between active spec Open questions and their queue items. The canonical
-fast gate runs it. Passing this structural check does not prove a survey or
+links between active spec Open questions and their queue items. It warns,
+without failing, about a `Static` item with more than three `Tried:` notes:
+one inherited from a split and two attempts is the most the rule above
+leaves, unless the later attempts each took part of `Settles it:` out, which
+the check cannot see. The canonical fast gate runs it. Passing this
+structural check does not prove a survey or
 research question complete.

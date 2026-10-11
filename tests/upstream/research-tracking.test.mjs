@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkResearchTracking } from '../../tools/Check-ResearchTracking.mjs';
+import { checkResearchTracking, researchTracking } from '../../tools/Check-ResearchTracking.mjs';
 function fixture(t, ending = '\n', area = 'TEST') {
   const root = mkdtempSync(join(tmpdir(), 'research-tracking-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -84,4 +84,23 @@ test('open questions exempted with a reason pass and empty exemptions fail', t =
   assert.deepEqual(checkResearchTracking(root), []);
   entry('- FUN_1A2B: purpose unknown. (No item: )\n');
   assert.ok(checkResearchTracking(root).some(e => e.includes('exempted with no reason')));
+});
+test('a Static item with more than three Tried notes warns without failing', t => {
+  const {root, write, queue} = fixture(t);
+  const tried = n => Array.from({ length: n }, (_, i) => `  Tried: reading ${i + 1} (FND-TEST-00${i + 1}).\n`).join('');
+  const item = '- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n';
+  const withTried = n => queue.replace(item, `${item}${tried(n)}`);
+  write('queue/TEST.md', withTried(3));
+  assert.deepEqual(researchTracking(root), { errors: [], warnings: [] });
+  write('queue/TEST.md', withTried(4));
+  assert.deepEqual(researchTracking(root).errors, []);
+  assert.deepEqual(researchTracking(root).warnings.length, 1);
+  assert.match(researchTracking(root).warnings[0], /^Q-TEST-001: 4 Tried notes under Static/);
+  write('queue/TEST.md', queue.replace(item, 'None.\n').replace('## Emulated call\n\nNone.\n', `## Emulated call\n\n${item}${tried(4)}`));
+  assert.deepEqual(researchTracking(root), { errors: [], warnings: [] });
+  rmSync(join(root, 'queue/TEST.md'));
+  mkdirSync(join(root, 'queue/TEST'));
+  write('queue/TEST/README.md', '# TEST\n\nNext ID: Q-TEST-002\n');
+  write('queue/TEST/static.md', `# TEST: Static\n\n- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n${tried(5)}`);
+  assert.match(researchTracking(root).warnings.join('\n'), /^Q-TEST-001: 5 Tried notes/);
 });
