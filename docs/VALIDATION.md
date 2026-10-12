@@ -102,7 +102,17 @@ restores (unless `-NoRestore` is given), builds in Release, and runs the test su
 timeout.
 
 Locally, run it only with `-TestFilter`, for the tests the change touches. The
-full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
+full gate runs in CI on every pull request and push to main and is never run
+locally (`AGENTS.md`, Commands). CI gates both jobs by changed paths, so a
+batch that cannot affect a suite does not run it:
+
+| Batch touches | Run locally | CI runs |
+|---|---|---|
+| `spec/`, `parity/`, `deviations/`, `queue/` only | `node tools/upstream.mjs docs --check` (the pre-commit hook's node checks run on commit) | documentation only |
+| `src/`, `tests/` | `dotnet build` plus `-TestFilter` for the touched area; add the documentation check when the batch cites or changes spec IDs | both jobs |
+| `tools/`, `tests/upstream/`, `tests/evidence/`, `tests/emu/` | the affected test files only; add the documentation check when checker inputs or pins changed | both jobs |
+| Pins, lockfiles, workflows, hooks | `node tools/Invoke-NodeChecks.mjs` plus the suite that consumes the pin | both jobs |
+| Narrative `docs/` only | nothing; commit | neither |
 
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
 including the long tier, only when the user asks for it:
