@@ -6,6 +6,15 @@ What can be done with the original game running, and who can do it. The
 file says what is true now: replace an answer when a tool, emulator or machine
 changes it. Findings from runs go in `spec/`, never here.
 
+For owner-supplied Windows/DOSBox images, follow
+[WINDOWS-PROBES.md](WINDOWS-PROBES.md): patch and fingerprint an isolated copy,
+version the actual probe/configuration scripts, validate the real guest/game
+and each capability, and document retained paths and exact commands here.
+When authorized setup/capability validation passes, record the owner's standing
+probe scope; work within it without repeated permission requests. Keep current
+checkpoints and unresolved evidence; clean consumed intermediates under
+[ANALYSIS-OUTPUTS.md](ANALYSIS-OUTPUTS.md).
+
 Static analysis is the main source of evidence. Runs are the last resort, and
 every run of the original, including the checks behind this file, holds the
 machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
