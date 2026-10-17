@@ -506,7 +506,14 @@ repository instructions before pushing.
 
 Treat logs, analysis listings, and experiments as a temporary working set.
 Summarize reusable conclusions into durable documentation, record remaining
-unknowns, then discard obsolete intermediate state. Avoid unrelated refactors
+unknowns, then discard obsolete intermediate state. Follow
+[ANALYSIS-OUTPUTS.md](docs/ANALYSIS-OUTPUTS.md): isolate each headless run,
+commit consumed evidence and regeneration metadata, then remove only reviewed
+output with ownership/path checks; preserve canonical inputs/projects, current
+checkpoints and unresolved evidence. For owner-supplied Windows images, use
+[WINDOWS-PROBES.md](docs/WINDOWS-PROBES.md) to build and validate versioned
+rust-dos probes before recording their capabilities in RUNTIME.md.
+Avoid unrelated refactors
 during evidence-driven work. After commands that start games, servers, analyzers,
 or compiler services, check for orphaned processes and stop only the processes
 created by the current task.

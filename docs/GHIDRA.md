@@ -75,6 +75,12 @@ $scripts = "$(scientific-method-engine ghidra-scripts);$PWD\tools\ghidra"
 
 Never redirect broad output into the repository.
 
+Put each run's bounded transcript/exports in a dedicated ignored output
+directory with provenance and an active marker. Once its findings, failure
+limits and regeneration procedure are recorded and committed, remove that
+reviewed directory under [ANALYSIS-OUTPUTS.md](ANALYSIS-OUTPUTS.md). Preserve
+the canonical validated project, source executable and unresolved reports.
+
 ## Bounded query pattern
 
 Prefer reusable scripts that accept explicit inputs and cap output:

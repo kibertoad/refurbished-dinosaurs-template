@@ -14,6 +14,9 @@ only the lines the link gives, and never a section already read this session.
    uncertain. Reusable MSBuild nodes are not orphans. Delete the run lock
    (path in `docs/RUNTIME.md`) if this session created it, and never
    otherwise. Follow any process-audit rule in `AGENTS.md`.
+   After analysis records are committed, clean reviewed headless outputs under
+   [ANALYSIS-OUTPUTS](../../../docs/ANALYSIS-OUTPUTS.md). Keep canonical inputs,
+   active/unreviewed evidence and current validated probe checkpoints.
 2. **Goal**: if the goal's condition holds, or the goal is dropped, the
    handover commit in step 4 deletes its file in `docs/goals/` in place of
    rewriting its Handover, says which in the commit message, and adds anything
