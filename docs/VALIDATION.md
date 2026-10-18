@@ -111,7 +111,7 @@ These are the checks for a batch in progress, not a replacement for the fast gat
 
 For any other change, run it locally with `-TestFilter`, for the tests the change touches. The full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
 
-A successful check is reused only when its command, tool versions, configuration, any `GAME_DIR` builds it read and the whole tree all match the earlier run exactly. The gate's configuration lists no narrower inputs for any check, so the whole tree is what has to match; which inputs a check has comes from that configuration, never from a judgement about what a change touched. Staged-tree pre-commit checks still run, and a working-tree result is reused for a staged tree only when the staged copy of everything the check compares matches the working tree. No hook or evidence check is bypassed.
+A successful check is reused only when its command, tool identities, configuration, environment, original inputs and declared file inputs match. `validation-inputs.json` declares narrower inputs; its default empty checks object means checks run fresh. The tooling test stage uses the local receipt helper described in [Validation inputs and final records](VALIDATION-INPUTS.md). Final documentation and staged-tree checks always run freshly. No hook or evidence check is bypassed.
 
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
 including the long tier, only when the user asks for it:
