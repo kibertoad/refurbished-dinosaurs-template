@@ -46,6 +46,14 @@ only the lines the link gives, and never a section already read this session.
    control of each kind of site, and sites found only by decoding from every
    offset reported as candidates. Trace further only what the census leaves
    undecided, each as a queue item of its own.
+   Plan one reviewable answer before tracing more helpers. Directly related
+   callers, helpers and fields can share a batch with several findings; a
+   function boundary alone does not require a commit. Name the part of
+   `Settles it` each reading can remove. Keep unrelated questions and tooling
+   changes separate. Reuse retained caller/operand reports only when source
+   fingerprint, mappings, entries, versions, bounds and limits still match;
+   preserve candidates, missing controls and gaps as such. Store derived
+   indexes locally and cite committed regeneration procedures in findings.
 3. **State the question and the competing readings.** Decide what evidence
    would rule each reading out. Readings still open when the batch ends go in
    the Open questions section of the entry they concern, one per reading: what

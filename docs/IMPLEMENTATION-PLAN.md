@@ -149,6 +149,19 @@ existing artifact paths. Documentation states the prerequisite and normal CI pat
 Exit: canonical normal and offline validation pass; open a shared template PR and
 adopt only reviewed delivery. No new persisted file layout or owner decision.
 
+## Research throughput and change-aware validation
+
+Tooling batch. Outcome: documentation-only research avoids application builds
+and tests while retaining policy, configuration, documentation/citation,
+affected Kaitai compilation and queue checks. `-ChangedSince <commit>` examines
+committed, staged, unstaged and untracked paths together; deleted and renamed
+code require the broader gate. Unknown paths, invalid bases and explicit test
+requests cannot silently select a smaller gate. CI keeps normal validation.
+Synthetic Git fixtures prove selection; PowerShell doubles prove retained
+checks, skipped builds and failures. No original content or runtime behavior
+changes. Exit: those controls pass; instructions describe coherent batches and
+dependency-based priorities; adoption waits for reviewed upstream delivery.
+
 ## Release signing safeguards
 
 Tooling batch, comparing New Chrome commit 88f4112791db0caaf488b5bcd906cabd842bd4e1. Restrict release preparation to main, bound job durations, require the expected timestamped Authenticode certificate, and safely reuse a tag only when it resolves to the prepared commit. Preserve existing signing defaults and project-neutral packaging. Synthetic tests cover tag lookup/create/error paths and certificate rejection without contacting signing services. Exit: canonical validation passes and workflow checks cover every job and signature boundary.

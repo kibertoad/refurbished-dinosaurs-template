@@ -101,8 +101,21 @@ alone. It runs `Verify-Repository.ps1` and `Verify-Configuration.ps1`, then
 restores (unless `-NoRestore` is given), builds in Release, and runs the test suite with a 30-minute safety
 timeout.
 
-Locally, run it only with `-TestFilter`, for the tests the change touches. The
+For a research documentation batch, record the base commit before editing and run
+`./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>`. Selection includes
+committed changes since that base, staged/unstaged changes, untracked files and
+both sides of a rename. Only `spec/` Markdown/Kaitai, Markdown under
+`docs/`, `queue/`, `parity/` and `deviations/`, and validation YAML qualify.
+It retains policy/configuration, documentation/citation, Kaitai compilation and
+queue checks, without stopping the game, building .NET or running application
+tests. Unknown paths and empty changes select the broader gate. A bad base
+fails. Explicit test/count controls also retain the broader gate.
+
+Otherwise locally run it with `-TestFilter`, for the tests the change touches. The
 full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
+
+Staged-tree pre-commit checks still run. A working-tree validation result is
+not reused for a different staged tree. No hook or evidence check is bypassed.
 
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
 including the long tier, only when the user asks for it:

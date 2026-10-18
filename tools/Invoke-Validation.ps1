@@ -8,7 +8,8 @@ param(
     [switch] $LongRunningTestsOnly,
     [int] $MinimumExpectedTests,
     [switch] $TraceTestOutput,
-    [switch] $NoRestore
+    [switch] $NoRestore,
+    [string] $ChangedSince
 )
 
 $ErrorActionPreference = 'Stop'
@@ -74,13 +75,30 @@ try {
         throw "Another validation run is already active for this checkout ($lockPath)."
     }
 
-    Stop-CheckoutGame
+    $documentationOnly = $false
+    if ($ChangedSince) {
+        $selection = & node (Join-Path $PSScriptRoot 'Select-Validation.mjs') $ChangedSince
+        if ($LASTEXITCODE -ne 0 -or $selection -notin @('documentation', 'full')) {
+            throw 'Could not classify changes; run validation without -ChangedSince.'
+        }
+        # An explicit request for tests always runs those tests.
+        $documentationOnly = $selection -eq 'documentation' -and -not (
+            $TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests)
+    }
+    if (-not $documentationOnly) { Stop-CheckoutGame }
 
     & (Join-Path $PSScriptRoot 'Verify-Repository.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Repository policy verification failed.' }
 
     & (Join-Path $PSScriptRoot 'Verify-Configuration.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Project configuration is incomplete.' }
+
+    if ($documentationOnly) {
+        Write-Host 'Documentation-only validation: policy, configuration, spec/citations, Kaitai and queue checks.'
+        & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
+        if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
+        return
+    }
 
     & (Join-Path $PSScriptRoot 'Test-TemplateInfrastructure.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Template infrastructure verification failed.' }
@@ -91,6 +109,8 @@ try {
     # The x86 commands of tools/evidence/report.mjs run scientific-method-engine with the interpreter tools/evidence/python.mjs picks.
     & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/goal-run.test.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
+    & node --test (Join-Path $repositoryRoot 'tests/upstream/validation-selection.test.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Validation selection controls failed.' }
     # These tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
