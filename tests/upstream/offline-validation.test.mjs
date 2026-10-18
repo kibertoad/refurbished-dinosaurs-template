@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 const root=resolve(import.meta.dirname,'../..'),pwsh=process.env.PWSH||'pwsh';
 const noPwsh=spawnSync(pwsh,['-NoProfile','-Command','exit 0']).error?'PowerShell 7 required for the validation entry point':false;
 const literal=s=>"'"+s.replaceAll("'","''")+"'";
-function exercise(t,offline,failBuild=false,selection=null){
+function exercise(t,offline,failBuild=false,selection=null,forceTests=false){
  const dir=mkdtempSync(join(tmpdir(),'validation-offline-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));mkdirSync(join(dir,'tools'));
  copyFileSync(join(root,'tools/Invoke-Validation.ps1'),join(dir,'tools/Invoke-Validation.ps1'));
  for(const name of ['Verify-Repository','Verify-Configuration','Test-TemplateInfrastructure','Test'])writeFileSync(join(dir,'tools',name+'.ps1'),`param($RepositoryRoot,$MinimumExpectedTests,$TestFilter,[switch]$NoRestore)\n$global:checks.Add('${name}')\n${name==='Test'?'$global:forwarded=[bool]$NoRestore':''}\n$global:LASTEXITCODE=0\n`);
@@ -17,7 +17,7 @@ $ErrorActionPreference='Stop'
 $global:commands=[Collections.Generic.List[object]]::new()
 $global:checks=[Collections.Generic.List[string]]::new()
 $global:forwarded=$false
-function Get-Process {}
+function Get-Process { $global:checks.Add('Get-Process') }
 function node { $global:checks.Add('node');$global:LASTEXITCODE=0; if ($args[0] -like '*Select-Validation.mjs') { Write-Output '${selection ?? ''}' } }
 function python { $global:checks.Add('python');$global:LASTEXITCODE=0 }
 function dotnet {
@@ -26,7 +26,7 @@ function dotnet {
 }
 Remove-Item Env:EVIDENCE_PYTHON -ErrorAction SilentlyContinue
 $failure=$null
-try { & ${literal(join(dir,'tools/Invoke-Validation.ps1'))} ${offline?'-NoRestore':''} ${selection === null ? "-TestFilter 'SyntheticFilter' -MinimumExpectedTests 3" : '-ChangedSince HEAD'} }
+try { & ${literal(join(dir,'tools/Invoke-Validation.ps1'))} ${offline?'-NoRestore':''} ${selection === null ? "-TestFilter 'SyntheticFilter' -MinimumExpectedTests 3" : '-ChangedSince HEAD'} ${forceTests ? "-TestFilter 'SyntheticFilter' -MinimumExpectedTests 3" : ''} }
 catch { $failure=$_.Exception.Message }
 Write-Output ('MOCK_RESULT:'+(@{commands=@($global:commands);checks=@($global:checks);forwarded=$global:forwarded;failure=$failure}|ConvertTo-Json -Depth 8 -Compress))
 `);
@@ -55,6 +55,10 @@ test('documentation selection retains policy/configuration/Node checks without b
  assert(r.checks.includes('Verify-Repository')); assert(r.checks.includes('Verify-Configuration'));
  assert.equal(r.checks.filter(c=>c==='node').length,2);
  assert(!r.checks.includes('Test-TemplateInfrastructure'));
+ assert(!r.checks.includes('Get-Process'));
+ const requested=exercise(t,true,false,'documentation',true);
+ assert.equal(requested.failure,null); assert(requested.commands.some(a=>a[0]==='test'));
+ assert(requested.checks.includes('Get-Process'));
  const broad=exercise(t,true,false,'full'); assert.equal(broad.failure,null);
  assert(broad.commands.some(a=>a[0]==='build')); assert(broad.commands.some(a=>a[0]==='test'));
  const bad=exercise(t,true,false,'unexpected'); assert.match(bad.failure,/Could not classify/);
