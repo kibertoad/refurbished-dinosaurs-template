@@ -651,7 +651,7 @@ Enable the hooks once in each clone, before the first commit, with
 `git config core.hooksPath .githooks`, and do not bypass them with
 `--no-verify`. The commit-msg hook checks the addresses a commit message
 gives against the entries it cites. The pre-commit hook runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
-on the staged tree in under a second, so a spec, queue or checker-pin problem
+on the staged tree, kept as a snapshot in `.git/precommit-snapshot` between commits, so a spec, queue or checker-pin problem
 fails before the commit instead of in CI.
 
 ## Definition of done
