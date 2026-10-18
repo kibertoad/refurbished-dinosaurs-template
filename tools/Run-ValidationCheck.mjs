@@ -49,6 +49,11 @@ function externalIdentity(directory) {
   return rows;
 }
 function snapshot(configBytes, contract) {
+  if (!contract || typeof contract !== 'object' || Array.isArray(contract) ||
+      Object.keys(contract).some(key => !['exclude', 'tools', 'externalEnvironment'].includes(key)) ||
+      (contract.externalEnvironment !== undefined && !Array.isArray(contract.externalEnvironment))) {
+    throw new Error('Invalid check input contract.');
+  }
   const excluded = contract.exclude ?? [];
   if (!Array.isArray(excluded)) throw new Error('exclude must be an array.');
   for (const name of excluded) relative(name.endsWith('/') ? name.slice(0, -1) : name);
@@ -81,7 +86,8 @@ try {
   try { configBytes = readFileSync(path.join(root, 'validation-inputs.json')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
   const config = configBytes ? JSON.parse(configBytes) : { version: 1, checks: {} };
-  if (config.version !== 1 || !config.checks || typeof config.checks !== 'object') throw new Error('Invalid validation input configuration.');
+  if (config.version !== 1 || !config.checks || typeof config.checks !== 'object' || Array.isArray(config.checks) ||
+      Object.keys(config).some(key => !['version', 'checks'].includes(key))) throw new Error('Invalid validation input configuration.');
   const contract = config.checks[id];
   const receiptPath = path.join(root, '.artifacts', 'validation-receipts', `${id}.json`);
   // No declaration means run fresh. CI never reuses a developer receipt.

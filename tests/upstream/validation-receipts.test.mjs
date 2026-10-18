@@ -81,8 +81,23 @@ test('failed runs and inputs mutated during execution cannot retain success', t 
   assert.match(mutated.stderr, /Inputs changed/);
   assert.doesNotMatch(f.run().stdout, /reused/);
 });
+test('changed tool version output invalidates, and failed version probes refuse reuse', t => {
+  const f = fixture(t, { tools: [[process.execPath, '-e', "process.stdout.write(require('fs').readFileSync('.artifacts/tool-version','utf8'))"]] });
+  mkdirSync(path.join(f.root, '.artifacts'));
+  f.write('.artifacts/tool-version', 'synthetic-v1');
+  assert.equal(f.run().status, 0);
+  assert.match(f.run().stdout, /reused/);
+  f.write('.artifacts/tool-version', 'synthetic-v2');
+  assert.equal(f.run().status, 0);
+  assert.equal(f.count(), 2);
+  rmSync(path.join(f.root, '.artifacts/tool-version'));
+  assert.equal(f.run().status, 1);
+  assert.equal(f.count(), 2);
+});
 test('invalid contracts refuse reuse instead of skipping checks', t => {
-  for (const contract of [{ tools: [] }, { exclude: ['../outside'], tools: [[process.execPath, '--version']] }]) {
+  for (const contract of [{ tools: [] }, { exclude: ['../outside'], tools: [[process.execPath, '--version']] },
+    { externalEnvironment: 'OTHER_INPUT', tools: [[process.execPath, '--version']] },
+    { typo: [], tools: [[process.execPath, '--version']] }]) {
     const f = fixture(t, contract);
     assert.equal(f.run().status, 1);
   }
