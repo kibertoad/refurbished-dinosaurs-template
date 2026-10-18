@@ -33,41 +33,47 @@ if ($errors.Count) { throw 'Capture helper did not parse' }
 $function=$ast.Find({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Save-DirectScreenFrame'}, $true)
 Invoke-Expression $function.Extent.Text
 Add-Type -ReferencedAssemblies System.Windows.Forms,System.Drawing -TypeDefinition @'
-using System; using System.Drawing; using System.Windows.Forms;
+using System; using System.Drawing; using System.Windows.Forms; using System.Threading;
 public class CaptureCanvas : Form {
- public bool Uniform;
- public CaptureCanvas(){ClientSize=new Size(32,16);StartPosition=FormStartPosition.Manual;Location=new Point(-10000,-10000);}
+ public volatile bool Uniform;
+ public static CaptureCanvas Canvas;
+ public static ManualResetEvent Ready = new ManualResetEvent(false);
+ public static void Start(){var thread=new Thread(()=>{Canvas=new CaptureCanvas();Canvas.Show();Canvas.Refresh();Ready.Set();Application.Run(Canvas);});thread.IsBackground=true;thread.SetApartmentState(ApartmentState.STA);thread.Start();Ready.WaitOne();}
+ public void SetUniform(){Invoke(new Action(()=>{Uniform=true;Refresh();}));}
+ public void CloseCanvas(){Invoke(new Action(()=>Close()));}
+ public CaptureCanvas(){FormBorderStyle=FormBorderStyle.None;ClientSize=new Size(320,160);StartPosition=FormStartPosition.Manual;Location=new Point(-10000,-10000);}
  protected override bool ShowWithoutActivation { get { return true; } }
- protected override void OnPaint(PaintEventArgs e) { e.Graphics.Clear(Color.Red); if(!Uniform) e.Graphics.FillRectangle(Brushes.Lime,16,0,16,16); }
+ protected override void OnPaint(PaintEventArgs e) { e.Graphics.Clear(Color.Red); if(!Uniform) e.Graphics.FillRectangle(Brushes.Lime,16,0,304,160); }
  protected override void WndProc(ref Message m) {
   if(m.Msg==0x317 || m.Msg==0x318) {
    using(var g=Graphics.FromHdc(m.WParam)) {
-    g.Clear(Color.Red); if(!Uniform) g.FillRectangle(Brushes.Lime,16,0,16,16);
+    g.Clear(Color.Red); if(!Uniform) g.FillRectangle(Brushes.Lime,16,0,304,160);
    } m.Result=new IntPtr(1); return;
   } base.WndProc(ref m);
  }
 }
 '@
-$form=[CaptureCanvas]::new()
+[CaptureCanvas]::Start()
+$form=[CaptureCanvas]::Canvas
 try {
- $form.Show(); $form.Refresh()
  $handle=$form.Handle
- $bounds=[pscustomobject]@{Width=32;Height=16;X=0;Y=0}
+ $bounds=[pscustomobject]@{Width=320;Height=160;X=0;Y=0}
  $path=Join-Path $Output 'valid.png'
- Save-DirectScreenFrame $handle $bounds $path
+ # The offscreen GDI fixture uses WM_PRINTCLIENT; the worker control tests the
+ # production full-content flag, whose compositor cache varies offscreen.
+ Save-DirectScreenFrame $handle $bounds $path 1
  $bitmap=[Drawing.Bitmap]::new($path)
  try {
   if ($bitmap.GetPixel(4,8).ToArgb() -ne [Drawing.Color]::Red.ToArgb() -or
       $bitmap.GetPixel(24,8).ToArgb() -ne [Drawing.Color]::Lime.ToArgb()) {throw 'Captured pixels are not from the target renderer'}
  } finally {$bitmap.Dispose()}
- $form.Uniform=$true
- $form.Refresh()
- try {Save-DirectScreenFrame $handle $bounds (Join-Path $Output 'blank.png');throw 'Blank result accepted'}
+ $form.SetUniform()
+ try {Save-DirectScreenFrame $handle $bounds (Join-Path $Output 'blank.png') 1;throw 'Blank result accepted'}
  catch {if($_.Exception.Message -notmatch 'uniform frame'){throw}}
- try {Save-DirectScreenFrame ([IntPtr]0) $bounds (Join-Path $Output 'invalid.png');throw 'Invalid window accepted'}
+ try {Save-DirectScreenFrame ([IntPtr]0) $bounds (Join-Path $Output 'invalid.png') 1;throw 'Invalid window accepted'}
  catch {if($_.Exception.Message -notmatch 'does not support direct capture'){throw}}
  if((Test-Path (Join-Path $Output 'blank.png')) -or (Test-Path (Join-Path $Output 'invalid.png'))){throw 'Rejected frame written'}
-} finally {$form.Dispose()}
+} finally {$form.CloseCanvas();$form.Dispose()}
 `);
   const result = spawnSync('powershell.exe', ['-NoProfile', '-File', runner,
     resolve(import.meta.dirname, '../../tools/Capture-OriginalWindow.ps1'), scratch], { encoding: 'utf8', timeout: 30000 });
