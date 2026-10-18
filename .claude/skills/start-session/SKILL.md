@@ -68,11 +68,13 @@ This skill is the procedure; where they differ, the protocol wins.
      entries that lists it in `evidence`, or is deleted where none does, and
      each row a citation newly moved to takes Code `partial` with a note
      naming the finding or experiment; code that no such entry or deviation
-     describes is removed with the tests that exercise it. Then rows whose Notes start with `Defect (R-...)` or
-     `Defect (FND-...)`, adding a test that fails without
+     describes is removed with the tests that exercise it. Then rows whose
+     Notes start with `Defect (R-...)`, `Defect (FND-...)` or
+     `Defect (EXP-...)`, adding a test that fails without
      the fix (extracting branch logic found in `Game` into `Core` first) and
      removing the note. Then parity rows of the current slice
      from the goal or the plan, whose spec status is at least `supported`. Do
      not open `queue/` or `docs/reports/`.
+   Between two items that the order above ranks equally, prefer the one whose answer closes a question or removes a named dependency from several entries. A reading is never extended only to cite more functions.
 7. Say in two or three lines what you picked and why, then hand over to
    `research-item`, `implement-rows` or `live-session`.

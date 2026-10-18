@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
-import { MAX_BLOCKS, decide, start, stop } from "../../tools/goal-run.mjs";
+import { MAX_BLOCKS, decide, start, stop, wait } from "../../tools/goal-run.mjs";
 
 const tool = resolve(import.meta.dirname, "../../tools/goal-run.mjs");
 const git = (dir, ...args) => execFileSync("git", args, { cwd: dir, stdio: "ignore" });
@@ -99,4 +99,33 @@ test("start refuses an unknown goal, and the hook passes on bad input or outside
   t.after(() => rmSync(notRepository, { recursive: true, force: true }));
   assert.equal(decide({ session_id: "a" }, notRepository), null);
   assert.equal(run(dir, []).status, 2);
+});
+
+test("wait lets the next stop through without spending a block, and only that stop", (t) => {
+  const dir = repository(t);
+  assert.throws(() => wait(dir), /start first/);
+  assert.equal(run(dir, ["wait"]).status, 1);
+  start(dir, "combat-static");
+  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
+  assert.equal(run(dir, ["wait"]).status, 0);
+  assert.equal(decide({ session_id: "b" }, dir), null);
+  assert.equal(decide({ session_id: "a" }, dir), null);
+  for (let i = 1; i < MAX_BLOCKS; i += 1) assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
+  assert.equal(decide({ session_id: "a" }, dir), null, "the wait spent none of the allowance");
+  commit(dir, "batch");
+  wait(dir);
+  commit(dir, "next batch");
+  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block", "a commit ends the wait");
+  wait(dir);
+  start(dir, "combat-static");
+  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block", "start ends the wait");
+});
+
+test("a wait started before the session binds still binds it", (t) => {
+  const dir = repository(t);
+  start(dir, "combat-static");
+  wait(dir);
+  assert.equal(decide({ session_id: "a" }, dir), null);
+  assert.equal(decide({ session_id: "b" }, dir), null);
+  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
 });

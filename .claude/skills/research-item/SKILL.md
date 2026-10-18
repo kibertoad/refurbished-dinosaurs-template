@@ -46,6 +46,8 @@ only the lines the link gives, and never a section already read this session.
    control of each kind of site, and sites found only by decoding from every
    offset reported as candidates. Trace further only what the census leaves
    undecided, each as a queue item of its own.
+   Plan the batch around one reviewable answer to the items it takes up, including the directly related callers, helpers and fields that answer needs; a function boundary does not require a commit. Before following another helper, name the part of the item's `Settles it` that reading the helper can answer. A helper needed for that answer belongs in the reading, and an unrelated branch becomes a separate question in a separate batch. If a dependency stays unresolved, record the bounded result and put the remaining question in a queue item rather than keeping a growing batch open. Never extend a reading only to cite more functions.
+   Repeated caller and operand searches reuse a local index or retained report when its inputs are unchanged: the source fingerprint, the loaded address mappings, the decoder and exporter versions that built it, the established entries and ranges searched, the limits, and the positive controls and exclusions. Rebuild it when any of those change. An index of candidates keeps its undecoded ranges, unresolved transfers and failed or missing controls. A cache hit never makes a candidate an established instruction or a negative search a proof, and a missed positive control rejects a negative result from the index as it does one from a fresh search. Indexes made from the original stay in `GAME_DIR`. Findings name the committed procedure that regenerates the index and state the result in their own words.
 3. **State the question and the competing readings.** Decide what evidence
    would rule each reading out. Readings still open when the batch ends go in
    the Open questions section of the entry they concern, one per reading: what
@@ -195,8 +197,14 @@ only the lines the link gives, and never a section already read this session.
    item in the queue file of the area of the first entry it names, and add one
    `Tried:` note to an item you could not settle, saying what was examined and
    why it did not settle the question (anything learned about the original is
-   a finding first, and `Tried:` names it). Where this was the second attempt
-   in a row to end in the same place, split or move the item now. Split it
+   a finding first, and `Tried:` names it). Compare `Settles it:` with what
+   it said before this attempt: if no finding of this attempt took a part out
+   or moved one to an item of its own, the attempt ended in the same place,
+   even where `Settles it:` now names a caller or callee one step further on.
+   Where this attempt and the previous one both ended in the same place, split
+   or move the item now
+   (`tools/Check-ResearchTracking.mjs` warns about a `Static` item with more
+   than three `Tried:` notes, a sign a batch skipped this). Split it
    when the attempts showed parts of `Settles it:` that can be answered
    separately (callers that need different evidence, obligations a reading
    could each close, a value read at one point and what follows from each
@@ -266,7 +274,22 @@ only the lines the link gives, and never a section already read this session.
      too); drop it from any live session request that lists it, with the
      script steps only it needed, and delete a request left with no items.
      Handovers and findings that cite it as a record of earlier work stay.
-8. **Check**: run the documentation check with `--check`. Leave
+8. **Check**: run the fast gate once, after the batch's last edit and before
+   the commit: `./tools/Invoke-Validation.ps1 -TestFilter <filter>`, naming
+   the tests that cover the change (the tooling tests under `tests/` run with
+   any filter). Never run it without `-TestFilter`: that is the full gate,
+   which runs only in CI (`AGENTS.md`, Commands). The fast gate includes the
+   documentation check, so that check is not run on its own just before it.
+   Run no gate when the batch starts: the last batch commit passed it, and
+   the commits since it (step 1's, a handover) change only the documentation
+   the pre-commit hook checks. Record
+   `git rev-parse HEAD` before the batch's first edit as its base commit.
+   While the batch is under way, check with the documentation check in
+   `--check` mode or the change-aware selection
+   (`./tools/Invoke-Validation.ps1 -ChangedSince <base commit>`), which asks
+   for `-TestFilter` once the batch changes anything outside documentation,
+   such as `tools/`. The pre-commit hook checks the staged tree once more;
+   keep it enabled. Leave
    `spec/index/` and `PARITY.md` as they are: they change only on the main
    branch, where a scheduled job regenerates them, and the check fails a
    batch that edits one. To read current copies, run
@@ -290,7 +313,7 @@ Status
 Goal: docs/goals/<name>.md, or none
 Batch: research, <entry> <old status> -> <new status>, ...
 Queue <AREA>: static N, emulated call N, agent run N, live session N, source N, blocked N
-Checks: documentation check <passed|failed>, fast gate <passed|failed|not run>
+Checks: documentation check <passed|failed>, fast gate <passed|failed>
 Commit: <short sha> (<pushed|not pushed>)
 Next: <queue item ID, entry and question>
 ```

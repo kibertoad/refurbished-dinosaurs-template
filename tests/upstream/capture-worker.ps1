@@ -1,7 +1,7 @@
 param($Source, $Output)
 $ErrorActionPreference = 'Stop'
 $captureScriptPath = $Source
-$CaptureTimeoutSeconds = 2
+$CaptureTimeoutSeconds = 1
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
 $text = Get-Content $Source -Raw
@@ -22,13 +22,12 @@ public class WorkerCanvas : Form {
  public static ManualResetEvent Ready = new ManualResetEvent(false);
  protected override bool ShowWithoutActivation { get { return true; } }
  protected override void OnPaint(PaintEventArgs e){e.Graphics.Clear(Color.Red);e.Graphics.FillRectangle(Brushes.Lime,ClientSize.Width-8,0,8,ClientSize.Height);e.Graphics.FillRectangle(Brushes.Blue,0,ClientSize.Height-8,8,8);}
- public static void Pause(){var entered=new ManualResetEvent(false);Canvas.BeginInvoke(new Action(()=>{entered.Set();Thread.Sleep(5000);}));entered.WaitOne();}
- public volatile bool Stall;
+ public static ManualResetEvent Resumed = new ManualResetEvent(true);
+ public static void Pause(int milliseconds){var entered=new ManualResetEvent(false);Resumed.Reset();Canvas.BeginInvoke(new Action(()=>{entered.Set();Thread.Sleep(milliseconds);Resumed.Set();}));entered.WaitOne();}
  public WorkerCanvas(){Text="Synthetic capture test";ClientSize=new Size(320,160);StartPosition=FormStartPosition.Manual;Location=new Point(50,50);}
  public static void Start(){var t=new Thread(()=>{SetThreadDpiAwarenessContext(new IntPtr(-4));Canvas=new WorkerCanvas();Canvas.Show();Ready.Set();Application.Run(Canvas);});t.IsBackground=true;t.SetApartmentState(ApartmentState.STA);t.Start();Ready.WaitOne();}
  protected override void WndProc(ref Message m){
   if(m.Msg==0x317 || m.Msg==0x318){
-   if(Stall) Thread.Sleep(5000);
    using(var g=Graphics.FromHdc(m.WParam)){g.Clear(Color.Red);g.FillRectangle(Brushes.Lime,ClientSize.Width-8,0,8,ClientSize.Height);g.FillRectangle(Brushes.Blue,0,ClientSize.Height-8,8,8);}
    m.Result=new IntPtr(1);return;
   }base.WndProc(ref m);
@@ -43,20 +42,20 @@ try {
     $size = Get-ClientSize $handle
     if ($size.Width -ne 320 -or $size.Height -ne 160) { throw "Wrong physical dimensions: $size" }
     Write-Host "Target DPI: $([WorkerCanvas]::GetDpiForWindow($handle))"
-    [WorkerCanvas]::Pause()
+    [WorkerCanvas]::Pause(1500)
     $baseline = [Diagnostics.Stopwatch]::StartNew()
     Save-DirectScreenFrame $handle $size (Join-Path $Output 'baseline.png')
-    if ($baseline.Elapsed.TotalSeconds -lt 4) { throw 'Unbounded PrintWindow did not wait on the target' }
+    if ($baseline.Elapsed.TotalSeconds -lt 1) { throw 'Unbounded PrintWindow did not wait on the target' }
     Write-Host "Synchronous baseline waited $($baseline.Elapsed.TotalSeconds) seconds."
-    [WorkerCanvas]::Pause()
+    [WorkerCanvas]::Pause(3000)
     $watch = [Diagnostics.Stopwatch]::StartNew()
     $watch.Restart()
     try { Save-ScreenFrame $handle $size (Join-Path $Output 'hung.png'); throw 'Hung capture accepted' }
     catch { if ($_.Exception.Message -notmatch 'timed out') { throw } }
-    if ($watch.Elapsed.TotalSeconds -gt 4) { throw 'Capture timeout did not bound the listener' }
+    if ($watch.Elapsed.TotalSeconds -gt 2.5) { throw 'Capture timeout did not bound the listener' }
     if (Test-Path (Join-Path $Output 'hung.png')) { throw 'Timed-out capture saved a frame' }
-    $form.Stall = $false
-    Start-Sleep -Seconds 4
+    # Capture again once the paused message loop runs, not after a fixed sleep.
+    [WorkerCanvas]::Resumed.WaitOne() | Out-Null
     $CaptureTimeoutSeconds = 10
     $path = Join-Path $Output 'recovered.png'
     Save-ScreenFrame $handle $size $path

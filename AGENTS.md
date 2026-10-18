@@ -190,6 +190,8 @@ that page differ, the page wins.
   screenshots. Never wait for a report or plan around one. Record one at once
   in `docs/reports/` with the `triage-report` skill; a research session
   triages it into a `Defect (R-...)` parity note, a queue item or a finding.
+  An implementation session takes rows with a `Defect` note first, whether
+  it names a report or the finding or experiment that changed the entry.
   Screenshots are never committed: the rebuild's go in `GAME_DIR/reports/`,
   the original's in `GAME_DIR/captures/`, the durable local reference store.
 - Competing readings of an open question are written in the entry's Open
@@ -225,10 +227,11 @@ that page differ, the page wins.
   and changes no other code apart from `tools/`: citations of an entry it
   supersedes move in code, parity rows, deviations, `docs/HANDOVER.md` and the
   goal files; a rule, format, screen or bug entry it changes in place gives an
-  implemented row Code `partial` and a `Defect (FND-...)` note; and a queue
-  item it closes stops being cited in `parity/` and deviations and in live
-  session requests. An implementation session first settles each citation of
-  a finding or experiment in `src/`: it moves to the entries that list that
+  implemented row Code `partial` and a `Defect (FND-...)` or
+  `Defect (EXP-...)` note; and a queue item it closes stops being cited in
+  `parity/` and deviations and in live session requests. An implementation
+  session first settles each citation of a finding or experiment in `src/`:
+  it moves to the entries that list that
   evidence (their rows become `partial` with a note), and only code that no
   entry describes is removed. A tooling batch
   (extractor, Ghidra scripts, inventory export, the emulator harness in
@@ -518,10 +521,32 @@ repository instructions before pushing.
 
 Treat logs, analysis listings, and experiments as a temporary working set.
 Summarize reusable conclusions into durable documentation, record remaining
-unknowns, then discard obsolete intermediate state. Avoid unrelated refactors
+unknowns, then discard obsolete intermediate state. Follow
+[ANALYSIS-OUTPUTS.md](docs/ANALYSIS-OUTPUTS.md): isolate each headless run,
+commit consumed evidence and regeneration metadata, then remove only reviewed
+output with ownership/path checks; preserve canonical inputs/projects, current
+checkpoints and unresolved evidence. For owner-supplied Windows images, use
+[WINDOWS-PROBES.md](docs/WINDOWS-PROBES.md) to build and validate versioned
+rust-dos probes before recording their capabilities in RUNTIME.md.
+Avoid unrelated refactors
 during evidence-driven work. After commands that start games, servers, analyzers,
 or compiler services, check for orphaned processes and stop only the processes
 created by the current task.
+
+Run at most three subagents at a time, each on a different spec area, and start
+each one in a call of its own once the one before it has created its worktree.
+A subagent's batch reads hundreds of thousands of tokens, so more of them do not
+fit more research into a session's usage allowance: they spend it sooner, and
+when the limit arrives every batch stops half done. Sessions on the same
+allowance share the three: when `docs/goals/` shows another goal running, such
+as the other standing goal, count its subagents too. Two agents in one area edit
+the same queue and parity files and take the same next IDs. Where two must share
+an area, give each its own ID range and, before either starts, raise the area's
+`Next ID:` line past both ranges. A batch that supersedes an entry cited from
+another area also moves those citations into that area's files, so merge it
+after the batch of the agent working there. Before merging a batch that supersedes or
+squashes a finding, have a separate read-only agent re-read the addresses the
+correction rests on; that agent counts toward the three.
 
 ## Architecture boundaries
 
@@ -642,6 +667,8 @@ dotnet build <Project>.slnx        # full solution
 dotnet run --project src/<Project>.Game -- --smoke-test
 ```
 
+While a documentation-only batch is in progress, run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>` with the commit recorded before the batch. Selection checks all committed and uncommitted paths and runs the documentation, citation, queue and repository-policy checks, including Kaitai compilation; anything other than recognized documentation, including the gate's own files, selects the fast gate, which needs `-TestFilter` for the tests that cover the change; without one the script stops and asks for it. Explicit test requests still run. This does not replace the fast gate: the batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate before merge. Reuse a check result only on an exact match of command, tool versions, configuration, `GAME_DIR` builds and the whole tree. Keep staged-tree hooks enabled. See `docs/VALIDATION.md` for the selection and reuse rules.
+
 Never run the full validation gate (`Invoke-Validation.ps1` without
 `-TestFilter`) or the full test suite locally. CI runs the gate on every pull
 request. Locally, run only the tests directly relevant to the change: the
@@ -654,7 +681,7 @@ Enable the hooks once in each clone, before the first commit, with
 `git config core.hooksPath .githooks`, and do not bypass them with
 `--no-verify`. The commit-msg hook checks the addresses a commit message
 gives against the entries it cites. The pre-commit hook runs the gate's node checks (`tools/Invoke-NodeChecks.mjs`)
-on the staged tree in under a second, so a spec, queue or checker-pin problem
+on the staged tree, kept as a snapshot in `.git/precommit-snapshot` between commits, so a spec, queue or checker-pin problem
 fails before the commit instead of in CI.
 
 ## Definition of done

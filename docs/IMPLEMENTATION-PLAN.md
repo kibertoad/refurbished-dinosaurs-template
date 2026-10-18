@@ -149,6 +149,10 @@ existing artifact paths. Documentation states the prerequisite and normal CI pat
 Exit: canonical normal and offline validation pass; open a shared template PR and
 adopt only reviewed delivery. No new persisted file layout or owner decision.
 
+## Research throughput and change-aware validation
+
+Tooling batch. Outcome: while a documentation-only research batch is in progress, its checks avoid application builds and tests and keep the policy, configuration, infrastructure, documentation/citation, affected Kaitai compilation and queue checks. `-ChangedSince <commit>` examines committed, staged, unstaged and untracked paths together; deleted and renamed code, the gate's own files, unknown paths and mixed changes select the fast gate, which refuses to run without `-TestFilter` so that selection never starts the full gate locally. Invalid bases and explicit test requests cannot silently select a smaller gate. Every batch's commit still leaves the documentation check and the fast gate passing, and CI keeps normal validation. A check result is reused only on an exact match of command, tool versions, configuration, `GAME_DIR` builds and the whole tree, since the gate's configuration lists no narrower inputs. Synthetic Git fixtures prove selection; PowerShell doubles prove retained checks, skipped builds and failures. No original content or runtime behavior changes. Exit: those controls pass; instructions describe research batches planned around one reviewable answer and the protocol's tie-break between equally ranked items; adoption waits for reviewed upstream delivery.
+
 ## Release signing safeguards
 
 Tooling batch, comparing New Chrome commit 88f4112791db0caaf488b5bcd906cabd842bd4e1. Restrict release preparation to main, bound job durations, require the expected timestamped Authenticode certificate, and safely reuse a tag only when it resolves to the prepared commit. Preserve existing signing defaults and project-neutral packaging. Synthetic tests cover tag lookup/create/error paths and certificate rejection without contacting signing services. Exit: canonical validation passes and workflow checks cover every job and signature boundary.
