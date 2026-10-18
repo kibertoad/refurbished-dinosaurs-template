@@ -233,5 +233,11 @@ An agent that hands batches to a subagent gives it several in a row, up to
 five, and says so in the subagent's task, since the subagent reads the
 `research-item` skill and not this file. Every new subagent first reads
 `AGENTS.md` and that skill, which costs about as much as a small batch. The
-subagent commits each batch as it ends and pushes it only where this goal's
-form and `AGENTS.md` allow the session to push.
+limits in `AGENTS.md` (Context and process hygiene) still apply: the subagent
+counts toward the three for its whole run, and all its batches stay in the
+one spec area it was given. The subagent commits each batch as it ends and
+pushes it only where this goal's form and `AGENTS.md` allow the session to
+push. It stops after a batch that supersedes or squashes a finding, or that
+moves citations into another area's files, and leaves that batch unpushed, so
+the delegating agent can have it re-read, or merge it after the batch of the
+agent working in that area. The task says all of this too.
