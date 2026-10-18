@@ -226,3 +226,6 @@ the three held-back stops. The wait covers that one stop: it ends there, or
 earlier at a commit or another `start`. When the subagent's result or the
 owner's answer starts a new turn, the hook holds back its stops again, and a
 turn that still has nothing to do runs `wait` once more before it ends.
+A subagent given batches takes several in a row, up to five, committing and
+pushing each as it ends: every new subagent first reads `AGENTS.md` and the
+`research-item` skill, which costs about as much as a small batch.

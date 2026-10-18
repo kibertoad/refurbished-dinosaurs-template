@@ -8,6 +8,12 @@ not here.
 
 A project created from this template may delete this file.
 
+## One gate per batch and handovers that name real paths, 2026-10-18
+
+- **Research batches.** The `research-item` skill's Check step runs the gate once, after the batch's last edit and before the commit. Agents had also run the gate when a batch started and the documentation check on its own just before the gate, which already includes it; one restoration's subagents ran the gate several times per batch. Checks while a batch is under way use the documentation check or the change-aware selection, and the pre-commit hook still checks the staged tree.
+- **Handover.** The `end-session` skill names only local paths (reports, captures, configurations) that exist when the handover is written. A restoration's handover named report folders that were no longer on the machine, and each new subagent searched the disk for them.
+- **Delegated batches.** `docs/goals/README.md` has a subagent take several batches in a row, up to five. Measured over 13 subagents in one restoration, each read about 28,000 tokens of `AGENTS.md` and the `research-item` skill before its first batch, and none opened the work protocol.
+
 ## Research tracker warnings on stdout, 2026-10-18
 
 - **Research tracking.** `tools/Check-ResearchTracking.mjs` prints its `Tried:` warnings on stdout and keeps stderr for errors. Under Windows PowerShell 5.1, running the gate with its output redirected (`& ./tools/Invoke-Validation.ps1 *> gate.log`) turns any stderr line from a native command into an error record, which the gate's `$ErrorActionPreference = 'Stop'` makes fatal, so a warning stopped the gate there.

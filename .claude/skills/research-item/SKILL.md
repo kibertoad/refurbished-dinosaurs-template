@@ -274,7 +274,14 @@ only the lines the link gives, and never a section already read this session.
      too); drop it from any live session request that lists it, with the
      script steps only it needed, and delete a request left with no items.
      Handovers and findings that cite it as a record of earlier work stay.
-8. **Check**: run the documentation check with `--check`. Leave
+8. **Check**: run the gate once, after the batch's last edit and before the
+   commit: the fast gate (`./tools/Invoke-Validation.ps1`), or the command
+   `AGENTS.md` requires before a batch commit. It includes the documentation
+   check, so that check is not run on its own just before it. Run no gate when the batch starts: the last commit passed
+   it. While the batch is under way, check with the documentation check in
+   `--check` mode or the change-aware selection
+   (`./tools/Invoke-Validation.ps1 -ChangedSince <base commit>`). The
+   pre-commit hook checks the staged tree once more; keep it enabled. Leave
    `spec/index/` and `PARITY.md` as they are: they change only on the main
    branch, where a scheduled job regenerates them, and the check fails a
    batch that edits one. To read current copies, run
