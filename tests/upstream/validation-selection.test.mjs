@@ -18,7 +18,7 @@ test('generated root parity selects documentation while lookalikes and mixed cod
   assert.equal(classify(['PARITY.md']), 'documentation');
   assert.equal(classify(['parity/TEST.md', 'PARITY.md', 'docs/VALIDATION.md']), 'documentation');
   for (const paths of [['PARITY.md', 'src/Game.cs'], ['parity.md'], ['PARITY.md.js'],
-    ['other/PARITY.md'], ['PARITY.md/../src/Game.cs'], ['PARITY.md', 'AGENTS.md']]) {
+    ['other/PARITY.md'], ['parity/../PARITY.md'], ['PARITY.md', 'AGENTS.md']]) {
     assert.equal(classify(paths), 'full', paths.join(','));
   }
 });
