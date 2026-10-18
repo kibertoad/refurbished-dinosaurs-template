@@ -85,6 +85,12 @@ table and the parity files to match what is actually true, and tick off
 
 ## The local copy of the standard
 
+Original-input locations are checkout-local: configure ignored
+`.artifacts/local-inputs.json` as described in [Project inputs](docs/PROJECT-INPUTS.md).
+Use the validation gate or `node tools/Project-Inputs.mjs -- COMMAND ARG...`;
+never set a user/machine `GAME_DIR` or rely on an inherited one. Existing marked
+tests receive `GAME_DIR` only as a child-process compatibility bridge.
+
 `docs/upstream/` holds the methodology, the documentation standard and the
 work protocol exactly as published at dinorefurb.com, and
 `tools/upstream-lock.json` names the commit they were copied from. Every

@@ -13,6 +13,7 @@ function fixture(t, contract = { tools: [[process.execPath, '--version']] }) {
   mkdirSync(path.join(root, 'tools'));
   mkdirSync(path.join(root, 'docs'));
   copyFileSync(source, path.join(root, 'tools/Run-ValidationCheck.mjs'));
+  copyFileSync(new URL('../../tools/Project-Inputs.mjs', import.meta.url), path.join(root, 'tools/Project-Inputs.mjs'));
   writeFileSync(path.join(root, '.gitignore'), '.artifacts/\n');
   writeFileSync(path.join(root, 'source.txt'), 'source');
   writeFileSync(path.join(root, 'docs/record.md'), 'before');
@@ -28,7 +29,8 @@ function fixture(t, contract = { tools: [[process.execPath, '--version']] }) {
     ['tools/Run-ValidationCheck.mjs', 'fixture', '--', process.execPath, '-e', command + extra],
     { cwd: root, encoding: 'utf8', env: { ...process.env, CI: '', GAME_DIR: '', ...environment } });
   const count = () => readFileSync(path.join(root, '.artifacts/runs'), 'utf8').length;
-  return { root, run, count, write: (name, value) => writeFileSync(path.join(root, name), value) };
+  const setOriginal = gameDirectory => { mkdirSync(path.join(root, '.artifacts'), {recursive:true}); writeFileSync(path.join(root, '.artifacts/local-inputs.json'), JSON.stringify({version:1, gameDirectory})); };
+  return { root, run, count, setOriginal, write: (name, value) => writeFileSync(path.join(root, name), value) };
 }
 test('matching success reuses, included source and new untracked files invalidate', t => {
   const f = fixture(t);
@@ -68,17 +70,19 @@ test('receipts are not inputs in a checkout that does not ignore them', t => {
 test('missing and linked original directories are identities, links inside them are refused', t => {
   const f = fixture(t);
   const missing = path.join(f.root, '.artifacts/absent');
-  assert.equal(f.run('', { GAME_DIR: missing }).status, 0);
-  assert.match(f.run('', { GAME_DIR: missing }).stdout, /reused/);
+  f.setOriginal(missing);
+  assert.equal(f.run().status, 0);
+  assert.match(f.run().stdout, /reused/);
   const original = path.join(f.root, '.artifacts/original');
   mkdirSync(original, { recursive: true });
   writeFileSync(path.join(original, 'synthetic.txt'), 'synthetic');
   const linked = path.join(f.root, '.artifacts/linked');
   symlinkSync(original, linked, 'junction');
-  assert.equal(f.run('', { GAME_DIR: linked }).status, 0);
-  assert.match(f.run('', { GAME_DIR: linked }).stdout, /reused/);
+  f.setOriginal(linked);
+  assert.equal(f.run().status, 0);
+  assert.match(f.run().stdout, /reused/);
   symlinkSync(original, path.join(original, 'loop'), 'junction');
-  assert.equal(f.run('', { GAME_DIR: linked }).status, 1);
+  assert.equal(f.run().status, 1);
   assert.equal(f.count(), 2);
 });
 test('arguments, environment and original-directory contents invalidate', t => {
@@ -86,12 +90,13 @@ test('arguments, environment and original-directory contents invalidate', t => {
   const original = path.join(f.root, '.artifacts/original');
   mkdirSync(original, { recursive: true });
   writeFileSync(path.join(original, 'synthetic.txt'), 'synthetic');
-  assert.equal(f.run('', { GAME_DIR: original }).status, 0);
-  assert.match(f.run('', { GAME_DIR: original }).stdout, /reused/);
+  f.setOriginal(original);
+  assert.equal(f.run().status, 0);
+  assert.match(f.run().stdout, /reused/);
   writeFileSync(path.join(original, 'synthetic.txt'), 'modified synthetic');
-  assert.equal(f.run('', { GAME_DIR: original }).status, 0);
-  assert.equal(f.run(';void 0', { GAME_DIR: original }).status, 0);
-  assert.equal(f.run(';void 0', { GAME_DIR: original, RECEIPT_TEST: 'changed' }).status, 0);
+  assert.equal(f.run().status, 0);
+  assert.equal(f.run(';void 0').status, 0);
+  assert.equal(f.run(';void 0', { RECEIPT_TEST: 'changed' }).status, 0);
   assert.equal(f.count(), 4);
 });
 test('failed runs and inputs mutated during execution cannot retain success', t => {
@@ -124,4 +129,16 @@ test('invalid contracts refuse reuse instead of skipping checks', t => {
     const f = fixture(t, contract);
     assert.equal(f.run().status, 1);
   }
+});
+
+test('global game directories are ignored while local input configuration invalidates', t => {
+  const f = fixture(t);
+  assert.equal(f.run('', {GAME_DIR: '/unrelated/first'}).status, 0);
+  assert.match(f.run('', {GAME_DIR: '/unrelated/second'}).stdout, /reused/);
+  f.setOriginal(null);
+  assert.doesNotMatch(f.run().stdout, /reused/);
+  assert.match(f.run().stdout, /reused/);
+  const mutated = f.run(";fs.writeFileSync('.artifacts/local-inputs.json',JSON.stringify({version:1,gameDirectory:'.artifacts/changed'}))");
+  assert.equal(mutated.status, 1);
+  assert.match(mutated.stderr, /Inputs changed/);
 });

@@ -204,14 +204,15 @@ function Send-CaptureAcknowledgement([bool] $Succeeded) {
     }
 }
 
-function Save-DirectScreenFrame([IntPtr] $Window, $Size, [string] $Path) {
+function Save-DirectScreenFrame([IntPtr] $Window, $Size, [string] $Path,
+    [uint32] $PrintFlags = [OriginalWindowCapture.NativeMethods]::PrintClientFullContent) {
     $bitmap = [Drawing.Bitmap]::new($Size.Width, $Size.Height, [Drawing.Imaging.PixelFormat]::Format24bppRgb)
     try {
         $graphics = [Drawing.Graphics]::FromImage($bitmap)
         try {
             $deviceContext = $graphics.GetHdc()
             try {
-                if (-not [OriginalWindowCapture.NativeMethods]::PrintWindow($Window, $deviceContext, [OriginalWindowCapture.NativeMethods]::PrintClientFullContent)) {
+                if (-not [OriginalWindowCapture.NativeMethods]::PrintWindow($Window, $deviceContext, $PrintFlags)) {
                     throw 'The selected window does not support direct capture. No desktop-copy fallback is permitted.'
                 }
             }
