@@ -488,6 +488,14 @@ Keep numbers that define behavior, constrain validation, support evidence or
 justify a decision. A dated measurement belongs in prose only when that context
 needs it. Refer to the generating command instead of maintaining a copied total.
 
+The adopted text scopes, exclusions and line/word limits are in
+`tools/repository-policy.json`. The working gate and staged snapshot use
+`tools/Check-TextPolicy.mjs` for the same policy, including final result-record
+edits. Follow [VALIDATION-RECORDS](docs/VALIDATION-RECORDS.md) to split long logs
+into linked complete records and keep handovers operational. Preserve the
+repository's limits when adopting; the template's handover budget is 200 lines
+and 800 whitespace-separated words.
+
 ## Git ownership in the Windows sandbox
 
 The Windows sandbox may run Git as a different account from the checkout owner.

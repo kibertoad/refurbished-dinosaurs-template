@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export function checks(noKsy = false) {
   return [
+    ["Adopted text-size policy", "tools/Check-TextPolicy.mjs", []],
     ["Pinned documentation check", "tools/upstream.mjs", ["docs", "--check", ...(noKsy ? ["--no-ksy"] : [])]],
     ["Research queue tracking", "tools/Check-ResearchTracking.mjs", []],
   ];

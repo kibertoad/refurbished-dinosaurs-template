@@ -228,8 +228,8 @@ test("link check reports misplaced, missing or stale ranges and rewrites them", 
 });
 
 test("the gate and the pre-commit hook run one list of node checks", () => {
-  assert.deepEqual(checks().map(([, script]) => script), ["tools/upstream.mjs", "tools/Check-ResearchTracking.mjs"]);
-  assert.deepEqual(checks(true)[0][2], ["docs", "--check", "--no-ksy"]);
+  assert.deepEqual(checks().map(([, script]) => script), ["tools/Check-TextPolicy.mjs", "tools/upstream.mjs", "tools/Check-ResearchTracking.mjs"]);
+  assert.deepEqual(checks(true)[1][2], ["docs", "--check", "--no-ksy"]);
   assert.throws(() => runNodeChecks(["--check"]), /Usage/);
   assert.match(readFileSync(resolve(root, "tools/Invoke-Validation.ps1"), "utf8"), /tools\/Invoke-NodeChecks\.mjs'\)/);
   assert.match(readFileSync(resolve(root, ".githooks/pre-commit"), "utf8"), /tools\/Invoke-NodeChecks\.mjs" --no-ksy$/m);

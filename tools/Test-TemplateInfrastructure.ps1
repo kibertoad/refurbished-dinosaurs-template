@@ -50,47 +50,10 @@ foreach ($relative in @('spec/glossary', 'parity', 'deviations')) {
     }
 }
 
-# The documentation standard limits every Markdown file it defines to 1,000 lines.
-$standardMarkdown = @(Get-Item -LiteralPath (Join-Path $root 'PARITY.md') -ErrorAction SilentlyContinue)
-foreach ($directory in @('spec', 'parity', 'deviations')) {
-    $path = Join-Path $root $directory
-    if (Test-Path -LiteralPath $path) {
-        $standardMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')
-    }
-}
-foreach ($file in $standardMarkdown) {
-    $lineCount = [IO.File]::ReadAllLines($file.FullName).Length
-    if ($lineCount -gt 1000) {
-        $relative = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
-        $failures.Add("$relative has $lineCount lines; the documentation standard allows 1,000")
-    }
-}
-
-# The work protocol applies the same limit to its own files, and keeps the handover to the
-# current state in at most 200 lines.
-$protocolMarkdown = @()
-foreach ($directory in @('queue', 'docs/goals', 'docs/decisions', 'docs/live-sessions', 'docs/reports')) {
-    $path = Join-Path $root $directory
-    if (Test-Path -LiteralPath $path) {
-        $protocolMarkdown += @(Get-ChildItem -LiteralPath $path -Recurse -File -Filter '*.md')
-    }
-}
-$protocolMarkdown += @(Get-Item -LiteralPath (Join-Path $root 'docs/IMPLEMENTATION-PLAN.md') -ErrorAction SilentlyContinue)
-$protocolMarkdown += @(Get-Item -LiteralPath (Join-Path $root 'docs/DECISIONS.md') -ErrorAction SilentlyContinue)
-foreach ($file in $protocolMarkdown) {
-    $lineCount = [IO.File]::ReadAllLines($file.FullName).Length
-    if ($lineCount -gt 1000) {
-        $relative = $file.FullName.Substring($root.Length + 1).Replace('\', '/')
-        $failures.Add("$relative has $lineCount lines; the work protocol allows 1,000")
-    }
-}
-$handover = Join-Path $root 'docs/HANDOVER.md'
-if (Test-Path -LiteralPath $handover) {
-    $lineCount = [IO.File]::ReadAllLines($handover).Length
-    if ($lineCount -gt 200) {
-        $failures.Add("docs/HANDOVER.md has $lineCount lines; the work protocol allows 200 for the current state")
-    }
-}
+# Full/infrastructure checks and the staged Node hook use the same adopted scopes,
+# exclusions and line/word definitions from repository-policy.json.
+& node (Join-Path $PSScriptRoot 'Check-TextPolicy.mjs') --root $root
+if ($LASTEXITCODE -ne 0) { $failures.Add('The adopted text-size policy failed.') }
 
 $release = Get-Content -LiteralPath (Join-Path $root '.github/workflows/release.yml') -Raw
 foreach ($required in @('signed_release:', 'release-signing', 'Invoke-ESigner.ps1',

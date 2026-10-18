@@ -93,6 +93,10 @@ published build artifact.
 
 ## Local automated checks
 
+Result logs and handovers follow [VALIDATION-RECORDS](VALIDATION-RECORDS.md).
+The shared text-size checker uses the repository's adopted scopes and limits
+in both the working gate and staged snapshot, including edits after a gate.
+
 `tools/Invoke-Validation.ps1` is the canonical local entry point. It serializes
 runs for the checkout (one lock per checkout path), caps MSBuild at two workers
 by default, and stops only a `<Project>.Game` process whose executable lives
