@@ -8,6 +8,11 @@ not here.
 
 A project created from this template may delete this file.
 
+## Node tests in one run, 2026-10-18
+
+- **Validation.** `tools/Invoke-Validation.ps1` runs its node test files in one `node --test` call, so they run at the same time instead of in three groups one after another, and sets `PWSH` to the running PowerShell for all of them. The configuration test in `tests/upstream/upstream.test.mjs` starts Configure-Project with `PWSH` like the other PowerShell tests; it called `pwsh` by name and failed the gate where only Windows PowerShell is installed.
+- **Capture worker test.** `tests/upstream/capture-worker.ps1` blocks the synthetic window for 1.5 seconds before the synchronous baseline and 3 seconds before the bounded capture, with a 1-second capture timeout, and captures again as soon as the window's message loop runs instead of after a fixed 4-second sleep. It took 12 seconds and takes about 5.5; it still fails when the capture timeout does not cut the hung capture short. The validation run without a build to do went from about 21 to 10 seconds.
+
 ## A pre-commit snapshot kept between commits, 2026-10-18
 
 - **Pre-commit hook.** `.githooks/pre-commit` keeps the staged tree it checks in `.git/precommit-snapshot`, with an index of its own, instead of copying the whole index to a new temporary directory on every commit. Each commit brings the snapshot to the staged tree with `git read-tree --reset -u`, which rewrites only the files whose staged content changed, removes those no longer staged and restores any file edited or deleted inside the snapshot, then `git clean -x` removes every other file there, ignored ones included. A snapshot whose index cannot be read, or whose index lock a killed run left behind, is rebuilt. On Windows the first read of each newly written file is scanned, so the fresh copy cost a restoration with 3,600 tracked files about 95 seconds a commit, of which the documentation check's own work was 5. With the kept snapshot the hook takes about 0.7 seconds plus the checks; the first commit in a clone still pays the full copy once. The hook removes the snapshot's `node_modules` link before the update and makes it again after, pointing at the checkout's packages, so clean never meets the link and a copied repository never checks against another checkout's packages.
