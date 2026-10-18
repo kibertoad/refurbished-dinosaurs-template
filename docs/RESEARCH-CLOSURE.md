@@ -15,7 +15,8 @@ pnpm exec standard-coverage --json --list
 ```
 
 Keep report output in ignored local storage. Record the inventory revision,
-its SHA-256, the build/file pair and the scope being assessed. Preserve
+its SHA-256 (of the file with LF line endings and no byte order mark, so
+CRLF and LF checkouts agree), the build/file pair and the scope being assessed. Preserve
 `withoutInventory`, `unmeasured`, mapping gaps and the reasons functions are
 out of scope. An empty inventory set cannot close a native-code assessment.
 Mapping, citations, accepted complete readings and validated parity remain
@@ -88,15 +89,20 @@ node tools/Report-ResearchClosure.mjs --plan docs/research-closure.json --json
 node tools/Report-ResearchClosure.mjs --plan docs/research-closure.json --require-ready
 ```
 
-The command runs the installed pinned coverage reporter freshly with `--list`
+The `--plan` path is relative to the repository root, from any working
+directory. The command runs the installed pinned coverage reporter freshly with `--list`
 and verifies the offline pins. It compares current inventory hashes with the
 plan, checks area/queue/evidence references and reports unassigned/shared
 functions, open obligations, missing checklist kinds and missing inventories.
-A changed inventory makes its assignments stale until they are reconciled.
-Superseded/disputed evidence and queue items no longer open fail reference checks.
+A changed or missing inventory makes its assignments stale until they are
+reconciled; an assigned row the change dropped or excluded is reported as an
+error. Superseded, disputed or unknown evidence and queue items no longer open
+fail reference checks.
 
 `--require-ready` exits 1 while any function ownership, accepted-reading or
-checklist gap remains; invalid input or a failed coverage command exits 2.
+checklist gap remains. Errors, including the invalid inventories and side
+files the reporter lists, exit 1. Invalid input, or a coverage command that
+produces no report, exits 2.
 Coverage output beyond the 16 MiB capture bound fails without an assessment.
 Without that flag, a structurally valid incomplete assessment is reported
 successfully. Shared function counts are non-additive; byte counts remain

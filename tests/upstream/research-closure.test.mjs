@@ -89,6 +89,13 @@ test('changed inventories and missing or unmeasured files prevent a ready assess
   assert.deepEqual(run(stale).staleInventories, [path]);
   assert.equal(run(stale).areas[0].readyForReview, false);
   assert.equal(run(stale).readyForReview, false);
+  // A changed inventory that dropped an assigned row reports the stale assignment instead of failing.
+  stale.coverage.inventories[0].list.splice(1, 1);
+  assert.deepEqual(run(stale).staleInventories, [path]);
+  assert(run(stale).errors.some(x => /Unknown function .*7F001008 in a changed inventory/.test(x)));
+  const missingFile = fixture(); delete missingFile.hashes[path]; missingFile.coverage.inventories = [];
+  assert.deepEqual(run(missingFile).staleInventories, [path]);
+  assert(run(missingFile).errors.some(x => /not measured/.test(x)));
   for (const field of ['withoutInventory', 'unmeasured', 'problems', 'unread']) {
     const f = fixture(); f.coverage[field].push(field === 'withoutInventory' ? {build: 'BLD-TEST-1.0', file: 'OTHER.DLL', format: format} : 'Synthetic unresolved input');
     assert.equal(run(f).readyForReview, false, field);
@@ -113,8 +120,10 @@ test('invalid ownership, references and path traversal fail instead of disappear
   for (const mutate of cases) { const f = fixture(); mutate(f); assert.throws(() => run(f)); }
   const f = fixture(), refs = {areas: new Set(['TEST']), queue: new Set(['Q-TEST-001']), entries: new Map([[finding, 'recorded']])};
   assert.deepEqual(referenceProblems(f.plan, refs), []);
-  refs.entries.set(finding, 'superseded');
-  assert(referenceProblems(f.plan, refs).some(x => /inactive evidence/.test(x)));
+  for (const status of ['superseded', 'disputed', 'unknown']) {
+    refs.entries.set(finding, status);
+    assert(referenceProblems(f.plan, refs).some(x => /inactive evidence/.test(x)), status);
+  }
   refs.entries.clear(); refs.areas.clear();
   f.plan.obligations[0].queue = ['Q-TEST-999'];
   assert(referenceProblems(f.plan, refs).some(x => /not open/.test(x)));

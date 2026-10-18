@@ -5,7 +5,10 @@ import { resolve, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 export function checkResearchTracking(root) { return researchTracking(root).errors; }
 // Warnings point at text the check cannot judge alone; they never fail the gate.
-export function researchTracking(root) {
+export function researchTracking(root) { const { errors, warnings } = track(root); return { errors, warnings }; }
+// The areas, spec entries and queue items, read the way this check reads them, for tools that resolve references.
+export function trackingReferences(root) { const { areas, entries, items } = track(root); return { areas, entries, items }; }
+function track(root) {
   const errors = [], warnings = [], entries = new Map(), items = new Map(), next = new Map();
   const read = path => readFileSync(path, 'utf8').replace(/^\uFEFF/, '').replaceAll('\r\n', '\n');
   const files = dir => existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).flatMap(e =>
@@ -17,7 +20,7 @@ export function researchTracking(root) {
     const id = metadata?.match(/^id: (\S+)/m)?.[1];
     if (!id) continue;
     if (entries.has(id)) errors.push(`Duplicate spec entry ${id}`);
-    entries.set(id, { path, body, superseded: /^status: superseded$/m.test(metadata) || !/^superseded_by: \[\]/m.test(metadata) });
+    entries.set(id, { path, body, status: metadata.match(/^status: (\S+)/m)?.[1], superseded: /^status: superseded$/m.test(metadata) || !/^superseded_by: \[\]/m.test(metadata) });
   }
   const sections = ['Static', 'Emulated call', 'Agent run', 'Live session', 'Source', 'Blocked'];
   const queueDir = join(root, 'queue');
@@ -111,7 +114,7 @@ export function researchTracking(root) {
       }
     }
   }
-  return { errors, warnings };
+  return { errors, warnings, areas, entries, items };
 }
 // Compare real paths, as tools/upstream.mjs does, so a symlinked checkout still runs the check.
 const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();

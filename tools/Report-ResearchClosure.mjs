@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // Assess an explicit research plan against the pinned coverage report. A ready
 // assessment requests review; it never establishes an entry or validates parity.
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, resolve, relative } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { checkerEntry, verifySnapshot } from './upstream.mjs';
+import { trackingReferences } from './Check-ResearchTracking.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REQUIRED = ['callers', 'state-producers', 'indirect-transfers', 'remaining-evidence'];
@@ -38,19 +39,26 @@ export function assessClosure(plan, coverage, hashes) {
     if (mapped.has(path)) throw new Error(`Duplicate inventory ${path}`);
     mapped.add(path);
     if (!/^[a-f0-9]{64}$/.test(inventory.sha256)) throw new Error(`Invalid SHA256 for ${path}`);
-    if (hashes[path] !== inventory.sha256) stale.push(path);
+    const changed = hashes[path] !== inventory.sha256;
+    if (changed) stale.push(path);
     const report = actual.get(path);
     if (!report) { errors.push(`Inventory is not measured: ${path}`); continue; }
     const starts = new Map(array(report.list, `--list rows for ${path}`).map(f => [f.start, f]));
     for (const assignment of array(inventory.assignments, `assignments for ${path}`)) {
       keys(assignment, ['start', 'areas', 'reason'], 'assignment');
       const start = text(assignment.start, 'function start'), id = key(path, start);
-      if (!starts.has(start)) throw new Error(`Unknown function ${id}`);
       if (ownership.has(id)) throw new Error(`Duplicate assignment ${id}`);
       const owners = unique(array(assignment.areas, `owners for ${id}`).map(a => text(a, 'owner')), `owners for ${id}`);
       if (!owners.length || owners.some(a => !areas.includes(a))) throw new Error(`Unknown or empty owner for ${id}`);
       if (owners.length > 1) text(assignment.reason, `shared ownership reason for ${id}`);
-      if (starts.get(start).outOfScope) throw new Error(`Out-of-scope function assigned: ${id}`);
+      // A changed inventory may have dropped or excluded an assigned row; that is a stale plan to reconcile.
+      const row = starts.get(start);
+      if (!row || row.outOfScope) {
+        const problem = row ? `Out-of-scope function assigned: ${id}` : `Unknown function ${id}`;
+        if (!changed) throw new Error(problem);
+        errors.push(`${problem} in a changed inventory; reconcile its assignments`);
+        continue;
+      }
       ownership.set(id, owners);
     }
   }
@@ -110,36 +118,26 @@ export function referenceProblems(plan, references) {
     for (const id of o.queue) if (!references.queue.has(id)) errors.push(`${o.id}: queue item is not open: ${id}`);
     for (const id of o.evidence) {
       const status = references.entries.get(id);
-      if (!status || status === 'superseded' || status === 'disputed') errors.push(`${o.id}: missing or inactive evidence ${id}`);
+      // An unknown entry claims nothing yet, so it cannot record an obligation's answer.
+      if (!status || ['superseded', 'disputed', 'unknown'].includes(status)) errors.push(`${o.id}: missing or inactive evidence ${id}`);
     }
   }
   return errors;
 }
 
+// The spec areas, active entry statuses and open queue items, read as tools/Check-ResearchTracking.mjs reads them.
 function readReferences(root) {
-  const files = dir => existsSync(dir) ? readdirSync(dir, {withFileTypes: true}).flatMap(e =>
-    e.isDirectory() ? files(resolve(dir, e.name)) : e.isFile() && e.name.endsWith('.md') ? [resolve(dir, e.name)] : []) : [];
-  const entries = new Map(), queue = new Set();
-  const readme = readFileSync(resolve(root, 'spec/README.md'), 'utf8');
-  const areas = new Set([...readme.matchAll(/^\| `([A-Z][A-Z0-9]*)` \|/gm)].map(m => m[1]));
-  for (const file of files(resolve(root, 'spec'))) {
-    const metadata = readFileSync(file, 'utf8').replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---(?:\n|$)/)?.[1];
-    const id = metadata?.match(/^id: (\S+)/m)?.[1], status = metadata?.match(/^status: (\S+)/m)?.[1];
-    if (id && status) entries.set(id, status);
-  }
-  const queueRoot = resolve(root, 'queue');
-  for (const file of files(queueRoot)) {
-    const area = relative(queueRoot, file).replaceAll('\\', '/').split('/')[0].replace(/\.md$/, '');
-    if (!areas.has(area)) continue;
-    for (const m of readFileSync(file, 'utf8').matchAll(/^- (Q-[A-Z][A-Z0-9]*-\d+)\./gm)) queue.add(m[1]);
-  }
-  return {entries, queue, areas};
+  const {areas, entries, items} = trackingReferences(root);
+  return {
+    areas: new Set(areas), queue: new Set(items.keys()),
+    entries: new Map([...entries].map(([id, entry]) => [id, entry.superseded ? 'superseded' : entry.status])),
+  };
 }
 
 /** Run the pinned coverage CLI freshly and compare the declared inventory fingerprints. */
 export function main(argv, root = ROOT) {
   if (argv.length === 1 && argv[0] === '--help') {
-    console.log('Usage: Report-ResearchClosure.mjs --plan <metadata.json> [--json] [--require-ready]');
+    console.log('Usage: Report-ResearchClosure.mjs --plan <metadata.json, relative to the repository root> [--json] [--require-ready]');
     return 0;
   }
   let planPath, json = false, requireReady = false;
@@ -147,21 +145,29 @@ export function main(argv, root = ROOT) {
     if (argv[i] === '--plan' && argv[i + 1]) planPath = argv[++i];
     else if (argv[i] === '--json') json = true;
     else if (argv[i] === '--require-ready') requireReady = true;
-    else throw new Error('Usage: Report-ResearchClosure.mjs --plan <metadata.json> [--json] [--require-ready]');
+    else throw new Error('Usage: Report-ResearchClosure.mjs --plan <metadata.json, relative to the repository root> [--json] [--require-ready]');
   }
   if (!planPath) throw new Error('--plan is required; an empty plan cannot establish closure');
   verifySnapshot(root);
   const lock = JSON.parse(readFileSync(resolve(root, 'tools/upstream-lock.json'), 'utf8'));
-  const cli = resolve(dirname(checkerEntry(lock)), 'coverage.js');
+  const cli = checkerEntry(lock, undefined, 'standard-coverage');
   const measured = spawnSync(process.execPath, [cli, '--root', root, '--json', '--list'], {encoding: 'utf8', maxBuffer: 16 * 1024 * 1024});
   if (measured.error) throw new Error(`Pinned coverage capture failed (16 MiB output limit): ${measured.error.message}`);
-  if (measured.status !== 0) throw new Error(`Pinned coverage failed (${measured.status}): ${measured.stderr.trim()}`);
+  // The reporter exits 1 with a full report when an inventory or side file is invalid; those
+  // problems and unmeasured files are gaps to report. Any other exit, or no report, is a failure.
+  const failed = () => new Error(`Pinned coverage failed (${measured.status}): ${measured.stderr.trim()}`);
+  if (measured.status !== 0 && measured.status !== 1) throw failed();
+  let coverage;
+  try { coverage = JSON.parse(measured.stdout); } catch { throw failed(); }
   const plan = JSON.parse(readFileSync(resolve(root, planPath), 'utf8'));
   const hashes = Object.fromEntries(array(plan.inventories, 'plan inventories').map(inv => {
     const path = inventoryPath(inv.path);
-    return [path, digest(readFileSync(resolve(root, path)))];
+    // Line endings and a byte order mark are normalized, so a CRLF checkout fingerprints as an LF one.
+    // A missing inventory has no fingerprint, so its plan is stale and reported as not measured.
+    const file = resolve(root, path);
+    return [path, existsSync(file) ? digest(readFileSync(file, 'utf8').replace(/^\uFEFF/, '').replaceAll('\r\n', '\n')) : undefined];
   }));
-  const report = assessClosure(plan, JSON.parse(measured.stdout), hashes);
+  const report = assessClosure(plan, coverage, hashes);
   report.errors.push(...referenceProblems(plan, readReferences(root)));
   if (report.errors.length) { report.readyForReview = false; for (const area of report.areas) area.readyForReview = false; }
   report.checkerVersion = lock.checker.version;

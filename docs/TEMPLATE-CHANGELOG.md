@@ -8,6 +8,10 @@ not here.
 
 A project created from this template may delete this file.
 
+## Research closure assessment, 2026-10-18
+
+- **Research closure.** `tools/Report-ResearchClosure.mjs` assesses a metadata-only plan in `docs/` (explicit function ownership per spec area, inventory fingerprints, and caller, state-producer, indirect-transfer and remaining-evidence obligations) against a fresh `standard-coverage --json --list` run, and reports unassigned and shared functions, stale or missing inventories, open obligations and missing checklist kinds. A ready result asks for human closure review and changes no entry's status or parity row. `docs/RESEARCH-CLOSURE.md` gives the procedure, and the research-item skill applies it when a subsystem is assessed (#131).
+
 ## Research tracker warnings on stdout, 2026-10-18
 
 - **Research tracking.** `tools/Check-ResearchTracking.mjs` prints its `Tried:` warnings on stdout and keeps stderr for errors. Under Windows PowerShell 5.1, running the gate with its output redirected (`& ./tools/Invoke-Validation.ps1 *> gate.log`) turns any stderr line from a native command into an error record, which the gate's `$ErrorActionPreference = 'Stop'` makes fatal, so a warning stopped the gate there.
