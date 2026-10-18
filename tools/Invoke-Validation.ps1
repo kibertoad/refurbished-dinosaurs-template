@@ -93,19 +93,18 @@ try {
     & (Join-Path $PSScriptRoot 'Verify-Configuration.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Project configuration is incomplete.' }
 
-    if ($documentationOnly) {
-        Write-Host 'Documentation-only validation: policy, configuration, spec/citations, Kaitai and queue checks.'
-        & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
-        if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
-        return
-    }
-
+    # Repository policy includes the line limits on spec, queue and handover files, which documentation changes can break.
     & (Join-Path $PSScriptRoot 'Test-TemplateInfrastructure.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Template infrastructure verification failed.' }
 
     # The node checks are listed once, in tools/Invoke-NodeChecks.mjs, which .githooks/pre-commit also runs.
     & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
+
+    if ($documentationOnly) {
+        Write-Host 'Documentation-only checks passed: policy, configuration, infrastructure, spec/citations, Kaitai and queue. These are the checks for a batch in progress; the commit still has to pass the fast gate, which CI runs.'
+        return
+    }
     # The x86 commands of tools/evidence/report.mjs run scientific-method-engine with the interpreter tools/evidence/python.mjs picks.
     & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/goal-run.test.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }

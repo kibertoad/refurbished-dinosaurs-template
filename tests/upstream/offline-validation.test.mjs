@@ -49,12 +49,12 @@ test('NoRestore failure propagates without falling back to restore',{skip:noPwsh
  const r=exercise(t,true,true);assert.match(r.failure,/build failed with exit code 7/);assert(!r.commands.some(a=>a[0]==='restore'));assert(!r.commands.some(a=>a[0]==='test'||a[0]==='publish'));
 });
 
-test('documentation selection retains policy/configuration/Node checks without building',{skip:noPwsh},t=>{
+test('documentation selection retains policy/configuration/infrastructure/Node checks without building',{skip:noPwsh},t=>{
  const r=exercise(t,true,false,'documentation');
  assert.equal(r.failure,null); assert.deepEqual(r.commands,[]);
  assert(r.checks.includes('Verify-Repository')); assert(r.checks.includes('Verify-Configuration'));
+ assert(r.checks.includes('Test-TemplateInfrastructure'));
  assert.equal(r.checks.filter(c=>c==='node').length,2);
- assert(!r.checks.includes('Test-TemplateInfrastructure'));
  assert(!r.checks.includes('Get-Process'));
  const requested=exercise(t,true,false,'documentation',true);
  assert.equal(requested.failure,null); assert(requested.commands.some(a=>a[0]==='test'));

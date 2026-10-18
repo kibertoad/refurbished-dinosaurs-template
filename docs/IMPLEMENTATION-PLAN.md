@@ -151,16 +151,7 @@ adopt only reviewed delivery. No new persisted file layout or owner decision.
 
 ## Research throughput and change-aware validation
 
-Tooling batch. Outcome: documentation-only research avoids application builds
-and tests while retaining policy, configuration, documentation/citation,
-affected Kaitai compilation and queue checks. `-ChangedSince <commit>` examines
-committed, staged, unstaged and untracked paths together; deleted and renamed
-code require the broader gate. Unknown paths, invalid bases and explicit test
-requests cannot silently select a smaller gate. CI keeps normal validation.
-Synthetic Git fixtures prove selection; PowerShell doubles prove retained
-checks, skipped builds and failures. No original content or runtime behavior
-changes. Exit: those controls pass; instructions describe coherent batches and
-dependency-based priorities; adoption waits for reviewed upstream delivery.
+Tooling batch. Outcome: while a documentation-only research batch is in progress, its checks avoid application builds and tests and keep the policy, configuration, infrastructure, documentation/citation, affected Kaitai compilation and queue checks. `-ChangedSince <commit>` examines committed, staged, unstaged and untracked paths together; deleted and renamed code, the gate's own files, unknown paths and mixed changes select the fast gate. Invalid bases and explicit test requests cannot silently select a smaller gate. Every batch's commit still leaves the documentation check and the fast gate passing, and CI keeps normal validation. A check result is reused only on an exact match of command, tool versions, configuration, `GAME_DIR` builds and the whole tree, since the gate's configuration lists no narrower inputs. Synthetic Git fixtures prove selection; PowerShell doubles prove retained checks, skipped builds and failures. No original content or runtime behavior changes. Exit: those controls pass; instructions describe research batches planned around one reviewable answer and the protocol's tie-break between equally ranked items; adoption waits for reviewed upstream delivery.
 
 ## Release signing safeguards
 

@@ -75,9 +75,6 @@ This skill is the procedure; where they differ, the protocol wins.
      removing the note. Then parity rows of the current slice
      from the goal or the plan, whose spec status is at least `supported`. Do
      not open `queue/` or `docs/reports/`.
-   Within the same priority, favor a question that closes a dependency for
-   several entries. State the expected reduction in `Settles it` before a
-   deeper helper trace. Track new citations separately from complete readings
-   and closed questions; do not chase easy citations ahead of blockers.
+   Between two items that the order above ranks equally, prefer the one whose answer closes a question or removes a named dependency from several entries. A reading is never extended only to cite more functions.
 7. Say in two or three lines what you picked and why, then hand over to
    `research-item`, `implement-rows` or `live-session`.
