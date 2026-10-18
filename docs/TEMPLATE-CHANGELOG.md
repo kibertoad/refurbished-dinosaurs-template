@@ -8,6 +8,19 @@ not here.
 
 A project created from this template may delete this file.
 
+## No citations of local files, 2026-10-18
+
+- **Rule.** `AGENTS.md` ("Durable narrative documentation") now says a
+  committed document never cites a file in a gitignored directory, such as
+  `artifacts/` or `TestResults/`, as evidence, and states the result itself:
+  what ran, on which commit, and whether it passed. A run of the marked tests
+  is recorded in `VALIDATION.md`. A research driver a result depends on is
+  committed under `tools/research/`, a test under `tests/`, and a
+  configuration or report made from the original stays in `GAME_DIR`.
+- **Evidence.** A configured project's validation notes and audit documents
+  had drifted into about 300 references to local logs and uncommitted research
+  drivers, none of which a reader on another machine could open.
+
 ## Generated root parity on the documentation route, 2026-10-18
 
 - **Validation selection.** `tools/Select-Validation.mjs` counts the root `PARITY.md` as documentation, beside the `parity/` rows it is generated from, so `-ChangedSince` keeps a batch that regenerates it on the documentation route instead of asking for the fast gate (#129). The documentation check still applies `scheduled-generation`, which this template turns on, so a branch that edits `PARITY.md` together with anything else still fails that check unless the file matches main.
