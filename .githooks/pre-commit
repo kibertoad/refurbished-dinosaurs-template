@@ -12,7 +12,7 @@
 # The snapshot stays in the repository's git directory between commits, with an index of its own,
 # and each commit rewrites only the files whose staged content changed. A fresh copy of the whole
 # tree made every commit slow on Windows, where the first read of each newly written file is
-# scanned: about 80 seconds for 3,500 files. The first commit in a clone still pays that once.
+# scanned: about 80 seconds for 3,600 files. The first commit in a clone still pays that once.
 set -e
 if ! command -v node >/dev/null 2>&1; then
   echo "pre-commit: node is not on the path, so the checks were skipped; CI runs them." >&2
@@ -23,31 +23,36 @@ work_tree=$(git rev-parse --show-toplevel)
 snapshot="$git_dir/precommit-snapshot"
 snapshot_index="$git_dir/precommit-snapshot.index"
 tree=$(git write-tree)
-# Brings the snapshot to the staged tree: read-tree updates the files whose entry changed and
-# removes those no longer staged, checkout-index restores any file edited in the snapshot, and
-# clean drops untracked files. clean leaves ignored files, so it never touches the node_modules
-# link; with -x it would remove the link.
+# The snapshot has no installed packages; the checks use the checkout's (pnpm install) through a
+# node_modules link. The link is removed before the snapshot is updated and made again after, so
+# clean can run with -x (which would remove the link even when passed as -e) and the link always
+# points at this checkout's packages, also in a copy of the repository. rm -f has no -r, so it
+# unlinks a symlink, and Git Bash's rm -f a junction, without entering the checkout's packages.
+rm -f "$snapshot/node_modules"
+if [ -e "$snapshot/node_modules" ] || [ -L "$snapshot/node_modules" ]; then
+  echo "pre-commit: could not remove $snapshot/node_modules, so the snapshot was left alone." >&2
+  exit 1
+fi
+# Brings the snapshot to the staged tree: read-tree updates the files whose entry changed, removes
+# those no longer staged and, with --reset, also rewrites any file edited or deleted in the
+# snapshot; clean -x removes every other file there, ignored ones included, so the checks see only
+# the staged tree.
 update_snapshot() {
   mkdir -p "$snapshot"
   GIT_INDEX_FILE="$snapshot_index" git --work-tree="$snapshot" read-tree --reset -u "$tree" &&
-    GIT_INDEX_FILE="$snapshot_index" git --work-tree="$snapshot" diff-files --name-only -z |
-      GIT_INDEX_FILE="$snapshot_index" git --work-tree="$snapshot" checkout-index -f -z --stdin &&
-    GIT_INDEX_FILE="$snapshot_index" git --work-tree="$snapshot" clean -fdq
+    GIT_INDEX_FILE="$snapshot_index" git --work-tree="$snapshot" clean -fdqx
 }
-# A snapshot that cannot be brought up to date, such as one whose index was damaged, is rebuilt.
-# rm -rf unlinks a symlink, and Git Bash's rm -rf a junction, without entering it. The link is
-# removed first with rm -f, which has no -r and so cannot enter the checkout's packages either way.
+# A snapshot that cannot be brought up to date, such as one whose index was damaged or whose index
+# lock a killed run left behind, is rebuilt. git commit holds the repository's index lock while
+# this hook runs, so another commit cannot be using the snapshot's lock at the same time.
 if ! update_snapshot; then
   echo "pre-commit: rebuilding the staged snapshot in $snapshot." >&2
-  rm -f "$snapshot/node_modules"
-  rm -rf "$snapshot" "$snapshot_index"
+  rm -rf "$snapshot" "$snapshot_index" "$snapshot_index.lock"
   update_snapshot
 fi
-# The snapshot has no installed packages; the checks use the checkout's (pnpm install). Node makes
-# the link: a junction on Windows, where Git Bash's ln -s copies the directory instead, and a
-# symlink elsewhere.
-if [ -d "$work_tree/node_modules" ] && [ ! -e "$snapshot/node_modules" ]; then
-  rm -f "$snapshot/node_modules"
+# Node makes the link: a junction on Windows, where Git Bash's ln -s copies the directory instead,
+# and a symlink elsewhere.
+if [ -d "$work_tree/node_modules" ]; then
   node -e 'require("fs").symlinkSync(process.argv[1], process.argv[2], "junction")' "$work_tree/node_modules" "$snapshot/node_modules"
 fi
 export GIT_DIR="$git_dir" GIT_WORK_TREE="$snapshot"

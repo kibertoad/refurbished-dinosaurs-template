@@ -10,19 +10,7 @@ A project created from this template may delete this file.
 
 ## A pre-commit snapshot kept between commits, 2026-10-18
 
-- **Pre-commit hook.** `.githooks/pre-commit` keeps the staged tree it checks in
-  `.git/precommit-snapshot`, with an index of its own, instead of copying the
-  whole index to a new temporary directory on every commit. Each commit brings
-  the snapshot to the staged tree with `git read-tree --reset -u`, which rewrites
-  only the files whose staged content changed and removes those no longer
-  staged, then restores any file edited inside the snapshot and removes
-  untracked files there. A snapshot whose index cannot be read is rebuilt. On
-  Windows the first read of each newly written file is scanned, so the fresh
-  copy cost a restoration with 3,600 tracked files about 95 seconds a commit, of
-  which the documentation check's own work was 5. With the kept snapshot the
-  hook takes about 0.7 seconds plus the checks; the first commit in a clone
-  still pays the full copy once. `git clean` runs without `-x`, so the
-  repository's `.gitignore` keeps the `node_modules` link out of its reach.
+- **Pre-commit hook.** `.githooks/pre-commit` keeps the staged tree it checks in `.git/precommit-snapshot`, with an index of its own, instead of copying the whole index to a new temporary directory on every commit. Each commit brings the snapshot to the staged tree with `git read-tree --reset -u`, which rewrites only the files whose staged content changed, removes those no longer staged and restores any file edited or deleted inside the snapshot, then `git clean -x` removes every other file there, ignored ones included. A snapshot whose index cannot be read, or whose index lock a killed run left behind, is rebuilt. On Windows the first read of each newly written file is scanned, so the fresh copy cost a restoration with 3,600 tracked files about 95 seconds a commit, of which the documentation check's own work was 5. With the kept snapshot the hook takes about 0.7 seconds plus the checks; the first commit in a clone still pays the full copy once. The hook removes the snapshot's `node_modules` link before the update and makes it again after, pointing at the checkout's packages, so clean never meets the link and a copied repository never checks against another checkout's packages.
 
 ## Evidence reporters with a local candidate index, 2026-10-18
 

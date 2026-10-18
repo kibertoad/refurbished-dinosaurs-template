@@ -298,18 +298,7 @@ the fixture schema and the hashes of saves and recordings; its guide lists them,
 and reviewers check those by hand. A save-patch write is given as a byte offset
 and value in the experiment's Setup section.
 
-`.githooks/pre-commit` runs the gate's node checks, listed once in
-`tools/Invoke-NodeChecks.mjs`, before each commit once a clone enables it with
-`git config core.hooksPath .githooks`. It checks out the index to
-`.git/precommit-snapshot` and checks that, so it judges what is being committed:
-unstaged edits neither hide a problem nor block a clean commit. The snapshot
-stays between commits with an index of its own, and each commit rewrites only
-the files whose staged content changed and undoes anything else written there.
-A fresh copy of the tree for every commit cost about 80 seconds on Windows for
-3,500 files, because the first read of each newly written file is scanned; the
-first commit in a clone still pays that once. The documentation check runs
-there with `--no-ksy`, so `.ksy` compile errors still surface only in the gate
-and CI. Without `node` the hook prints a warning and lets the commit through.
+`.githooks/pre-commit` runs the gate's node checks, listed once in `tools/Invoke-NodeChecks.mjs`, before each commit once a clone enables it with `git config core.hooksPath .githooks`. It checks out the index to `.git/precommit-snapshot` and checks that, so it judges what is being committed: unstaged edits neither hide a problem nor block a clean commit. The snapshot stays between commits with an index of its own, and each commit rewrites only the files whose staged content changed, restores files edited or deleted there and removes every other file, ignored ones included. A fresh copy of the tree for every commit cost about 80 seconds on Windows for 3,600 files, because the first read of each newly written file is scanned; the first commit in a clone still pays that once. The documentation check runs there with `--no-ksy`, so `.ksy` compile errors still surface only in the gate and CI. Without `node` the hook prints a warning and lets the commit through.
 
 ## Repository policy
 
