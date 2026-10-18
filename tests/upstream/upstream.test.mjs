@@ -167,7 +167,7 @@ test("project configuration preserves upstream bytes and licenses", t => {
   }
   writeFileSync(scratchLockPath, JSON.stringify(scratchLock));
   verifySnapshot(dir);
-  const configured = spawnSync("pwsh", ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"),
+  const configured = spawnSync(process.env.PWSH || "pwsh", ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"),
     "-ProjectName", "EvidenceSample", "-DisplayName", "Evidence Sample", "-AppId", "00000000-0000-0000-0000-000000000001",
     "-CopyrightYear", "2026", "-Force"], { cwd: dir, encoding: "utf8" });
   assert.equal(configured.status, 0, configured.error?.message ?? configured.stdout + configured.stderr);

@@ -109,21 +109,30 @@ try {
         Write-Host 'Documentation-only checks passed: policy, configuration, infrastructure, spec/citations, Kaitai and queue. These are the checks for a batch in progress; the commit still has to pass the fast gate, which CI runs.'
         return
     }
+    # One node --test run, so the files run at the same time; its summary names each failing test.
     # The x86 commands of tools/evidence/report.mjs run scientific-method-engine with the interpreter tools/evidence/python.mjs picks.
-    & node --test (Join-Path $repositoryRoot 'tests/evidence/evidence.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/upstream.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/diagnostics.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/memory-blocks.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/research-tracking.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/capture-window.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/goal-run.test.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Synthetic evidence tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
-    & node --test (Join-Path $repositoryRoot 'tests/upstream/validation-selection.test.mjs')
-    if ($LASTEXITCODE -ne 0) { throw 'Validation selection controls failed.' }
-    # These tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
+    $nodeTests = @(
+        'tests/evidence/evidence.test.mjs',
+        'tests/upstream/upstream.test.mjs',
+        'tests/upstream/diagnostics.test.mjs',
+        'tests/upstream/memory-blocks.test.mjs',
+        'tests/upstream/research-tracking.test.mjs',
+        'tests/upstream/capture-window.test.mjs',
+        'tests/upstream/goal-run.test.mjs',
+        'tests/upstream/validation-selection.test.mjs',
+        'tests/upstream/offline-validation.test.mjs',
+        'tests/upstream/release-signing.test.mjs'
+    ) | ForEach-Object { Join-Path $repositoryRoot $_ }
+    # Some tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
     try {
-        & node --test (Join-Path $repositoryRoot 'tests/upstream/offline-validation.test.mjs') (Join-Path $repositoryRoot 'tests/upstream/release-signing.test.mjs')
+        & node --test @nodeTests
     }
     finally {
         $env:PWSH = $previousPwsh
     }
-    if ($LASTEXITCODE -ne 0) { throw 'Offline validation or release signing controls failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Synthetic tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
 
     $msbuildArguments = @(
         "-maxCpuCount:$MaxCpuCount",
