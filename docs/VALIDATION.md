@@ -101,8 +101,13 @@ alone. It runs `Verify-Repository.ps1` and `Verify-Configuration.ps1`, then
 restores (unless `-NoRestore` is given), builds in Release, and runs the test suite with a 30-minute safety
 timeout.
 
-Locally, run it only with `-TestFilter`, for the tests the change touches. The
-full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
+While a documentation-only batch is in progress, record the base commit before editing and run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>`. Selection includes committed changes since that base, staged/unstaged changes, untracked files and both sides of a rename. Only `spec/` Markdown/Kaitai, Markdown under `docs/`, `queue/`, `parity/` and `deviations/`, and validation YAML qualify. It runs the repository policy, configuration and infrastructure checks, the documentation/citation check with Kaitai compilation, and the queue check, without stopping the game, building .NET or running application tests. Anything else in the change, including the gate's own scripts and workflows, selects the fast gate, as does an empty change, so a batch that changes the gate's configuration or files of more than one kind runs the fast gate as it goes. A bad base fails. Explicit test/count controls also select the fast gate.
+
+These are the checks for a batch in progress, not a replacement for the fast gate. Every batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate on the pull request before merge.
+
+For any other change, run it locally with `-TestFilter`, for the tests the change touches. The full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
+
+A successful check is reused only when its command, tool versions, configuration, any `GAME_DIR` builds it read and the whole tree all match the earlier run exactly. The gate's configuration lists no narrower inputs for any check, so the whole tree is what has to match; which inputs a check has comes from that configuration, never from a judgement about what a change touched. Staged-tree pre-commit checks still run, and a working-tree result is reused for a staged tree only when the staged copy of everything the check compares matches the working tree. No hook or evidence check is bypassed.
 
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
 including the long tier, only when the user asks for it:

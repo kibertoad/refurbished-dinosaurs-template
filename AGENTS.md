@@ -637,6 +637,8 @@ dotnet build <Project>.slnx        # full solution
 dotnet run --project src/<Project>.Game -- --smoke-test
 ```
 
+While a documentation-only batch is in progress, run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>` with the commit recorded before the batch. Selection checks all committed and uncommitted paths and runs the documentation, citation, queue and repository-policy checks, including Kaitai compilation; anything other than recognized documentation, including the gate's own files, selects the fast gate. Explicit test requests still run. This does not replace the fast gate: the batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate before merge. Reuse a check result only on an exact match of command, tool versions, configuration, `GAME_DIR` builds and the whole tree. Keep staged-tree hooks enabled. See `docs/VALIDATION.md` for the selection and reuse rules.
+
 Never run the full validation gate (`Invoke-Validation.ps1` without
 `-TestFilter`) or the full test suite locally. CI runs the gate on every pull
 request. Locally, run only the tests directly relevant to the change: the
