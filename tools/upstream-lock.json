@@ -1,10 +1,10 @@
 {
   "standardVersion": 1,
-  "captured": "2026-10-11",
+  "captured": "2026-10-18",
   "checker": {
     "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-    "revision": "1f3ce2845d58dc4d77eaa7c08ac953cd2faba789",
-    "version": "4.2.0"
+    "revision": "78f0229406fa97d2b8a60fb4b79366ffd9a08e3b",
+    "version": "6.0.1"
   },
   "files": [
     {
