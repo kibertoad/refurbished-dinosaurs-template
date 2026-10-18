@@ -186,7 +186,8 @@ condition holds:
 1. Spawn no new agents and start no new item, batch or session.
 2. Finish the batch in progress as one cohesive batch: its findings, spec
    entries, parity rows, queue changes and tests, passing the documentation
-   check and the fast gate. Work that cannot be finished that way is left out
+   check and its affected-area checks; the full suite runs in CI. Work that
+   cannot be finished that way is left out
    of the batch and described under Unfinished in the Handover, or committed to
    `wip/<working branch>` where the working tree does not outlive the session.
 3. Run `end-session`: stop processes, rewrite the Handover with the next items

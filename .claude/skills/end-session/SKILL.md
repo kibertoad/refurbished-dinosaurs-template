@@ -29,8 +29,8 @@ only the lines the link gives, and never a section already read this session.
    describe it under Unfinished in the handover. Where the working tree does
    not outlive the session (a cloud container), commit the half-done work to
    `wip/<working branch>` and push it there instead. Never commit to the
-   working branch anything that fails the documentation check or the fast
-   gate, or mixes two kinds of batch.
+   working branch anything that fails the documentation check or its
+   affected-area checks (the full suite runs in CI), or mixes two kinds of batch.
 4. **Handover**: under a goal that continues, rewrite the Handover section of
    its goal file; for a goal met or dropped, make the deletion in step 2;
    otherwise rewrite `docs/HANDOVER.md` from its section headings. First

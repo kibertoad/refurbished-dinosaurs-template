@@ -8,6 +8,20 @@ not here.
 
 A project created from this template may delete this file.
 
+## Path-gated CI and scoped validation, 2026-10-18
+
+- **Path-gated CI jobs.** `.github/workflows/ci.yml` runs a `changes` job
+  first (plain `git diff`, no new actions) and runs `verify` only when code,
+  build files, pins or workflows changed, and `documentation` only when the
+  spec, its generated files, code citations or pins changed. Spec-only batches
+  skip the build and test suites; the installer again requires a successful
+  verify. The workflow also triggers on pushes to `main`, so direct pushes get
+  the same gates pull requests do.
+- **What runs where.** `docs/VALIDATION.md` maps batch content to local checks
+  and CI jobs. The wrap-up step in `docs/goals/README.md` and the
+  `end-session` skill now ask for the documentation check and the
+  affected-area checks instead of the full fast gate.
+
 ## Generated root parity on the documentation route, 2026-10-18
 
 - **Validation selection.** `tools/Select-Validation.mjs` counts the root `PARITY.md` as documentation, beside the `parity/` rows it is generated from, so `-ChangedSince` keeps a batch that regenerates it on the documentation route instead of asking for the fast gate (#129). The documentation check still applies `scheduled-generation`, which this template turns on, so a branch that edits `PARITY.md` together with anything else still fails that check unless the file matches main.

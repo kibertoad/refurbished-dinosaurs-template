@@ -105,7 +105,18 @@ While a documentation-only batch is in progress, record the base commit before e
 
 These are the checks for a batch in progress, not a replacement for the fast gate. Every batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate on the pull request before merge.
 
-For any other change, run it locally with `-TestFilter`, for the tests the change touches. The full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
+For any other change, run it locally only with `-TestFilter`, for the tests the change touches. The
+full gate runs in CI on every pull request and push to main and is never run
+locally (`AGENTS.md`, Commands). CI gates both jobs by changed paths, so a
+batch that cannot affect a suite does not run it:
+
+| Batch touches | Run locally | CI runs |
+|---|---|---|
+| `spec/`, `parity/`, `deviations/`, `queue/`, the root `PARITY.md` only | `-ChangedSince <base-commit>` while the batch is in progress, then the fast gate once before the commit (the pre-commit hook's node checks run on commit) | documentation only |
+| `src/`, `tests/` | `dotnet build` plus `-TestFilter` for the touched area; add the documentation check when the batch cites or changes spec IDs | both jobs |
+| `tools/`, `tests/upstream/`, `tests/evidence/`, `tests/emu/` | the affected test files only; add the documentation check when checker inputs or pins changed | both jobs |
+| Pins, lockfiles, workflows, hooks | `node tools/Invoke-NodeChecks.mjs` plus the suite that consumes the pin | both jobs |
+| Narrative `docs/` only | nothing; commit | neither |
 
 A successful check is reused only when its command, tool identities, configuration, environment, original inputs and declared file inputs match. `validation-inputs.json` declares narrower inputs; its default empty checks object means checks run fresh. The tooling test stage uses the local receipt helper described in [Validation inputs and final records](VALIDATION-INPUTS.md). Final documentation and staged-tree checks always run freshly. No hook or evidence check is bypassed.
 

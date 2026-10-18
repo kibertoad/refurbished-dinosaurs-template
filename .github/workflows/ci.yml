@@ -2,14 +2,58 @@ name: Continuous integration
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches: [main]
 permissions:
   contents: read
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  # Jobs below run only when the change could affect what they check: spec-only
+  # batches skip the build and test suites, code-only batches still run the
+  # documentation check because code cites spec IDs. Queue hygiene
+  # (Check-ResearchTracking) rides with verify, so a queue-only change relies
+  # on the pre-commit hook for it; a manual dispatch always runs everything.
+  changes:
+    name: Changed paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      spec: ${{ steps.filter.outputs.spec }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: filter
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "spec=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            base="$PR_BASE_SHA"
+          else
+            base="$PUSH_BEFORE_SHA"
+          fi
+          files=$(git diff --name-only "$base" "$HEAD_SHA" --)
+          code=$(echo "$files" | grep -E '^(src|tests|tools|coverage)/|\.(slnx|props|targets)$|^Directory\.|^global\.json$|^\.config/|^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|requirements-evidence\.txt)$|^\.github/|^\.githooks/' || true)
+          spec=$(echo "$files" | grep -E '^(spec|parity|deviations|queue)/|^PARITY\.md$|^validation/|^(src|tests|tools)/|^(package\.json|pnpm-lock\.yaml)$|^tools/upstream-lock\.json$|^\.github/workflows/ci\.yml$' || true)
+          if [ -n "$code" ]; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$spec" ]; then echo "spec=true" >> "$GITHUB_OUTPUT"; else echo "spec=false" >> "$GITHUB_OUTPUT"; fi
   verify:
     name: Verify (${{ matrix.os }})
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -52,6 +96,8 @@ jobs:
         run: if (Test-Path artifacts/assetless-game/UserContent) { throw 'Assetless package contains UserContent.' }
   documentation:
     name: Documentation standard
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.spec == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -79,7 +125,7 @@ jobs:
   installer:
     name: Windows installer
     needs: verify
-    if: ${{ !cancelled() && (needs.verify.result == 'success' || needs.verify.result == 'skipped') }}
+    if: ${{ !cancelled() && needs.verify.result == 'success' }}
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
