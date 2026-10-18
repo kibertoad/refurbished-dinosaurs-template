@@ -24,15 +24,20 @@ snapshot="$git_dir/precommit-snapshot"
 snapshot_index="$git_dir/precommit-snapshot.index"
 tree=$(git write-tree)
 # The snapshot has no installed packages; the checks use the checkout's (pnpm install) through a
-# node_modules link. The link is removed before the snapshot is updated and made again after, so
-# clean can run with -x (which would remove the link even when passed as -e) and the link always
-# points at this checkout's packages, also in a copy of the repository. rm -f has no -r, so it
-# unlinks a symlink, and Git Bash's rm -f a junction, without entering the checkout's packages.
-rm -f "$snapshot/node_modules"
-if [ -e "$snapshot/node_modules" ] || [ -L "$snapshot/node_modules" ]; then
-  echo "pre-commit: could not remove $snapshot/node_modules, so the snapshot was left alone." >&2
-  exit 1
-fi
+# node_modules link. links names every directory the snapshot links to in the checkout, and any new
+# link goes there. The links are removed before the snapshot is updated and made again after, so
+# clean can run with -x (which would remove a link even when passed as -e, and could follow one into
+# the checkout) and each link always points at this checkout, also in a copy of the repository.
+# rm -f has no -r, so it unlinks a symlink, and Git Bash's rm -f a junction, without entering the
+# directory it points at.
+links="node_modules"
+for link in $links; do
+  rm -f "$snapshot/$link"
+  if [ -e "$snapshot/$link" ] || [ -L "$snapshot/$link" ]; then
+    echo "pre-commit: could not remove $snapshot/$link, so the snapshot was left alone." >&2
+    exit 1
+  fi
+done
 # Brings the snapshot to the staged tree: read-tree updates the files whose entry changed, removes
 # those no longer staged and, with --reset, also rewrites any file edited or deleted in the
 # snapshot; clean -x removes every other file there, ignored ones included, so the checks see only
@@ -50,10 +55,12 @@ if ! update_snapshot; then
   rm -rf "$snapshot" "$snapshot_index" "$snapshot_index.lock"
   update_snapshot
 fi
-# Node makes the link: a junction on Windows, where Git Bash's ln -s copies the directory instead,
-# and a symlink elsewhere.
-if [ -d "$work_tree/node_modules" ]; then
-  node -e 'require("fs").symlinkSync(process.argv[1], process.argv[2], "junction")' "$work_tree/node_modules" "$snapshot/node_modules"
-fi
+# Node makes the links: junctions on Windows, where Git Bash's ln -s copies the directory instead,
+# and symlinks elsewhere.
+for link in $links; do
+  if [ -d "$work_tree/$link" ]; then
+    node -e 'require("fs").symlinkSync(process.argv[1], process.argv[2], "junction")' "$work_tree/$link" "$snapshot/$link"
+  fi
+done
 export GIT_DIR="$git_dir" GIT_WORK_TREE="$snapshot"
 node "$snapshot/tools/Invoke-NodeChecks.mjs" --no-ksy
