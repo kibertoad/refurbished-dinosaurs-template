@@ -8,6 +8,23 @@ not here.
 
 A project created from this template may delete this file.
 
+## Evidence reporters with a local candidate index, 2026-10-18
+
+- **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.1.0
+  to 4.3.0 and `scientific-method-engine` from 19.1.0 to 19.9.0
+  (kibertoad/refurbished-dinosaurs-toolkit#540). Both still speak
+  prepared-config protocol 3, and the engine still pins Capstone 5.0.9 and
+  pypcode 4.0.1. Engine 19.9 adds `scan-index`, which builds a local SQLite
+  corpus of raw immediate, displacement and resolved-call candidates once and
+  answers repeated caller and operand searches from it; `report.mjs` runs it as
+  `x86-scan-index`. Reader 4.3 gives that command 600 seconds and keeps 120 for
+  the others, and 4.2 added `imports` for NE executables. Engine 19.2 to 19.8
+  extended `reach` (decoded ranges, query-scoped stops, which starts reach each
+  target, transfers into a span, branches on stack arguments), derived table
+  counts from the code and let a restoration declare computed calls that leave
+  the image or never run. The template reads none of the changed fields. The
+  reader's `minimumReleaseAgeExclude` entry follows the new version.
+
 ## Repeated queue attempts and Defect notes, 2026-10-11
 
 - **Research tracking.** `tools/Check-ResearchTracking.mjs` warns, without
