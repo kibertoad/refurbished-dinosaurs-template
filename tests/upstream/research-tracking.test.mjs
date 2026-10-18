@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, copyFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { checkResearchTracking, researchTracking } from '../../tools/Check-ResearchTracking.mjs';
 function fixture(t, ending = '\n', area = 'TEST') {
   const root = mkdtempSync(join(tmpdir(), 'research-tracking-'));
@@ -104,4 +105,20 @@ test('a Static item with more than three Tried notes warns without failing', t =
   write('queue/TEST/README.md', '# TEST\n\nNext ID: Q-TEST-002\n');
   write('queue/TEST/static.md', `# TEST: Static\n\n- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n${tried(5)}`);
   assert.match(researchTracking(root).warnings.join('\n'), /^Q-TEST-001: 5 Tried notes/);
+});
+test('the command prints warnings on stdout and leaves stderr for errors', t => {
+  const {root, write, queue} = fixture(t);
+  const item = '- Q-TEST-001. TEST_ENTRY: Which branch?\n  Settles it: read the caller. Blocks: none.\n';
+  write('queue/TEST.md', queue.replace(item, `${item}${'  Tried: a reading.\n'.repeat(4)}`));
+  mkdirSync(join(root, 'tools'));
+  copyFileSync(resolve(import.meta.dirname, '../../tools/Check-ResearchTracking.mjs'), join(root, 'tools/Check-ResearchTracking.mjs'));
+  const run = () => spawnSync(process.execPath, [join(root, 'tools/Check-ResearchTracking.mjs')], { encoding: 'utf8' });
+  let result = run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.match(result.stdout, /^Warning: Q-TEST-001: 4 Tried notes under Static/m);
+  write('queue/TEST.md', queue.replace('Next ID: Q-TEST-002', 'Next ID: Q-TEST-001'));
+  result = run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Next ID would reuse/);
 });
