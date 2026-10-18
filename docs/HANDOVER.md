@@ -2,6 +2,13 @@
 
 ## State
 
+- Project-local original inputs are implemented for issue 81. See
+  [PROJECT-INPUTS.md](PROJECT-INPUTS.md) and the
+  [fresh acceptance record](validation/20261019-project-local-inputs.md).
+- Fresh focused controls: 17 passed, zero skips. Final canonical fast gate:
+  109 Node controls and 11 filtered resolver tests pass, zero failures/skips
+  or build warnings/errors. Earlier capture fixture/load failures and the
+  separately tested prerequisite are retained in the acceptance record.
 - Stage: unconfigured template; no game intake has started.
 - Last gate: 2026-10-01, `tools/Invoke-Validation.ps1` fast gate and offline documentation check passed on Windows using temporary portable PowerShell 7.
 - Shared signing/release safeguards are ready for review: main-only preparation, bounded jobs, expected certificate verification and same-commit tag reuse. Synthetic tag/certificate controls and canonical validation pass.
@@ -9,7 +16,9 @@
 
 ## Unfinished
 
-No unfinished changes. Live signing and the repository's environment protection are checked only at release time; the synthetic tests do not exercise them.
+Project-local input changes await review and consumer adoption. Direct research
+scripts must use the checkout launcher instead of inherited global variables.
+Live signing and environment protection remain release-time checks.
 
 ## Blockers
 

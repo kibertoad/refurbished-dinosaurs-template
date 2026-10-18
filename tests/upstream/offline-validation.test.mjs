@@ -18,7 +18,16 @@ $global:commands=[Collections.Generic.List[object]]::new()
 $global:checks=[Collections.Generic.List[string]]::new()
 $global:forwarded=$false
 function Get-Process { $global:checks.Add('Get-Process') }
-function node { $global:checks.Add('node');$global:LASTEXITCODE=0; if ($args[0] -like '*Select-Validation.mjs') { Write-Output '${selection ?? ''}' } }
+function node {
+ $global:checks.Add('node');$global:LASTEXITCODE=0
+ if ($args[0] -like '*Select-Validation.mjs') { Write-Output '${selection ?? ''}' }
+ if ($args[0] -like '*Project-Inputs.mjs') {
+  $index=[Array]::IndexOf([object[]]$args,'dotnet')
+  if ($index -lt 1) { throw 'Missing dotnet child command' }
+  $forward=@($args | Select-Object -Skip ($index+1))
+  & dotnet @forward
+ }
+}
 function python { $global:checks.Add('python');$global:LASTEXITCODE=0 }
 function dotnet {
  $global:commands.Add([object]@($args))
@@ -40,7 +49,10 @@ test('validation restores normally and explicit NoRestore retains checks and no-
  assert.equal(normal.commands[0][0],'restore');assert(!offline.commands.some(a=>a[0]==='restore'));
  assert(offline.commands.some(a=>a[0]==='build'));assert(offline.commands.some(a=>a[0]==='test'));
  assert(offline.commands.filter(a=>['build','test','publish'].includes(a[0])).every(a=>a.includes('--no-restore')));
- assert.deepEqual(offline.checks,normal.checks);
+ assert.deepEqual(offline.checks.filter(c=>c!=='node'),normal.checks.filter(c=>c!=='node'));
+ // Normal restore adds one project-input launcher invocation; both retain the
+ // same policy/configuration/infrastructure/documentation checks.
+ assert.equal(normal.checks.filter(c=>c==='node').length,offline.checks.filter(c=>c==='node').length+1);
  if(existsSync(join(root,'tools/Test.ps1'))){assert.equal(offline.forwarded,true);assert.equal(normal.forwarded,false);assert(offline.checks.includes('Test'));}
  else {assert(offline.checks.includes('Verify-Repository'));assert(offline.checks.includes('Verify-Configuration'));assert(offline.checks.includes('Test-TemplateInfrastructure'));assert(offline.checks.includes('node'));}
  const nativeTest=offline.commands.find(a=>a[0]==='test');if(nativeTest){assert(nativeTest.includes('SyntheticFilter'));assert(nativeTest.includes('--minimum-expected-tests'));}

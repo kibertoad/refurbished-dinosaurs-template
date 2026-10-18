@@ -1,5 +1,9 @@
 # Validation
 
+Project-local input isolation: [2026-10-19 acceptance](validation/20261019-project-local-inputs.md)
+records fresh synthetic controls and the explicitly failing unrelated Windows
+capture fixture in the broad gate.
+
 `tools/Test-TemplateInfrastructure.ps1` is part of the canonical validation
 gate. It checks that signing helpers and workflow wiring, the smart root
 launcher, package lock, latest-version bootstrap fields, and local-only guards

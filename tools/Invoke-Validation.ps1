@@ -35,7 +35,7 @@ $lock = $null
 function Invoke-CheckedDotnet {
     param([Parameter(Mandatory = $true)][string[]] $Arguments)
 
-    & dotnet @Arguments
+    & node (Join-Path $PSScriptRoot 'Project-Inputs.mjs') -- dotnet @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet $($Arguments[0]) failed with exit code $LASTEXITCODE."
     }
@@ -125,6 +125,7 @@ try {
         'tests/upstream/offline-validation.test.mjs',
         'tests/upstream/release-signing.test.mjs',
         'tests/upstream/validation-receipts.test.mjs'
+        'tests/upstream/project-inputs.test.mjs'
     ) | ForEach-Object { Join-Path $repositoryRoot $_ }
     # Some tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH

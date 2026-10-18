@@ -4,15 +4,18 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, lstatSync, readdirSync, realpathSync, unlinkSync, openSync, readSync, closeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {projectInputEnvironment, localInputsPath} from './Project-Inputs.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [id, separator, executable, ...args] = process.argv.slice(2);
 const receiptDirectory = '.artifacts/validation-receipts/';
 const hash = value => createHash('sha256').update(value).digest('hex');
+const snapshotParts = new Map();
+const fileHashBuffer = Buffer.alloc(1 << 20);
 // Original inputs can hold multi-gigabyte disk images, so files are hashed in chunks.
 function hashFile(filename) {
   const digest = createHash('sha256');
-  const buffer = Buffer.alloc(1 << 20);
+  const buffer = fileHashBuffer;
   const descriptor = openSync(filename, 'r');
   try {
     for (let count; (count = readSync(descriptor, buffer, 0, buffer.length, null)) > 0;) digest.update(buffer.subarray(0, count));
@@ -101,10 +104,20 @@ function snapshot(configBytes, contract) {
   });
   // Values, including secrets, enter only the digest, never the receipt or logs.
   const environment = Object.entries(process.env).sort(([a], [b]) => a.localeCompare(b));
-  return hash(JSON.stringify({ version: 1, root, executable, args, node: process.version,
-    config: hash(configBytes), runner: fileIdentity(fileURLToPath(import.meta.url)), files, tools, external, environment }));
+  const parts = { version: 1, root, executable, args, node: process.version,
+    config: hash(configBytes), localInputs: fileIdentity(path.join(root, localInputsPath)),
+    runner: fileIdentity(fileURLToPath(import.meta.url)), files, tools, external, environment };
+  const identity = hash(JSON.stringify(parts));
+  // Retain only component digests in memory, never environment values or originals.
+  snapshotParts.set(identity, Object.fromEntries(Object.entries(parts).map(([name,value]) => [name,hash(JSON.stringify(value))])));
+  return identity;
 }
 try {
+  // Normalize before both identity probes and execution; never consume another
+  // project's account-wide GAME_DIR. Only the launched process gets this value.
+  const projectEnvironment = projectInputEnvironment(root);
+  delete process.env.GAME_DIR;
+  if (projectEnvironment.GAME_DIR) process.env.GAME_DIR = projectEnvironment.GAME_DIR;
   if (!/^[a-z][a-z0-9-]*$/.test(id ?? '') || separator !== '--' || !executable) {
     throw new Error('Usage: node tools/Run-ValidationCheck.mjs CHECK -- EXECUTABLE ARG...');
   }
@@ -134,7 +147,11 @@ try {
   if (result.error || result.status !== 0) process.exit(result.status || 1);
   if (reusable) {
     const after = snapshot(configBytes, contract);
-    if (before !== after) throw new Error('Inputs changed during validation; no receipt recorded. Run again.');
+    if (before !== after) {
+      const first = snapshotParts.get(before), last = snapshotParts.get(after);
+      const changed = Object.keys(first).filter(name => first[name] !== last[name]);
+      throw new Error(`Inputs changed during validation (${changed.join(', ')}); no receipt recorded. Run again.`);
+    }
     mkdirSync(path.dirname(receiptPath), { recursive: true });
     writeFileSync(receiptPath, JSON.stringify({ version: 1, result: 'passed', identity: after, completed: new Date().toISOString() }) + '\n');
   }

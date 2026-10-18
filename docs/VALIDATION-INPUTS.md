@@ -1,5 +1,9 @@
 # Validation inputs and final records
 
+Project-local originals are configured through [Project inputs](PROJECT-INPUTS.md).
+The runner ignores inherited global `GAME_DIR` and derives its child-only bridge
+from ignored `.artifacts/local-inputs.json`, whose identity is always included.
+
 Finish implementation and evidence edits before running expensive checks. Write
 the final validation record afterwards, then run the documentation, citations,
 queue, schema, text policy and staged hook checks on the final text. A record
