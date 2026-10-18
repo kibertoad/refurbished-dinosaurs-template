@@ -8,6 +8,21 @@ not here.
 
 A project created from this template may delete this file.
 
+## Documentation checker 6.0.1, 2026-10-18
+
+- **Documentation checker.** `@scientific-method/standard-checker` moves from
+  4.2.0 to 6.0.1, with the CI action pinned to the toolkit commit tagged for
+  6.0.1. 6.0.1 reads each file once per run instead of up to four times
+  (kibertoad/refurbished-dinosaurs-toolkit#543), which takes about 40% off a
+  check of a 3,000-file spec. The versions in between change rules the
+  unconfigured template does not reach: 5.0.0 fails a finding or experiment
+  cited in the rebuild's source (`--rebuild-source`, default `src`), and 6.0.0
+  has `standard-coverage` report code without an inventory, complete readings
+  and the `.provenance.tsv` and `.regions.tsv` files beside an inventory. A
+  configured project checks its `src/` citations and inventory side files
+  against the toolkit's migration guide when it takes this version. The
+  protocol documents stay at the revision already pinned.
+
 ## Evidence reporters with a local candidate index, 2026-10-18
 
 - **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.1.0
