@@ -52,6 +52,13 @@ investigation unless the owner asks for it.
 game profile, the scope and non-goals, the ordered vertical slices with
 acceptance criteria, the risks, and the questions only the owner can answer.
 
+Reuse shared, versioned Ghidra, JDK and Kaitai installations across projects
+instead of installing a copy in each checkout. Check existing tools first,
+record the versions and resolved paths, and retain explicit launcher overrides.
+Follow [the shared-tool path recommendations](docs/GHIDRA.md#share-installations-across-projects).
+Keep game databases, owned inputs and generated analysis reports project-local
+and ignored; shared application binaries do not make those artifacts shared.
+
 Plans document authorized work; they do not require a separate explicit owner approval before implementation or tooling proceeds. Ask only for missing owner decisions that block the requested scope.
 
 **2. Configure the project identity.** Fill in `tools/project-config.json` and

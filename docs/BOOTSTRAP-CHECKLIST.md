@@ -44,6 +44,10 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 
 ## Configure
 
+- [ ] Reuse shared versioned Ghidra, JDK and Kaitai installations; record required
+      versions, resolved paths and launcher overrides using
+      [the OS path recommendations](GHIDRA.md#share-installations-across-projects).
+      Verify the selected versions and keep analysis databases/reports local.
 - [ ] Customize the provisional root `AGENTS.md` for this game's terminology,
       canonical patched oracle, evidence ledgers, local tools, and validation
       commands while preserving its universal safety rules.

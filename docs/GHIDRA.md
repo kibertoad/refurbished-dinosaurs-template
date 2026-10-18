@@ -8,6 +8,39 @@ disassembly or decompiler output must never enter Git.
 
 ## Pin the local toolchain and oracle
 
+### Share installations across projects
+
+Use one shared installation per tool version for Ghidra, its compatible JDK
+and Kaitai Struct compiler. Check documented paths, environment variables and
+existing installations before downloading. Do not create another copy inside
+each checkout. Keep different required versions side by side; do not replace a
+version another project needs when updating a tool.
+
+Recommended roots for manually managed installations:
+
+| OS | Shared root | Example versioned directories |
+|---|---|---|
+| Windows | `C:\tools` | `ghidra\ghidra_<version>_PUBLIC`, `java\jdk-<version>`, `kaitai\kaitai-struct-compiler-<version>` |
+| macOS | `$HOME/Library/Application Support/refurbished-dinosaurs/tools` | `ghidra/ghidra_<version>_PUBLIC`, `java/jdk-<version>`, `kaitai/kaitai-struct-compiler-<version>` |
+| Linux | `${XDG_DATA_HOME:-$HOME/.local/share}/refurbished-dinosaurs/tools` | `ghidra/ghidra_<version>_PUBLIC`, `java/jdk-<version>`, `kaitai/kaitai-struct-compiler-<version>` |
+
+These are recommendations, not required system locations. Reuse a suitable
+package-manager or administrator-managed installation when available. A shared
+root means shared across projects; it need not be writable by every user.
+Quote paths, particularly the macOS path containing spaces. Record required
+versions and resolved absolute paths in the configured project's documentation.
+Select them in the project's launcher with `GHIDRA_HOME`, `JAVA_HOME` and `KSC`
+(the compiler executable), allowing explicit path overrides. Verify actual tool
+versions and JDK compatibility before analysis; a moving `latest` path alone is
+not a version pin. Keep dependency-isolated Python environments project-local.
+
+Keep Ghidra databases, owned executables, reports and other analysis artifacts
+in each project's ignored storage. Sharing the application installation does
+not share a game's analysis database or allow simultaneous writable sessions
+against the same project. When migrating an existing installation, stop users
+of that installation, preserve its version, update launchers and documentation,
+then verify a read-only analysis and compiler invocation from the shared path.
+
 Before analysis, replace this instructional section with:
 
 - Ghidra version and absolute local installation path;
