@@ -14,6 +14,15 @@ test('only recognized documentation paths select the documentation gate', () => 
   }
 });
 
+test('generated root parity selects documentation while lookalikes and mixed code changes require full validation', () => {
+  assert.equal(classify(['PARITY.md']), 'documentation');
+  assert.equal(classify(['parity/TEST.md', 'PARITY.md', 'docs/VALIDATION.md']), 'documentation');
+  for (const paths of [['PARITY.md', 'src/Game.cs'], ['parity.md'], ['PARITY.md.js'],
+    ['other/PARITY.md'], ['PARITY.md/../src/Game.cs'], ['PARITY.md', 'AGENTS.md']]) {
+    assert.equal(classify(paths), 'full', paths.join(','));
+  }
+});
+
 test('selection includes committed, staged, unstaged, untracked and both rename sides', t => {
   const dir = mkdtempSync(join(tmpdir(), 'validation-selection-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
@@ -29,10 +38,12 @@ test('selection includes committed, staged, unstaged, untracked and both rename 
   git('add', '.'); git('commit', '-m', 'base');
   const base = git('rev-parse', 'HEAD');
   writeFileSync(join(dir, 'docs/committed.md'), 'committed');
+  writeFileSync(join(dir, 'PARITY.md'), '# Generated parity\n');
   git('add', '.'); git('commit', '-m', 'documentation');
   writeFileSync(join(dir, 'docs/base.md'), 'staged'); git('add', 'docs/base.md');
   writeFileSync(join(dir, 'docs/base.md'), 'unstaged');
   writeFileSync(join(dir, 'docs/untracked space.md'), 'untracked');
+  assert(changedPaths(dir, base).includes('PARITY.md'));
   assert.equal(classify(changedPaths(dir, base)), 'documentation');
   renameSync(join(dir, 'src/old.cs'), join(dir, 'docs/moved.md'));
   const paths = changedPaths(dir, base);
