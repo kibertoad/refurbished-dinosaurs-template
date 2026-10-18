@@ -234,6 +234,42 @@ test("the gate and the pre-commit hook run one list of node checks", () => {
   assert.match(readFileSync(resolve(root, "tools/Invoke-Validation.ps1"), "utf8"), /tools\/Invoke-NodeChecks\.mjs'\)/);
   assert.match(readFileSync(resolve(root, ".githooks/pre-commit"), "utf8"), /tools\/Invoke-NodeChecks\.mjs" --no-ksy$/m);
 });
+test("the pre-commit hook checks the staged tree in a snapshot it updates between commits", t => {
+  const dir = mkdtempSync(resolve(tmpdir(), "v1-pre-commit-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const put = (path, text) => { mkdirSync(dirname(resolve(dir, path)), { recursive: true }); writeFileSync(resolve(dir, path), text); };
+  const git = (...args) => spawnSync("git", ["-c", "user.name=test", "-c", "user.email=test@example.com", ...args], { cwd: dir, encoding: "utf8" });
+  const ok = (...args) => { const result = git(...args); assert.equal(result.status, 0, result.stdout + result.stderr); return result; };
+  // The stand-in checks print what the snapshot they run from holds, and fail on a staged "fail".
+  put("tools/Invoke-NodeChecks.mjs", `import { existsSync, readFileSync } from "node:fs";
+const at = (p) => new URL("../" + p, import.meta.url);
+const a = readFileSync(at("a.md"), "utf8");
+console.log("SNAPSHOT " + JSON.stringify({ a, b: existsSync(at("b.md")), junk: existsSync(at("junk.md")) }));
+process.exitCode = a.includes("fail") ? 1 : 0;
+`);
+  put(".githooks/pre-commit", readFileSync(resolve(root, ".githooks/pre-commit"), "utf8"));
+  put("a.md", "one\n"); put("b.md", "b\n");
+  ok("init", "--quiet"); ok("config", "core.hooksPath", ".githooks"); ok("add", ".");
+  // Git sends a hook's output to stderr.
+  const snapshot = (...args) => { const result = ok("commit", "--quiet", ...args); return JSON.parse(/^SNAPSHOT (.*)$/m.exec(result.stdout + result.stderr)[1]); };
+  assert.deepEqual(snapshot("-m", "first"), { a: "one\n", b: true, junk: false });
+  const kept = resolve(ok("rev-parse", "--absolute-git-dir").stdout.trim(), "precommit-snapshot");
+  // A staged edit and deletion reach the snapshot; an unstaged edit does not.
+  put("a.md", "two\n"); ok("add", "a.md"); ok("rm", "--quiet", "b.md"); put("a.md", "two, unstaged fail\n");
+  assert.deepEqual(snapshot("-m", "second"), { a: "two\n", b: false, junk: false });
+  // An edit made inside the snapshot and a file left there are undone.
+  writeFileSync(resolve(kept, "a.md"), "fail"); writeFileSync(resolve(kept, "junk.md"), "junk");
+  put("c.md", "c\n"); ok("add", "c.md");
+  assert.deepEqual(snapshot("-m", "third"), { a: "two\n", b: false, junk: false });
+  // A damaged snapshot index is rebuilt.
+  writeFileSync(`${kept}.index`, "damaged"); put("d.md", "d\n"); ok("add", "d.md");
+  assert.deepEqual(snapshot("-m", "fourth"), { a: "two\n", b: false, junk: false });
+  // A staged problem fails the commit.
+  ok("add", "a.md");
+  const failed = git("commit", "--quiet", "-m", "fifth");
+  assert.notEqual(failed.status, 0);
+  assert.match(failed.stdout + failed.stderr, /"a":"two, unstaged fail\\n"/);
+});
 test("the commit-msg hook checks the message's addresses against the entries it cites", async t => {
   assert.match(readFileSync(resolve(root, ".githooks/commit-msg"), "utf8"), /tools\/upstream\.mjs" docs --message "\$1"$/m);
   const dir = fixture(t);

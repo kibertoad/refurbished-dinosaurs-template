@@ -8,6 +8,22 @@ not here.
 
 A project created from this template may delete this file.
 
+## A pre-commit snapshot kept between commits, 2026-10-18
+
+- **Pre-commit hook.** `.githooks/pre-commit` keeps the staged tree it checks in
+  `.git/precommit-snapshot`, with an index of its own, instead of copying the
+  whole index to a new temporary directory on every commit. Each commit brings
+  the snapshot to the staged tree with `git read-tree --reset -u`, which rewrites
+  only the files whose staged content changed and removes those no longer
+  staged, then restores any file edited inside the snapshot and removes
+  untracked files there. A snapshot whose index cannot be read is rebuilt. On
+  Windows the first read of each newly written file is scanned, so the fresh
+  copy cost a restoration with 3,600 tracked files about 95 seconds a commit, of
+  which the documentation check's own work was 5. With the kept snapshot the
+  hook takes about 0.7 seconds plus the checks; the first commit in a clone
+  still pays the full copy once. `git clean` runs without `-x`, so the
+  repository's `.gitignore` keeps the `node_modules` link out of its reach.
+
 ## Evidence reporters with a local candidate index, 2026-10-18
 
 - **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.1.0
