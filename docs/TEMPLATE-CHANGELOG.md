@@ -13,6 +13,10 @@ A project created from this template may delete this file.
 - **Text policy.** `textSizeRules` in `tools/repository-policy.json` holds the line and word limits on Markdown in `spec/`, `parity/`, `deviations/`, `queue/`, `docs/` (except `docs/upstream/`), `PARITY.md`, `README.md` and `AGENTS.md`, and gives `docs/HANDOVER.md` 200 lines and 800 words. `tools/Check-TextPolicy.mjs` applies them from `tools/Test-TemplateInfrastructure.ps1` and from `tools/Invoke-NodeChecks.mjs`, so the pre-commit hook checks the staged tree too. `docs/VALIDATION-RECORDS.md` says how to split a long record log into linked files.
 - **Changelog.** The records from 2026-09-30 and earlier moved to `docs/template-changelog/001.md`; their headings stay here as links.
 
+## Generated root parity on the documentation route, 2026-10-18
+
+- **Validation selection.** `tools/Select-Validation.mjs` counts the root `PARITY.md` as documentation, beside the `parity/` rows it is generated from, so `-ChangedSince` keeps a batch that regenerates it on the documentation route instead of asking for the fast gate (#129). The documentation check still applies `scheduled-generation`, which this template turns on, so a branch that edits `PARITY.md` together with anything else still fails that check unless the file matches main.
+
 ## One gate per batch and handovers that name real paths, 2026-10-18
 
 - **Research batches.** The `research-item` skill's Check step runs the fast gate (`./tools/Invoke-Validation.ps1 -TestFilter <filter>`) once, after the batch's last edit and before the commit. Agents had also run the gate when a batch started and the documentation check on its own just before the gate, which already includes it; one restoration's subagents ran the gate several times per batch. Checks while a batch is under way use the documentation check or the change-aware selection, and the pre-commit hook still checks the staged tree.
