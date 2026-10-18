@@ -121,13 +121,14 @@ try {
         'tests/upstream/goal-run.test.mjs',
         'tests/upstream/validation-selection.test.mjs',
         'tests/upstream/offline-validation.test.mjs',
-        'tests/upstream/release-signing.test.mjs'
+        'tests/upstream/release-signing.test.mjs',
+        'tests/upstream/validation-receipts.test.mjs'
     ) | ForEach-Object { Join-Path $repositoryRoot $_ }
     # Some tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
     try {
-        & node --test @nodeTests
+        & node (Join-Path $PSScriptRoot 'Run-ValidationCheck.mjs') node-tests -- node --test @nodeTests
     }
     finally {
         $env:PWSH = $previousPwsh
