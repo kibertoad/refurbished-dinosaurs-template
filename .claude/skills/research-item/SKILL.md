@@ -63,6 +63,13 @@ only the lines the link gives, and never a section already read this session.
    says.
    Keep each item to one falsifiable question with its own settling condition.
    Split independently answerable dependencies into separate IDs. Apply the
+   [closure assessment](../../../docs/RESEARCH-CLOSURE.md) when assessing a
+   subsystem: tie explicit ownership to the current inventory and turn its
+   remaining caller, producer, indirect-transfer and evidence obligations into
+   finite queue items. Preserve unassigned/shared functions and missing-file
+   denominators. Accepted complete readings come from the pinned reporter;
+   citations and checked obligations never establish an entry by themselves.
+   Apply the
    claim-relevant checks and synthetic examples in `docs/EVIDENCE-REVIEW.md`
    before treating a reading as complete; these add no statuses or schema.
 4. **Gather evidence statically**: data files, then a static reading

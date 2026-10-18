@@ -46,6 +46,7 @@ test("a checker version other than the action's is rejected", t => {
   assert.throws(() => checkerEntry({ ...lock, checker: { ...lock.checker, version: "0.0.1" } }), /run pnpm install/);
   assert.throws(() => checkerEntry(lock, pathToFileURL(resolve(tmpdir(), "no-install", "x.mjs")).href), /not installed; run pnpm install/);
   assert.match(checkerEntry(lock), /standard-checker/);
+  assert.match(checkerEntry(lock, undefined, "standard-coverage"), /coverage\.js$/);
 });
 test("the installed checker is found even when its exports omit package.json", t => {
   const dir = mkdtempSync(resolve(tmpdir(), "checker-exports-")); t.after(() => rmSync(dir, { recursive: true, force: true }));
@@ -57,6 +58,7 @@ test("the installed checker is found even when its exports omit package.json", t
   assert.equal(checkerEntry(lock, from), resolve(pkg, "dist/standard-checker.js"));
   writeFileSync(resolve(pkg, "package.json"), JSON.stringify({ name: "@scientific-method/standard-checker", version: lock.checker.version, bin: "cli.js" }));
   assert.equal(checkerEntry(lock, from), resolve(pkg, "cli.js"));
+  assert.throws(() => checkerEntry(lock, from, "standard-coverage"), /declares no standard-coverage executable/);
   writeFileSync(resolve(pkg, "package.json"), JSON.stringify({ name: "@scientific-method/standard-checker", version: lock.checker.version }));
   assert.throws(() => checkerEntry(lock, from), /declares no standard-checker executable/);
 });

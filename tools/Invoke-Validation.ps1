@@ -117,6 +117,7 @@ try {
         'tests/upstream/diagnostics.test.mjs',
         'tests/upstream/memory-blocks.test.mjs',
         'tests/upstream/research-tracking.test.mjs',
+        'tests/upstream/research-closure.test.mjs',
         'tests/upstream/text-policy.test.mjs',
         'tests/upstream/capture-window.test.mjs',
         'tests/upstream/goal-run.test.mjs',

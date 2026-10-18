@@ -13,6 +13,10 @@ A project created from this template may delete this file.
 - **Text policy.** `textSizeRules` in `tools/repository-policy.json` holds the line and word limits on Markdown in `spec/`, `parity/`, `deviations/`, `queue/`, `docs/` (except `docs/upstream/`), `PARITY.md`, `README.md` and `AGENTS.md`, and gives `docs/HANDOVER.md` 200 lines and 800 words. `tools/Check-TextPolicy.mjs` applies them from `tools/Test-TemplateInfrastructure.ps1` and from `tools/Invoke-NodeChecks.mjs`, so the pre-commit hook checks the staged tree too. `docs/VALIDATION-RECORDS.md` says how to split a long record log into linked files.
 - **Changelog.** The records from 2026-09-30 and earlier moved to `docs/template-changelog/001.md`; their headings stay here as links.
 
+## Research closure assessment, 2026-10-18
+
+- **Research closure.** `tools/Report-ResearchClosure.mjs` assesses a metadata-only plan in `docs/` (explicit function ownership per spec area, inventory fingerprints, and caller, state-producer, indirect-transfer and remaining-evidence obligations) against a fresh `standard-coverage --json --list` run, and reports unassigned and shared functions, stale or missing inventories, open obligations and missing checklist kinds. A ready result asks for human closure review and changes no entry's status or parity row. `docs/RESEARCH-CLOSURE.md` gives the procedure, and the research-item skill applies it when a subsystem is assessed (#131).
+
 ## Generated root parity on the documentation route, 2026-10-18
 
 - **Validation selection.** `tools/Select-Validation.mjs` counts the root `PARITY.md` as documentation, beside the `parity/` rows it is generated from, so `-ChangedSince` keeps a batch that regenerates it on the documentation route instead of asking for the fast gate (#129). The documentation check still applies `scheduled-generation`, which this template turns on, so a branch that edits `PARITY.md` together with anything else still fails that check unless the file matches main.

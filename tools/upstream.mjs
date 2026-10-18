@@ -56,8 +56,9 @@ export function verifySnapshot(root = ROOT) {
   return lock;
 }
 // The installed checker, resolved from this script's checkout. It must be the version the lock pins,
-// so a stale node_modules cannot check against other rules than CI.
-export function checkerEntry(lock, from = import.meta.url) {
+// so a stale node_modules cannot check against other rules than CI. `name` picks another of the
+// package's executables, such as standard-coverage; a single-string bin is standard-checker's.
+export function checkerEntry(lock, from = import.meta.url, name = "standard-checker") {
   // The package is found by directory on Node's lookup path rather than by resolving its package.json,
   // which a package whose exports omit "./package.json" (as the executable reader's do) refuses.
   const manifestPath = (createRequire(from).resolve.paths(CHECKER) ?? [])
@@ -65,8 +66,8 @@ export function checkerEntry(lock, from = import.meta.url) {
   if (!manifestPath) throw new Error(`${CHECKER} is not installed; run pnpm install`);
   const manifest = JSON.parse(read(manifestPath, 65536));
   if (manifest.version !== lock.checker.version) throw new Error(`Installed ${CHECKER} is ${manifest.version}, not the pinned ${lock.checker.version}; run pnpm install`);
-  const bin = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.["standard-checker"];
-  if (typeof bin !== "string") throw new Error(`Installed ${CHECKER} declares no standard-checker executable`);
+  const bin = typeof manifest.bin === "string" && name === "standard-checker" ? manifest.bin : manifest.bin?.[name];
+  if (typeof bin !== "string") throw new Error(`Installed ${CHECKER} declares no ${name} executable`);
   return resolve(dirname(manifestPath), bin);
 }
 // pnpm holds back releases younger than its minimum release age, and refresh takes a checker release
