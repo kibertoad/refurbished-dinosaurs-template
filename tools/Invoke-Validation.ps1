@@ -84,6 +84,10 @@ try {
         # An explicit request for tests always runs those tests.
         $documentationOnly = $selection -eq 'documentation' -and -not (
             $TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests)
+        # The fast gate is the filtered run. Without a filter this would be the full gate, which runs only in CI.
+        if (-not $documentationOnly -and -not ($TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly)) {
+            throw 'The change is not documentation-only, so it needs the fast gate: rerun with -TestFilter naming the tests that cover it. The tooling tests under tests/ run with any filter.'
+        }
     }
     if (-not $documentationOnly) { Stop-CheckoutGame }
 

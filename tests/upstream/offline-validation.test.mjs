@@ -59,8 +59,11 @@ test('documentation selection retains policy/configuration/infrastructure/Node c
  const requested=exercise(t,true,false,'documentation',true);
  assert.equal(requested.failure,null); assert(requested.commands.some(a=>a[0]==='test'));
  assert(requested.checks.includes('Get-Process'));
- const broad=exercise(t,true,false,'full'); assert.equal(broad.failure,null);
+ const unfiltered=exercise(t,true,false,'full'); assert.match(unfiltered.failure,/-TestFilter/);
+ assert.deepEqual(unfiltered.commands,[]); assert(!unfiltered.checks.includes('Verify-Repository'));
+ const broad=exercise(t,true,false,'full',true); assert.equal(broad.failure,null);
  assert(broad.commands.some(a=>a[0]==='build')); assert(broad.commands.some(a=>a[0]==='test'));
+ assert(broad.commands.find(a=>a[0]==='test').includes('SyntheticFilter'));
  const bad=exercise(t,true,false,'unexpected'); assert.match(bad.failure,/Could not classify/);
  assert.deepEqual(bad.commands,[]);
 });
