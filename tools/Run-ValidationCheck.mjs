@@ -26,7 +26,8 @@ function fileIdentity(filename) {
     const info = lstatSync(filename);
     if (!info.isFile() || info.isSymbolicLink()) throw new Error(`Not a regular input file: ${filename}`);
     // Refuse links in parent directories as well.
-    if (path.resolve(realpathSync(filename)).toLowerCase() !== path.resolve(filename).toLowerCase()) {
+    const canonical = value => process.platform === 'win32' ? value.toLowerCase() : value;
+    if (canonical(path.resolve(realpathSync(filename))) !== canonical(path.resolve(filename))) {
       throw new Error(`Linked input: ${filename}`);
     }
     return hash(readFileSync(filename));
