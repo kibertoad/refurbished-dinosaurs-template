@@ -8,6 +8,10 @@ not here.
 
 A project created from this template may delete this file.
 
+## Generated root parity on the documentation route, 2026-10-18
+
+- **Validation selection.** `tools/Select-Validation.mjs` counts the root `PARITY.md` as documentation, beside the `parity/` rows it is generated from, so `-ChangedSince` keeps a batch that regenerates it on the documentation route instead of asking for the fast gate (#129). The documentation check still applies `scheduled-generation`, which this template turns on, so a branch that edits `PARITY.md` together with anything else still fails that check unless the file matches main.
+
 ## One gate per batch and handovers that name real paths, 2026-10-18
 
 - **Research batches.** The `research-item` skill's Check step runs the fast gate (`./tools/Invoke-Validation.ps1 -TestFilter <filter>`) once, after the batch's last edit and before the commit. Agents had also run the gate when a batch started and the documentation check on its own just before the gate, which already includes it; one restoration's subagents ran the gate several times per batch. Checks while a batch is under way use the documentation check or the change-aware selection, and the pre-commit hook still checks the staged tree.
