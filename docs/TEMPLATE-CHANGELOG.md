@@ -8,6 +8,10 @@ not here.
 
 A project created from this template may delete this file.
 
+## Research tracker warnings on stdout, 2026-10-18
+
+- **Research tracking.** `tools/Check-ResearchTracking.mjs` prints its `Tried:` warnings on stdout and keeps stderr for errors. Under Windows PowerShell 5.1, running the gate with its output redirected (`& ./tools/Invoke-Validation.ps1 *> gate.log`) turns any stderr line from a native command into an error record, which the gate's `$ErrorActionPreference = 'Stop'` makes fatal, so a warning stopped the gate there.
+
 ## Node tests in one run, 2026-10-18
 
 - **Validation.** `tools/Invoke-Validation.ps1` runs its node test files in one `node --test` call, so they run at the same time instead of in three groups one after another, and sets `PWSH` to the running PowerShell for all of them. The configuration test in `tests/upstream/upstream.test.mjs` starts Configure-Project with `PWSH` like the other PowerShell tests; it called `pwsh` by name and failed the gate where only Windows PowerShell is installed.
