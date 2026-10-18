@@ -523,6 +523,21 @@ during evidence-driven work. After commands that start games, servers, analyzers
 or compiler services, check for orphaned processes and stop only the processes
 created by the current task.
 
+Run at most three subagents at a time, each on a different spec area, and start
+each one in a call of its own once the one before it has created its worktree.
+A subagent's batch reads hundreds of thousands of tokens, so more of them do not
+fit more research into a session's usage allowance: they spend it sooner, and
+when the limit arrives every batch stops half done. Sessions on the same
+allowance share the three: when `docs/goals/` shows another goal running, such
+as the other standing goal, count its subagents too. Two agents in one area edit
+the same queue and parity files and take the same next IDs. Where two must share
+an area, give each its own ID range and, before either starts, raise the area's
+`Next ID:` line past both ranges. A batch that supersedes an entry cited from
+another area also moves those citations into that area's files, so merge it
+after the batch of the agent working there. Before merging a batch that supersedes or
+squashes a finding, have a separate read-only agent re-read the addresses the
+correction rests on; that agent counts toward the three.
+
 ## Architecture boundaries
 
 - `<Project>.Core`: deterministic rules and serializable state. No MonoGame, no
@@ -642,7 +657,7 @@ dotnet build <Project>.slnx        # full solution
 dotnet run --project src/<Project>.Game -- --smoke-test
 ```
 
-While a documentation-only batch is in progress, run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>` with the commit recorded before the batch. Selection checks all committed and uncommitted paths and runs the documentation, citation, queue and repository-policy checks, including Kaitai compilation; anything other than recognized documentation, including the gate's own files, selects the fast gate, which needs `-TestFilter` for the tests that cover the change; without one the script stops and asks for it. Explicit test requests still run. This does not replace the fast gate: the batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate before merge. Reuse a check result only on an exact match of command, tool versions, configuration, `GAME_DIR` builds and the whole tree. Keep staged-tree hooks enabled. See `docs/VALIDATION.md` for the selection and reuse rules.
+While a documentation-only batch is in progress, run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>` with the commit recorded before the batch. Selection checks all committed and uncommitted paths and runs the documentation, citation, queue and repository-policy checks, including Kaitai compilation; anything other than recognized documentation, including the gate's own files, selects the fast gate, which needs `-TestFilter` for the tests that cover the change; without one the script stops and asks for it. Explicit test requests still run. This does not replace the fast gate: the batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate before merge. Reuse a check result only on an exact match of command, tools, configuration, environment, original inputs and configured file inputs. Without a reviewed narrower declaration, retain whole-tree inputs. See `docs/VALIDATION-INPUTS.md` for local receipts and final records. Keep staged-tree hooks enabled. See `docs/VALIDATION.md` for the selection and reuse rules.
 
 Never run the full validation gate (`Invoke-Validation.ps1` without
 `-TestFilter`) or the full test suite locally. CI runs the gate on every pull

@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export function classify(paths) {
-  const documentation = /^(?:spec\/.*\.(?:md|ksy)|(?:docs|queue|parity|deviations)\/.*\.md|validation\/.*\.ya?ml)$/;
+  const documentation = /^(?:PARITY\.md|spec\/.*\.(?:md|ksy)|(?:docs|queue|parity|deviations)\/.*\.md|validation\/.*\.ya?ml)$/;
   return paths.length > 0 && paths.every(path => documentation.test(path) &&
     !path.split('/').some(part => part === '..' || part === '.')) ? 'documentation' : 'full';
 }

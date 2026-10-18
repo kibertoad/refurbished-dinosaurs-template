@@ -48,6 +48,11 @@ only the lines the link gives, and never a section already read this session.
    Get branch, commit and remote sync state from Git when needed; do not copy
    them into the handover. Never write what research found or tried. Delete
    what is no longer true instead of adding below it. Stay under 200 lines.
+   Name only local paths (reports, captures, configurations) that exist when
+   the handover is written: check each one, and drop or replace any that is
+   gone, so the next session does not search for it. A path named as where
+   output will land later (an accepted live session's captures) stays, marked
+   as not yet created.
    Commit the handover on its own. It is not a batch: it changes nothing
    outside `docs/HANDOVER.md` and `docs/goals/`, and carries no trailers.
 5. **Push** the branch unless `AGENTS.md` says the owner pushes or the user
