@@ -519,13 +519,19 @@ or compiler services, check for orphaned processes and stop only the processes
 created by the current task.
 
 Run at most three subagents at a time, each on a different spec area, and start
-them one at a time. A subagent's batch reads hundreds of thousands of tokens, so
-more of them do not fit more research into a session's usage allowance: they
-spend it sooner, and when the limit arrives every batch stops half done. Two
-agents in one area edit the same queue and parity files and allocate the same
-next IDs; give each agent its own ID range. Before merging a batch that
-supersedes a finding, have a separate read-only agent re-read the addresses the
-correction rests on.
+each one in a call of its own once the one before it has created its worktree.
+A subagent's batch reads hundreds of thousands of tokens, so more of them do not
+fit more research into a session's usage allowance: they spend it sooner, and
+when the limit arrives every batch stops half done. Sessions on the same
+allowance share the three: when `docs/goals/` shows another goal running, such
+as the other standing goal, count its subagents too. Two agents in one area edit
+the same queue and parity files and take the same next IDs. Where two must share
+an area, give each its own ID range and, before either starts, raise the area's
+`Next ID:` line past both ranges. A batch that supersedes an entry cited from
+another area also moves those citations into that area's files, so merge it
+after the batch of the agent working there. Before merging a batch that supersedes or
+squashes a finding, have a separate read-only agent re-read the addresses the
+correction rests on; that agent counts toward the three.
 
 ## Architecture boundaries
 
