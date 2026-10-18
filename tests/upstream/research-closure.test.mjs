@@ -136,7 +136,7 @@ test('the CLI runs the pinned coverage reporter and refuses vacuous readiness', 
   const plan = join(dir, 'plan.json');
   writeFileSync(plan, JSON.stringify({version: 1, areas: [], inventories: [], obligations: []}));
   const root = resolve(import.meta.dirname, '../..');
-  const result = spawnSync(process.execPath, [join(root, 'tools/Report-ResearchClosure.mjs'), '--plan', plan, '--json', '--require-ready'], {cwd: root, encoding: 'utf8'});
+  const result = spawnSync(process.execPath, [join(root, 'tools/Report-ResearchClosure.mjs'), '--plan', plan, '--json', '--require-ready'], {cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
   assert.ifError(result.error);
   assert.equal(result.status, 1, result.stderr);
   const report = JSON.parse(result.stdout);
@@ -153,7 +153,7 @@ test('the CLI reconciles plan references with actual spec and open queue files',
   checks[0].state = 'open'; checks[0].queue = ['Q-SYNTHETIC-999999']; checks[0].evidence = [];
   writeFileSync(plan, JSON.stringify({version: 1, areas: [{id: 'SYNTHETIC', scope: 'A synthetic nonexistent area'}], inventories: [], obligations: checks}));
   const root = resolve(import.meta.dirname, '../..');
-  const result = spawnSync(process.execPath, [join(root, 'tools/Report-ResearchClosure.mjs'), '--plan', plan, '--json'], {cwd: root, encoding: 'utf8'});
+  const result = spawnSync(process.execPath, [join(root, 'tools/Report-ResearchClosure.mjs'), '--plan', plan, '--json'], {cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
   assert.ifError(result.error);
   assert.equal(result.status, 1, result.stderr);
   const report = JSON.parse(result.stdout);
