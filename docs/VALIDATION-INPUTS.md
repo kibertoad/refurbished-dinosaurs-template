@@ -26,23 +26,26 @@ A project may declare a check's inputs after reviewing what the command reads:
 }
 ```
 
-This is an example, not the template's configured contract. Exclude a final record
-only when the check does not read it. Everything tracked or untracked and not
-ignored is an input by default, including missing tracked files. New files enter
-the identity. Configuration, tools, hooks, lock files, JSON and MSBuild properties
+The template's own `validation-inputs.json` declares no checks; the example shows
+the format. Exclude a final record only when the check does not read it.
+Everything tracked or untracked and not ignored is an input by default, including
+missing tracked files. New files enter the identity. An untracked nested
+repository or worktree is refused until it is ignored or excluded. Configuration, tools, hooks, lock files, JSON and MSBuild properties
 cannot be excluded. Commands and arguments, the checkout path, Node version,
 declared tool version output, all environment values and all `GAME_DIR` file
 contents enter the identity. Declare any other external input directory by its
 environment variable. An absent external variable is distinct from a populated
-one. Symlinks are refused. Ignored files other than declared external inputs are
+one, and a path that does not exist is recorded as missing. Symlinks inside the
+repository or an external directory are refused. Ignored files other than declared external inputs are
 not covered: a check that reads them must declare that directory or remain
 unconfigured. A tool that depends on more than its version output must declare
 those files too. Receipts contain digests, never environment values or originals.
 
 A changed command, tool, configuration, original input or included file reruns
 the check. Failure removes an earlier receipt; a change during a run fails without
-recording success. Receipts are local optimizations, not parity evidence or
-portable attestations. Do not commit, copy between checkouts or edit them.
+recording success. A receipt only lets a later run in the same checkout skip a
+repeated check; it is never parity evidence. Do not commit, copy between
+checkouts or edit them.
 
 The pre-commit hook still checks the staged snapshot freshly. This helper never
 reuses a working-tree receipt for staged content. Keep policy, configuration,

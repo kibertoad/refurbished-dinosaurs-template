@@ -1,14 +1,28 @@
 // Local receipts are an optimization, never evidence or a replacement for hooks.
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, lstatSync, readdirSync, realpathSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, lstatSync, readdirSync, realpathSync, unlinkSync, openSync, readSync, closeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [id, separator, executable, ...args] = process.argv.slice(2);
+const receiptDirectory = '.artifacts/validation-receipts/';
 const hash = value => createHash('sha256').update(value).digest('hex');
-const run = (command, arguments_, options = {}) => spawnSync(command, arguments_, { cwd: root, encoding: 'utf8', ...options });
+// Original inputs can hold multi-gigabyte disk images, so files are hashed in chunks.
+function hashFile(filename) {
+  const digest = createHash('sha256');
+  const buffer = Buffer.alloc(1 << 20);
+  const descriptor = openSync(filename, 'r');
+  try {
+    for (let count; (count = readSync(descriptor, buffer, 0, buffer.length, null)) > 0;) digest.update(buffer.subarray(0, count));
+  } finally {
+    closeSync(descriptor);
+  }
+  return digest.digest('hex');
+}
+const run = (command, arguments_, options = {}) =>
+  spawnSync(command, arguments_, { cwd: root, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, ...options });
 const checked = (command, arguments_) => {
   const result = run(command, arguments_);
   if (result.error || result.status !== 0) throw new Error(`Identity command failed: ${command}`);
@@ -30,7 +44,7 @@ function fileIdentity(filename) {
     if (canonical(path.resolve(realpathSync(filename))) !== canonical(path.resolve(filename))) {
       throw new Error(`Linked input: ${filename}`);
     }
-    return hash(readFileSync(filename));
+    return hashFile(filename);
   } catch (error) {
     if (error.code === 'ENOENT') return 'missing';
     throw error;
@@ -46,7 +60,11 @@ function externalIdentity(directory) {
       for (const name of readdirSync(current).sort()) visit(path.join(current, name), `${relativeName}/${name}`);
     } else rows.push([relativeName, fileIdentity(current)]);
   }
-  visit(directory, '');
+  // Links above the declared directory do not change its contents; links inside it are refused.
+  let real;
+  try { real = realpathSync(directory); }
+  catch (error) { if (error.code === 'ENOENT') return 'missing'; throw error; }
+  visit(real, '');
   return rows;
 }
 function snapshot(configBytes, contract) {
@@ -58,16 +76,23 @@ function snapshot(configBytes, contract) {
   const excluded = contract.exclude ?? [];
   if (!Array.isArray(excluded)) throw new Error('exclude must be an array.');
   for (const name of excluded) relative(name.endsWith('/') ? name.slice(0, -1) : name);
-  // A configuration/tool change always invalidates, even if an exclusion would match it.
-  const protectedInput = name => name === 'validation-inputs.json' || name.startsWith('tools/') ||
-    name.startsWith('.githooks/') || name.endsWith('lock.yaml') || name.endsWith('.json') || name.endsWith('.props');
-  const names = [...new Set(checked('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard']).split('\0').filter(Boolean))].sort();
-  const files = names.filter(name => protectedInput(name) || !excluded.some(item =>
-    item.endsWith('/') ? name.startsWith(item) : name === item)).map(name => [name, fileIdentity(path.join(root, name))]);
   if (!Array.isArray(contract.tools) || contract.tools.length === 0 || contract.tools.some(tool =>
     !Array.isArray(tool) || tool.length < 2 || tool.some(arg => typeof arg !== 'string'))) {
     throw new Error('A reusable check requires explicit tool identity commands.');
   }
+  // A configuration/tool change always invalidates, even if an exclusion would match it.
+  const protectedInput = name => name === 'validation-inputs.json' || name.startsWith('tools/') ||
+    name.startsWith('.githooks/') || name.endsWith('lock.yaml') || name.endsWith('.lock') ||
+    name.endsWith('.json') || name.endsWith('.props');
+  // The receipts themselves are never inputs, even in a checkout that does not ignore them.
+  const names = [...new Set(checked('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard']).split('\0')
+    .filter(name => name && !name.startsWith(receiptDirectory)))].sort();
+  const files = names.filter(name => protectedInput(name) || !excluded.some(item =>
+    item.endsWith('/') ? name.startsWith(item) : name === item)).map(name => {
+    // git lists an untracked nested repository or worktree as one "dir/" entry.
+    if (name.endsWith('/')) throw new Error(`Nested repository ${name} is not a supported input; ignore or exclude it.`);
+    return [name, fileIdentity(path.join(root, name))];
+  });
   const tools = contract.tools.map(([command, ...arguments_]) => [command, arguments_, checked(command, arguments_)]);
   const externalNames = [...new Set(['GAME_DIR', ...(contract.externalEnvironment ?? [])])].sort();
   const external = externalNames.map(name => {
@@ -90,7 +115,7 @@ try {
   if (config.version !== 1 || !config.checks || typeof config.checks !== 'object' || Array.isArray(config.checks) ||
       Object.keys(config).some(key => !['version', 'checks'].includes(key))) throw new Error('Invalid validation input configuration.');
   const contract = config.checks[id];
-  const receiptPath = path.join(root, '.artifacts', 'validation-receipts', `${id}.json`);
+  const receiptPath = path.join(root, receiptDirectory, `${id}.json`);
   // No declaration means run fresh. CI never reuses a developer receipt.
   const reusable = contract && !process.env.CI;
   const before = reusable ? snapshot(configBytes, contract) : null;

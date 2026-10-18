@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -51,12 +51,35 @@ test('reviewed record exclusion permits reuse but config and protected tools sti
   assert.equal(f.count(), 2);
 });
 test('undeclared whole-tree checks and CI always run fresh', t => {
-  for (const configured of [false, true]) {
+  for (const [configured, ci] of [[false, ''], [false, 'true'], [true, 'true']]) {
     const f = fixture(t, configured ? { tools: [[process.execPath, '--version']] } : null);
-    assert.equal(f.run('', { CI: 'true' }).status, 0);
-    assert.equal(f.run('', { CI: 'true' }).status, 0);
+    assert.equal(f.run('', { CI: ci }).status, 0);
+    assert.equal(f.run('', { CI: ci }).status, 0);
     assert.equal(f.count(), 2);
   }
+});
+test('receipts are not inputs in a checkout that does not ignore them', t => {
+  const f = fixture(t, { exclude: ['.artifacts/runs'], tools: [[process.execPath, '--version']] });
+  f.write('.gitignore', '');
+  assert.equal(f.run().status, 0);
+  assert.match(f.run().stdout, /reused/);
+  assert.equal(f.count(), 1);
+});
+test('missing and linked original directories are identities, links inside them are refused', t => {
+  const f = fixture(t);
+  const missing = path.join(f.root, '.artifacts/absent');
+  assert.equal(f.run('', { GAME_DIR: missing }).status, 0);
+  assert.match(f.run('', { GAME_DIR: missing }).stdout, /reused/);
+  const original = path.join(f.root, '.artifacts/original');
+  mkdirSync(original, { recursive: true });
+  writeFileSync(path.join(original, 'synthetic.txt'), 'synthetic');
+  const linked = path.join(f.root, '.artifacts/linked');
+  symlinkSync(original, linked, 'junction');
+  assert.equal(f.run('', { GAME_DIR: linked }).status, 0);
+  assert.match(f.run('', { GAME_DIR: linked }).stdout, /reused/);
+  symlinkSync(original, path.join(original, 'loop'), 'junction');
+  assert.equal(f.run('', { GAME_DIR: linked }).status, 1);
+  assert.equal(f.count(), 2);
 });
 test('arguments, environment and original-directory contents invalidate', t => {
   const f = fixture(t);
