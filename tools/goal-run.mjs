@@ -4,7 +4,6 @@
 //   node tools/goal-run.mjs start <name>   start-session, under the goal in docs/goals/<name>.md
 //   node tools/goal-run.mjs stop           end-session, when a stop reason in docs/goals/README.md applies
 //   node tools/goal-run.mjs wait           before a turn that ends waiting on a delegated batch or the owner
-//   node tools/goal-run.mjs resume         when that wait ends without a commit
 //   node tools/goal-run.mjs hook           the Claude Code Stop hook in .claude/settings.json
 //
 // `start` writes a run marker, goal-run.json, into the Git directory of the worktree it runs in,
@@ -13,10 +12,11 @@
 // session while the marker and the goal file exist. `stop` deletes the marker. When HEAD has not
 // moved over MAX_BLOCKS blocked stops in a row, the hook lets stops through until a new commit,
 // so an agent that makes no progress is not held in a loop. `wait` records HEAD in the marker, and
-// the hook lets stops through while HEAD is still there: the agent can end its turn while a
-// subagent runs a batch or the owner answers a question. The next commit, `resume` or `start`
-// ends the wait, and the hook blocks again. Other sessions, other worktrees,
-// and stops when Git or the input cannot be read pass, and the hook prints nothing for them.
+// the next stop of the session passes without spending a block if HEAD is still there, so the
+// agent can end its turn while a subagent runs a batch or the owner answers a question. That stop
+// clears the wait, as do a commit made before it and another `start`, so the turn that follows is
+// held back again unless it runs `wait` once more. Other sessions, other worktrees, and stops
+// when Git or the input cannot be read pass, and the hook prints nothing for them.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -29,12 +29,13 @@ const git = (directory, args) =>
   execFileSync("git", args, { cwd: directory, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 const markerPath = (directory) => join(git(directory, ["rev-parse", "--absolute-git-dir"]), "goal-run.json");
 const goalPath = (directory, goal) => join(git(directory, ["rev-parse", "--show-toplevel"]), "docs", "goals", `${goal}.md`);
+const writeMarker = (path, marker) => writeFileSync(path, `${JSON.stringify(marker)}\n`);
 
 export function start(directory, goal) {
   if (!NAME.test(goal ?? "")) throw new Error(`Not a goal name: ${goal}`);
   if (!existsSync(goalPath(directory, goal))) throw new Error(`No goal file docs/goals/${goal}.md in this checkout`);
   const marker = { goal, session: null, head: null, blocks: 0 };
-  writeFileSync(markerPath(directory), `${JSON.stringify(marker)}\n`);
+  writeMarker(markerPath(directory), marker);
   return marker;
 }
 
@@ -42,22 +43,13 @@ export function stop(directory) {
   rmSync(markerPath(directory), { force: true });
 }
 
-function update(directory, change) {
+export function wait(directory) {
   const path = markerPath(directory);
   if (!existsSync(path)) throw new Error("No goal is running in this worktree: run start first");
   const marker = JSON.parse(readFileSync(path, "utf8"));
-  change(marker);
-  writeFileSync(path, `${JSON.stringify(marker)}\n`);
+  marker.waiting = git(directory, ["rev-parse", "HEAD"]);
+  writeMarker(path, marker);
   return marker;
-}
-
-export function wait(directory) {
-  const head = git(directory, ["rev-parse", "HEAD"]);
-  return update(directory, (marker) => { marker.waiting = head; });
-}
-
-export function resume(directory) {
-  return update(directory, (marker) => { delete marker.waiting; });
 }
 
 export function decide(input, directory) {
@@ -70,15 +62,16 @@ export function decide(input, directory) {
     if (marker.session && session && marker.session !== session) return null;
     marker.session ||= session;
     const head = git(directory, ["rev-parse", "HEAD"]);
-    if (marker.waiting === head) {
-      writeFileSync(path, `${JSON.stringify(marker)}\n`);
+    const waiting = marker.waiting === head;
+    delete marker.waiting;
+    if (waiting) {
+      writeMarker(path, marker);
       return null;
     }
-    delete marker.waiting;
     if (marker.head !== head) Object.assign(marker, { head, blocks: 0 });
     if (marker.blocks >= MAX_BLOCKS) return null;
     marker.blocks += 1;
-    writeFileSync(path, `${JSON.stringify(marker)}\n`);
+    writeMarker(path, marker);
     return {
       decision: "block",
       reason:
@@ -88,7 +81,8 @@ export function decide(input, directory) {
         "session's handover was just committed). If one applies, including a finished wrap-up or " +
         "the owner telling you to stop, run `node tools/goal-run.mjs stop`, say which reason " +
         "applies, and stop. If this turn ends waiting on a batch a subagent is running or on an " +
-        "answer from the owner, run `node tools/goal-run.mjs wait` and end the turn.",
+        "answer from the owner, with no other item to take meanwhile, run " +
+        "`node tools/goal-run.mjs wait` and end the turn.",
     };
   } catch {
     return null;
@@ -112,18 +106,17 @@ if (invokedDirectly) {
     const directory = input.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
     const result = decide(input, directory);
     if (result) process.stdout.write(`${JSON.stringify(result)}\n`);
-  } else if (["start", "stop", "wait", "resume"].includes(command)) {
+  } else if (["start", "stop", "wait"].includes(command)) {
     try {
       if (command === "start") start(process.cwd(), goal);
       else if (command === "wait") wait(process.cwd());
-      else if (command === "resume") resume(process.cwd());
       else stop(process.cwd());
     } catch (error) {
       process.stderr.write(`${error.message}\n`);
       process.exit(1);
     }
   } else {
-    process.stderr.write("Usage: node tools/goal-run.mjs start <name> | stop | wait | resume | hook\n");
+    process.stderr.write("Usage: node tools/goal-run.mjs start <name> | stop | wait | hook\n");
     process.exit(2);
   }
 }

@@ -218,9 +218,11 @@ its turn and the owner sees why. A marker left by a crashed session holds back
 no other conversation, and the next `start` in that worktree replaces it.
 
 A turn can end with nothing for the agent to do while a subagent runs a batch
-or while the owner answers a question. Before such a turn ends, the agent runs
-`node tools/goal-run.mjs wait`, which records HEAD in the marker. While HEAD is
-still there, the hook lets stops through and spends none of the three
-held-back stops. The next commit, `node tools/goal-run.mjs resume` (for a wait
-that ends without one) or another `start` ends the wait, and the hook holds
-back stops again.
+or while the owner answers a question, when no other item in the goal's scope
+can be taken meanwhile. Before such a turn ends, the agent runs
+`node tools/goal-run.mjs wait`, which records HEAD in the marker. If HEAD is
+still there at the next stop, the hook lets that stop through and spends none of
+the three held-back stops. The wait covers that one stop: it ends there, or
+earlier at a commit or another `start`. When the subagent's result or the
+owner's answer starts a new turn, the hook holds back its stops again, and a
+turn that still has nothing to do runs `wait` once more before it ends.

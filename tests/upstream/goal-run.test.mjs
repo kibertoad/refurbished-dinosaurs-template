@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
-import { MAX_BLOCKS, decide, resume, start, stop, wait } from "../../tools/goal-run.mjs";
+import { MAX_BLOCKS, decide, start, stop, wait } from "../../tools/goal-run.mjs";
 
 const tool = resolve(import.meta.dirname, "../../tools/goal-run.mjs");
 const git = (dir, ...args) => execFileSync("git", args, { cwd: dir, stdio: "ignore" });
@@ -101,24 +101,24 @@ test("start refuses an unknown goal, and the hook passes on bad input or outside
   assert.equal(run(dir, []).status, 2);
 });
 
-test("wait lets stops through without spending blocks until a commit, resume or start", (t) => {
+test("wait lets the next stop through without spending a block, and only that stop", (t) => {
   const dir = repository(t);
   assert.throws(() => wait(dir), /start first/);
+  assert.equal(run(dir, ["wait"]).status, 1);
   start(dir, "combat-static");
   assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
   assert.equal(run(dir, ["wait"]).status, 0);
-  for (let i = 0; i <= MAX_BLOCKS; i += 1) assert.equal(decide({ session_id: "a" }, dir), null);
   assert.equal(decide({ session_id: "b" }, dir), null);
-  commit(dir, "batch");
-  for (let i = 0; i < MAX_BLOCKS; i += 1) assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
   assert.equal(decide({ session_id: "a" }, dir), null);
+  for (let i = 1; i < MAX_BLOCKS; i += 1) assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
+  assert.equal(decide({ session_id: "a" }, dir), null, "the wait spent none of the allowance");
+  commit(dir, "batch");
   wait(dir);
-  assert.equal(run(dir, ["resume"]).status, 0);
-  assert.equal(decide({ session_id: "a" }, dir), null, "resume keeps the spent allowance");
   commit(dir, "next batch");
+  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block", "a commit ends the wait");
   wait(dir);
   start(dir, "combat-static");
-  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
+  assert.equal(decide({ session_id: "a" }, dir)?.decision, "block", "start ends the wait");
 });
 
 test("a wait started before the session binds still binds it", (t) => {
@@ -126,7 +126,6 @@ test("a wait started before the session binds still binds it", (t) => {
   start(dir, "combat-static");
   wait(dir);
   assert.equal(decide({ session_id: "a" }, dir), null);
-  commit(dir, "batch");
   assert.equal(decide({ session_id: "b" }, dir), null);
   assert.equal(decide({ session_id: "a" }, dir)?.decision, "block");
 });
