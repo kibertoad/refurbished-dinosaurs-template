@@ -8,6 +8,10 @@ not here.
 
 A project created from this template may delete this file.
 
+## Closure CLI tests on a large spec, 2026-10-19
+
+- **Research closure tests.** The two CLI tests in `tests/upstream/research-closure.test.mjs` read `tools/Report-ResearchClosure.mjs`'s JSON with a 64 MiB `spawnSync` buffer. The report lists every inventoried function, so on a restoration with an 8,700-function inventory it came to about 5.7 MB, past Node's default 1 MiB, and both tests failed with `ENOBUFS` before reading any output.
+
 ## Text-size limits in the staged tree, 2026-10-18
 
 - **Text policy.** `textSizeRules` in `tools/repository-policy.json` holds the line and word limits on Markdown in `spec/`, `parity/`, `deviations/`, `queue/`, `docs/` (except `docs/upstream/`), `PARITY.md`, `README.md` and `AGENTS.md`, and gives `docs/HANDOVER.md` 200 lines and 800 words. `tools/Check-TextPolicy.mjs` applies them from `tools/Test-TemplateInfrastructure.ps1` and from `tools/Invoke-NodeChecks.mjs`, so the pre-commit hook checks the staged tree too. `docs/VALIDATION-RECORDS.md` says how to split a long record log into linked files.
