@@ -298,6 +298,11 @@ that page differ, the page wins.
   overlay and PE32 forms and refuses LE and LX files (`docs/EVIDENCE-TOOLS.md`). `pnpm exec standard-coverage` prints how much of
   each file the spec's locations cite; run it when the figures are needed,
   and commit none of its output.
+  [RESEARCH-CLOSURE](docs/RESEARCH-CLOSURE.md) gives the metadata-only ownership
+  map and finite caller, state-producer, indirect-transfer and evidence
+  checklist procedure. Its assessment uses the pinned complete-reading
+  report and keeps unassigned/shared functions and missing inventories visible;
+  checklist completion never promotes evidence status or parity.
 
 The procedures are skills in `.claude/skills/`: `runtime-access`,
 `plan-work`, `start-session`, `research-item`, `implement-rows`,
