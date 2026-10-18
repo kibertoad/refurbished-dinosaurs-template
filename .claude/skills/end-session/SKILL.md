@@ -47,7 +47,9 @@ only the lines the link gives, and never a section already read this session.
    stop, all work in scope blocked, an owner decision, a turn limit).
    Get branch, commit and remote sync state from Git when needed; do not copy
    them into the handover. Never write what research found or tried. Delete
-   what is no longer true instead of adding below it. Stay under 200 lines.
+   what is no longer true instead of adding below it. Stay within the
+   handover limits in `tools/repository-policy.json` (200 lines and 800 words
+   in the template).
    Name only local paths (reports, captures, configurations) that exist when
    the handover is written: check each one, and drop or replace any that is
    gone, so the next session does not search for it. A path named as where

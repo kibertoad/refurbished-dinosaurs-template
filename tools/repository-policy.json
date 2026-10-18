@@ -8,5 +8,22 @@
   ],
   "approvedRestrictedRoots": ["assets/clean-room/", "tests/fixtures/synthetic/"],
   "maximumTrackedFileBytes": 1048576,
-  "approvedLargeFiles": []
+  "approvedLargeFiles": [],
+  "textSizeRules": [
+    {
+      "name": "human-maintained documentation",
+      "roots": ["spec", "parity", "deviations", "queue", "docs"],
+      "files": ["PARITY.md", "README.md", "AGENTS.md"],
+      "extensions": [".md"],
+      "excludedRoots": ["docs/upstream"],
+      "maxLines": 1000
+    },
+    {
+      "name": "operational handover",
+      "files": ["docs/HANDOVER.md"],
+      "extensions": [".md"],
+      "maxLines": 200,
+      "maxWords": 800
+    }
+  ]
 }

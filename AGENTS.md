@@ -259,7 +259,7 @@ that page differ, the page wins.
   it `disputed`, and a wrong claim is superseded, never deleted. The
   protocol's "The life of a claim" section has the details.
 - `docs/HANDOVER.md` is the current state of work outside any goal, at most
-  200 lines, rewritten at the end of every session that works under no goal,
+  200 lines and 800 words, rewritten at the end of every session that works under no goal,
   added to by the commit that deletes a goal file, and otherwise changed only
   where a research batch moves a citation of an entry it supersedes. It names
   items and entries by ID without saying what research found.
@@ -492,6 +492,14 @@ line and imported-asset counts belong in generated reports or validation logs.
 Keep numbers that define behavior, constrain validation, support evidence or
 justify a decision. A dated measurement belongs in prose only when that context
 needs it. Refer to the generating command instead of maintaining a copied total.
+
+The adopted text scopes, exclusions and line/word limits are in
+`tools/repository-policy.json`. The working gate and staged snapshot use
+`tools/Check-TextPolicy.mjs` for the same policy, including final result-record
+edits. Follow [VALIDATION-RECORDS](docs/VALIDATION-RECORDS.md) to split long logs
+into linked complete records and keep handovers operational. Preserve the
+repository's limits when adopting; the template's handover budget is 200 lines
+and 800 whitespace-separated words.
 
 ## Git ownership in the Windows sandbox
 
