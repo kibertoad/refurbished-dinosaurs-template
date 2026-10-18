@@ -226,6 +226,12 @@ the three held-back stops. The wait covers that one stop: it ends there, or
 earlier at a commit or another `start`. When the subagent's result or the
 owner's answer starts a new turn, the hook holds back its stops again, and a
 turn that still has nothing to do runs `wait` once more before it ends.
-A subagent given batches takes several in a row, up to five, committing and
-pushing each as it ends: every new subagent first reads `AGENTS.md` and the
-`research-item` skill, which costs about as much as a small batch.
+
+### Delegated batches
+
+An agent that hands batches to a subagent gives it several in a row, up to
+five, and says so in the subagent's task, since the subagent reads the
+`research-item` skill and not this file. Every new subagent first reads
+`AGENTS.md` and that skill, which costs about as much as a small batch. The
+subagent commits each batch as it ends and pushes it only where this goal's
+form and `AGENTS.md` allow the session to push.
