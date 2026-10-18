@@ -216,3 +216,11 @@ If HEAD has not moved over three held-back stops in a row, the hook lets
 stops through until the next commit, so an agent that makes no progress ends
 its turn and the owner sees why. A marker left by a crashed session holds back
 no other conversation, and the next `start` in that worktree replaces it.
+
+A turn can end with nothing for the agent to do while a subagent runs a batch
+or while the owner answers a question. Before such a turn ends, the agent runs
+`node tools/goal-run.mjs wait`, which records HEAD in the marker. While HEAD is
+still there, the hook lets stops through and spends none of the three
+held-back stops. The next commit, `node tools/goal-run.mjs resume` (for a wait
+that ends without one) or another `start` ends the wait, and the hook holds
+back stops again.
