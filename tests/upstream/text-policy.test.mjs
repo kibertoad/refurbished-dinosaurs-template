@@ -77,6 +77,42 @@ test('selected links and directory-valued exact files fail while explicit exclus
   mkdirSync(join(dir, 'docs/directory.md'));
   const exact = {...rule, roots: [], files: ['docs/directory.md']};
   assert(checkTextPolicy(dir, [exact]).failures.some(x => /file is a directory/.test(x)));
+  assert(checkTextPolicy(dir, [{...exact, files: ['docs/HANDOVR.md']}]).failures.some(x => /does not exist/.test(x)));
+  put('docs/HANDOVER.txt', 'one\n');
+  assert(checkTextPolicy(dir, [{...exact, files: ['docs/HANDOVER.txt']}]).failures.some(x => /does not have one of the extensions/.test(x)));
+});
+
+test('the command runs through a linked checkout and reads a policy saved with a BOM', t => {
+  const {dir, put} = fixture(t);
+  put('tools/repository-policy.json', `\uFEFF${JSON.stringify({textSizeRules: [rule]})}`);
+  copyFileSync(join(root, 'tools/Check-TextPolicy.mjs'), join(dir, 'tools/Check-TextPolicy.mjs'));
+  put('docs/record.md', 'long\n'.repeat(4));
+  const linked = `${dir}-linked`;
+  symlinkSync(dir, linked, 'junction');
+  t.after(() => rmSync(linked, {force: true}));
+  const result = spawnSync(process.execPath, [join(linked, 'tools/Check-TextPolicy.mjs')], {encoding: 'utf8'});
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr, /4 lines exceeds 3/);
+});
+
+test('the working-tree command skips files Git ignores and checks untracked ones', t => {
+  const {dir, put} = fixture(t);
+  const git = (...args) => { const r = spawnSync('git', args, {cwd: dir, encoding: 'utf8'}); assert.equal(r.status, 0, r.stdout + r.stderr); };
+  put('tools/repository-policy.json', JSON.stringify({textSizeRules: [rule]}));
+  copyFileSync(join(root, 'tools/Check-TextPolicy.mjs'), join(dir, 'tools/Check-TextPolicy.mjs'));
+  put('.gitignore', 'docs/audit/\ndocs/backup.md\n');
+  put('docs/audit/old.md', 'long\n'.repeat(10));
+  put('docs/backup.md', 'long\n'.repeat(10));
+  put('docs/record.md', 'one\n');
+  git('init', '--quiet');
+  const run = () => spawnSync(process.execPath, [join(dir, 'tools/Check-TextPolicy.mjs')], {cwd: dir, encoding: 'utf8'});
+  let result = run();
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /passed for 1 files/);
+  put('docs/untracked.md', 'long\n'.repeat(10));
+  result = run();
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(result.stderr, /docs\/untracked\.md: 10 lines exceeds 3/);
 });
 
 test('the actual staged snapshot rejects a late append despite an unstaged repair', t => {

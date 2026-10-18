@@ -259,7 +259,7 @@ that page differ, the page wins.
   it `disputed`, and a wrong claim is superseded, never deleted. The
   protocol's "The life of a claim" section has the details.
 - `docs/HANDOVER.md` is the current state of work outside any goal, at most
-  200 lines, rewritten at the end of every session that works under no goal,
+  200 lines and 800 words, rewritten at the end of every session that works under no goal,
   added to by the commit that deletes a goal file, and otherwise changed only
   where a research batch moves a citation of an entry it supersedes. It names
   items and entries by ID without saying what research found.

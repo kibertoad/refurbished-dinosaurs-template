@@ -8,6 +8,11 @@ not here.
 
 A project created from this template may delete this file.
 
+## Text-size limits in the staged tree, 2026-10-18
+
+- **Text policy.** `textSizeRules` in `tools/repository-policy.json` holds the line and word limits on Markdown in `spec/`, `parity/`, `deviations/`, `queue/`, `docs/` (except `docs/upstream/`), `PARITY.md`, `README.md` and `AGENTS.md`, and gives `docs/HANDOVER.md` 200 lines and 800 words. `tools/Check-TextPolicy.mjs` applies them from `tools/Test-TemplateInfrastructure.ps1` and from `tools/Invoke-NodeChecks.mjs`, so the pre-commit hook checks the staged tree too. `docs/VALIDATION-RECORDS.md` says how to split a long record log into linked files.
+- **Changelog.** The records from 2026-09-30 and earlier moved to `docs/template-changelog/001.md`; their headings stay here as links.
+
 ## Research tracker warnings on stdout, 2026-10-18
 
 - **Research tracking.** `tools/Check-ResearchTracking.mjs` prints its `Tried:` warnings on stdout and keeps stderr for errors. Under Windows PowerShell 5.1, running the gate with its output redirected (`& ./tools/Invoke-Validation.ps1 *> gate.log`) turns any stderr line from a native command into an error record, which the gate's `$ErrorActionPreference = 'Stop'` makes fatal, so a warning stopped the gate there.

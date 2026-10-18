@@ -22,7 +22,7 @@ and fragments, incoming references and any requirements retained in the old
 file. Normalize line endings only for a content-preservation comparison;
 after undoing the intentional link relocations and wrappers, the moved text
 must reconstruct the original hash. Keep the audit and temporary backups
-ignored. Commit the linked records themselves, not a second archive copy.
+ignored. Commit only the linked records themselves.
 
 Historical results keep their original dates and scope. A current result names
 the checks actually run against that state. A previous runtime or original-game
@@ -62,8 +62,12 @@ Each rule has a unique `name`, `roots` and/or exact `files`, explicit text
 `extensions`, optional `excludedRoots`/`excludedFiles`, and positive `maxLines`
 and/or `maxWords`. Paths are canonical repository-relative paths with forward
 slashes. Unknown fields, missing policies, invalid limits and selected symlinks
-fail. Scoped files must decode as UTF-8. Binary suffixes outside the rule's
-extensions are skipped.
+fail, as does an exact file that is missing, is a directory or lacks one of the
+rule's extensions. Scoped files must decode as UTF-8. Binary suffixes outside the rule's
+extensions are skipped. In a Git checkout, files Git ignores (such as the
+audit and backups above) are skipped too, so the working-tree check sees the
+same files the staged snapshot can hold; untracked files that are not ignored
+are checked.
 
 Line counts match `ReadAllLines`: empty text has zero lines, a final line
 terminator adds no extra line, and LF, CRLF and bare CR are handled equally.

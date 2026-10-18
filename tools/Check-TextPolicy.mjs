@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // One adopted text-size policy for working-tree and staged-snapshot checks.
-import {readFileSync, readdirSync, lstatSync, existsSync} from 'node:fs';
+import {readFileSync, readdirSync, lstatSync, existsSync, realpathSync} from 'node:fs';
 import {resolve, dirname, extname} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
+import {spawnSync} from 'node:child_process';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const decoder = new TextDecoder('utf-8', {fatal: true});
@@ -42,12 +43,24 @@ export function validateRules(rules) {
   });
 }
 
+/**
+ * List the untracked paths Git ignores under root (directories end in '/'), so the working-tree check skips
+ * the ignored audit files and backups that docs/VALIDATION-RECORDS.md asks for, as the staged snapshot does.
+ * Outside a Git checkout, or when Git fails, it returns an empty list and every file on disk is checked.
+ */
+export function gitIgnoredPaths(root) {
+  const result = spawnSync('git', ['ls-files', '-z', '--others', '--ignored', '--exclude-standard', '--directory'], {cwd: root, encoding: 'utf8'});
+  if (result.status !== 0 || typeof result.stdout !== 'string') return [];
+  return result.stdout.split('\0').filter(Boolean);
+}
+
 /** Check the files present in this tree using the repository's configured scopes and line definition. */
-export function checkTextPolicy(root, configuredRules) {
+export function checkTextPolicy(root, configuredRules, gitIgnored = []) {
   const rules = validateRules(configuredRules), candidates = new Set(), failures = [];
+  const skipped = file => gitIgnored.some(p => p.endsWith('/') ? within(file, p.slice(0, -1)) : file === p);
   const ignored = (file, rule) => rule.excludedFiles.includes(file) || rule.excludedRoots.some(p => within(file, p));
   function visit(file, rule) {
-    if (ignored(file, rule)) return;
+    if (ignored(file, rule) || skipped(file)) return;
     const full = resolve(root, file);
     if (!existsSync(full)) return;
     const stat = lstatSync(full);
@@ -57,8 +70,12 @@ export function checkTextPolicy(root, configuredRules) {
   }
   for (const rule of rules) {
     for (const file of rule.roots) visit(file, rule);
+    // A named file that is missing or outside the rule's extensions would otherwise drop out of the check unseen.
     for (const file of rule.files) {
-      if (!ignored(file, rule) && existsSync(resolve(root, file)) && lstatSync(resolve(root, file)).isDirectory()) failures.push(`${file}: configured text file is a directory`);
+      if (ignored(file, rule)) continue;
+      if (!rule.extensions.includes(extname(file).toLowerCase())) failures.push(`${file}: configured text file does not have one of the extensions of ${rule.name}`);
+      else if (!existsSync(resolve(root, file))) failures.push(`${file}: configured text file does not exist`);
+      else if (lstatSync(resolve(root, file)).isDirectory()) failures.push(`${file}: configured text file is a directory`);
       else visit(file, rule);
     }
   }
@@ -83,14 +100,17 @@ export function main(argv, root = ROOT) {
     if (argv.length !== 2 || argv[0] !== '--root') throw new Error('Usage: Check-TextPolicy.mjs [--root <checkout>]');
     root = resolve(argv[1]);
   }
-  const policy = JSON.parse(readFileSync(resolve(root, 'tools/repository-policy.json'), 'utf8'));
-  const report = checkTextPolicy(root, policy.textSizeRules);
+  // ConvertFrom-Json in Verify-Repository.ps1 accepts a BOM in the same file, so accept it here too.
+  const policy = JSON.parse(readFileSync(resolve(root, 'tools/repository-policy.json'), 'utf8').replace(/^\uFEFF/, ''));
+  const report = checkTextPolicy(root, policy.textSizeRules, gitIgnoredPaths(root));
   for (const failure of report.failures) console.error(failure);
   if (!report.failures.length) console.log(`Text-size policy passed for ${report.checked.length} files.`);
   return report.failures.length ? 1 : 0;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+// Node resolves symlinks for the entry module, so compare real paths; a mismatch would skip main() and exit 0.
+const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href; } catch { return false; } })();
+if (invokedDirectly) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { console.error(error.message); process.exitCode = 2; }
 }
