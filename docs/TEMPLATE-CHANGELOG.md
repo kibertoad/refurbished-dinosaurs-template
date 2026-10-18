@@ -8,7 +8,7 @@ not here.
 
 A project created from this template may delete this file.
 
-## Path-gated CI and scoped validation, 2026-10-12
+## Path-gated CI and scoped validation, 2026-10-18
 
 - **Path-gated CI jobs.** `.github/workflows/ci.yml` runs a `changes` job
   first (plain `git diff`, no new actions) and runs `verify` only when code,
@@ -21,6 +21,61 @@ A project created from this template may delete this file.
   and CI jobs. The wrap-up step in `docs/goals/README.md` and the
   `end-session` skill now ask for the documentation check and the
   affected-area checks instead of the full fast gate.
+
+## One gate per batch and handovers that name real paths, 2026-10-18
+
+- **Research batches.** The `research-item` skill's Check step runs the fast gate (`./tools/Invoke-Validation.ps1 -TestFilter <filter>`) once, after the batch's last edit and before the commit. Agents had also run the gate when a batch started and the documentation check on its own just before the gate, which already includes it; one restoration's subagents ran the gate several times per batch. Checks while a batch is under way use the documentation check or the change-aware selection, and the pre-commit hook still checks the staged tree.
+- **Handover.** The `end-session` skill names only local paths (reports, captures, configurations) that exist when the handover is written, and marks a path where output will land later as not yet created. A restoration's handover named report folders that were no longer on the machine, and each new subagent searched the disk for them.
+- **Delegated batches.** `docs/goals/README.md` (Delegated batches) has the agent that delegates give a subagent several batches in a row, up to five, and say so in its task; the subagent pushes each only where the goal's form allows, keeps to the three-subagent cap and its one spec area, and stops before pushing a batch that supersedes or squashes a finding or moves citations into another area, so that batch is re-read or merged in order first. Measured over 13 subagents in one restoration, each read about 28,000 tokens of `AGENTS.md` and the `research-item` skill before its first batch, and none opened the work protocol.
+
+## Three subagents at a time, 2026-10-18
+
+- **Agent instructions.** `AGENTS.md` ("Context and process hygiene") caps parallel subagents at three, one spec area each, each started in a call of its own after the one before it has created its worktree, and counts the subagents of any other goal running on the same allowance toward the three. Two agents that must share an area get separate ID ranges, with the area's `Next ID:` line raised past both before either starts. A batch that moves citations into another area's files merges after that area's agent. A batch that supersedes or squashes a finding gets a read-only re-reading before it is merged, by an agent that counts toward the three. In a restoration, eight research subagents of 200,000 to 350,000 tokens each spent a session's allowance in one wave, and the next wave of five all stopped mid-batch at the limit. Agents started in the same call collided creating their worktrees, two agents in one area conflicted in its queue file and drew the same next IDs, and a re-reading of four superseding findings found an error in one of them.
+
+## Research tracker warnings on stdout, 2026-10-18
+
+- **Research tracking.** `tools/Check-ResearchTracking.mjs` prints its `Tried:` warnings on stdout and keeps stderr for errors. Under Windows PowerShell 5.1, running the gate with its output redirected (`& ./tools/Invoke-Validation.ps1 *> gate.log`) turns any stderr line from a native command into an error record, which the gate's `$ErrorActionPreference = 'Stop'` makes fatal, so a warning stopped the gate there.
+
+## Node tests in one run, 2026-10-18
+
+- **Validation.** `tools/Invoke-Validation.ps1` runs its node test files in one `node --test` call, so they run at the same time instead of in three groups one after another, and sets `PWSH` to the running PowerShell for all of them. The configuration test in `tests/upstream/upstream.test.mjs` starts Configure-Project with `PWSH` like the other PowerShell tests; it called `pwsh` by name and failed the gate where only Windows PowerShell is installed.
+- **Capture worker test.** `tests/upstream/capture-worker.ps1` blocks the synthetic window for 1.5 seconds before the synchronous baseline and 3 seconds before the bounded capture, with a 1-second capture timeout, and captures again as soon as the window's message loop runs instead of after a fixed 4-second sleep. It took 12 seconds and takes about 5.5; it still fails when the capture timeout does not cut the hung capture short. The validation run without a build to do went from about 21 to 10 seconds.
+
+## A pre-commit snapshot kept between commits, 2026-10-18
+
+- **Pre-commit hook.** `.githooks/pre-commit` keeps the staged tree it checks in `.git/precommit-snapshot`, with an index of its own, instead of copying the whole index to a new temporary directory on every commit. Each commit brings the snapshot to the staged tree with `git read-tree --reset -u`, which rewrites only the files whose staged content changed, removes those no longer staged and restores any file edited or deleted inside the snapshot, then `git clean -x` removes every other file there, ignored ones included. A snapshot whose index cannot be read, or whose index lock a killed run left behind, is rebuilt. On Windows the first read of each newly written file is scanned, so the fresh copy cost a restoration with 3,600 tracked files about 95 seconds a commit, of which the documentation check's own work was 5. With the kept snapshot the hook takes about 0.7 seconds plus the checks; the first commit in a clone still pays the full copy once. The hook removes the snapshot's `node_modules` link before the update and makes it again after, pointing at the checkout's packages, so clean never meets the link and a copied repository never checks against another checkout's packages.
+
+## Documentation checker 6.0.1, 2026-10-18
+
+- **Documentation checker.** `@scientific-method/standard-checker` moves from
+  4.2.0 to 6.0.1, with the CI action pinned to the toolkit commit tagged for
+  6.0.1. 6.0.1 reads each file once per run instead of up to four times
+  (kibertoad/refurbished-dinosaurs-toolkit#543), which takes about 40% off a
+  check of a 3,000-file spec. The versions in between change rules the
+  unconfigured template does not reach: 5.0.0 fails a finding or experiment
+  cited in the rebuild's source (`--rebuild-source`, default `src`), and 6.0.0
+  has `standard-coverage` report code without an inventory, complete readings
+  and the `.provenance.tsv` and `.regions.tsv` files beside an inventory. A
+  configured project checks its `src/` citations and inventory side files
+  against the toolkit's migration guide when it takes this version. The
+  protocol documents stay at the revision already pinned.
+
+## Evidence reporters with a local candidate index, 2026-10-18
+
+- **Evidence reporters.** `@scientific-method/executable-reader` moves from 4.1.0
+  to 4.3.0 and `scientific-method-engine` from 19.1.0 to 19.9.0
+  (kibertoad/refurbished-dinosaurs-toolkit#540). Both still speak
+  prepared-config protocol 3, and the engine still pins Capstone 5.0.9 and
+  pypcode 4.0.1. Engine 19.9 adds `scan-index`, which builds a local SQLite
+  corpus of raw immediate, displacement and resolved-call candidates once and
+  answers repeated caller and operand searches from it; `report.mjs` runs it as
+  `x86-scan-index`. Reader 4.3 gives that command 600 seconds and keeps 120 for
+  the others, and 4.2 added `imports` for NE executables. Engine 19.2 to 19.8
+  extended `reach` (decoded ranges, query-scoped stops, which starts reach each
+  target, transfers into a span, branches on stack arguments), derived table
+  counts from the code and let a restoration declare computed calls that leave
+  the image or never run. The template reads none of the changed fields. The
+  reader's `minimumReleaseAgeExclude` entry follows the new version.
 
 ## Repeated queue attempts and Defect notes, 2026-10-11
 

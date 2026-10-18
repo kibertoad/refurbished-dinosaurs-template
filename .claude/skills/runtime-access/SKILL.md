@@ -13,6 +13,12 @@ source of evidence for every game; this check only finds out what runs are
 possible, and it is the one time the original is run before the static work
 is done.
 
+For an owner-supplied Windows image, use
+[Windows probes](../../../docs/WINDOWS-PROBES.md) for isolated patching,
+fingerprint reconciliation, versioned rust-dos probes and capability checks.
+Record standing authorization already given by the owner once validation
+passes; do not request it again for each probe within that scope.
+
 1. **Take the run lock** as the protocol's
    [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 391-425)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an

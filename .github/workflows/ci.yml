@@ -114,7 +114,7 @@ jobs:
       # nightly-generated.yml regenerates and commits them. The check neither writes nor compares
       # them, and fails a pull request that edits, adds or removes one.
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@1f3ce2845d58dc4d77eaa7c08ac953cd2faba789 # zizmor: ignore[stale-action-refs,ref-version-mismatch]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@78f0229406fa97d2b8a60fb4b79366ffd9a08e3b # zizmor: ignore[stale-action-refs,ref-version-mismatch]
         with:
           scheduled-generation: "true"
   installer:

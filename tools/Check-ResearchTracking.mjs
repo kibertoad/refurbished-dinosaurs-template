@@ -118,7 +118,9 @@ const invokedDirectly = (() => { try { return process.argv[1] && import.meta.url
 if (invokedDirectly) {
   const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
   const { errors, warnings } = researchTracking(root);
-  for (const warning of warnings) console.error(`Warning: ${warning}`);
+  // Warnings go to stdout. Under Windows PowerShell 5.1, a script whose output is redirected (`& script *> log`)
+  // turns a native command's stderr into an error record, which ErrorActionPreference Stop makes fatal.
+  for (const warning of warnings) console.log(`Warning: ${warning}`);
   for (const error of errors) console.error(error);
   if (errors.length) process.exitCode = 1;
   else console.log('Area queues and active spec open-question references are consistent.');

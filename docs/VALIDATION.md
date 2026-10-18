@@ -101,18 +101,24 @@ alone. It runs `Verify-Repository.ps1` and `Verify-Configuration.ps1`, then
 restores (unless `-NoRestore` is given), builds in Release, and runs the test suite with a 30-minute safety
 timeout.
 
-Locally, run it only with `-TestFilter`, for the tests the change touches. The
+While a documentation-only batch is in progress, record the base commit before editing and run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>`. Selection includes committed changes since that base, staged/unstaged changes, untracked files and both sides of a rename. Only `spec/` Markdown/Kaitai, Markdown under `docs/`, `queue/`, `parity/` and `deviations/`, and validation YAML qualify. It runs the repository policy, configuration and infrastructure checks, the documentation/citation check with Kaitai compilation, and the queue check, without stopping the game, building .NET or running application tests. Anything else in the change, including the gate's own scripts and workflows, selects the fast gate, as does an empty change, so a batch that changes the gate's configuration or files of more than one kind runs the fast gate as it goes. The fast gate is the run with `-TestFilter`, so when selection picks it and no filter is given, the script stops before running anything and asks for one. The tooling tests under `tests/` run with any filter. A bad base fails. Explicit test/count controls also select the fast gate.
+
+These are the checks for a batch in progress, not a replacement for the fast gate. Every batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate on the pull request before merge.
+
+For any other change, run it locally only with `-TestFilter`, for the tests the change touches. The
 full gate runs in CI on every pull request and push to main and is never run
 locally (`AGENTS.md`, Commands). CI gates both jobs by changed paths, so a
 batch that cannot affect a suite does not run it:
 
 | Batch touches | Run locally | CI runs |
 |---|---|---|
-| `spec/`, `parity/`, `deviations/`, `queue/` only | `node tools/upstream.mjs docs --check` (the pre-commit hook's node checks run on commit) | documentation only |
+| `spec/`, `parity/`, `deviations/`, `queue/` only | `-ChangedSince <base-commit>` while the batch is in progress, then the fast gate once before the commit (the pre-commit hook's node checks run on commit) | documentation only |
 | `src/`, `tests/` | `dotnet build` plus `-TestFilter` for the touched area; add the documentation check when the batch cites or changes spec IDs | both jobs |
 | `tools/`, `tests/upstream/`, `tests/evidence/`, `tests/emu/` | the affected test files only; add the documentation check when checker inputs or pins changed | both jobs |
 | Pins, lockfiles, workflows, hooks | `node tools/Invoke-NodeChecks.mjs` plus the suite that consumes the pin | both jobs |
 | Narrative `docs/` only | nothing; commit | neither |
+
+A successful check is reused only when its command, tool versions, configuration, any `GAME_DIR` builds it read and the whole tree all match the earlier run exactly. The gate's configuration lists no narrower inputs for any check, so the whole tree is what has to match; which inputs a check has comes from that configuration, never from a judgement about what a change touched. Staged-tree pre-commit checks still run, and a working-tree result is reused for a staged tree only when the staged copy of everything the check compares matches the working tree. No hook or evidence check is bypassed.
 
 The default gate excludes tests tagged `Category=LongRunning`. Run every test,
 including the long tier, only when the user asks for it:
@@ -303,13 +309,7 @@ the fixture schema and the hashes of saves and recordings; its guide lists them,
 and reviewers check those by hand. A save-patch write is given as a byte offset
 and value in the experiment's Setup section.
 
-`.githooks/pre-commit` runs the gate's node checks, listed once in
-`tools/Invoke-NodeChecks.mjs`, before each commit once a clone enables it with
-`git config core.hooksPath .githooks`. It copies the index to a temporary
-directory and checks that, so it judges what is being committed: unstaged edits
-neither hide a problem nor block a clean commit. The documentation check runs
-there with `--no-ksy`, so `.ksy` compile errors still surface only in the gate
-and CI. Without `node` the hook prints a warning and lets the commit through.
+`.githooks/pre-commit` runs the gate's node checks, listed once in `tools/Invoke-NodeChecks.mjs`, before each commit once a clone enables it with `git config core.hooksPath .githooks`. It checks out the index to `.git/precommit-snapshot` and checks that, so it judges what is being committed: unstaged edits neither hide a problem nor block a clean commit. The snapshot stays between commits with an index of its own, and each commit rewrites only the files whose staged content changed, restores files edited or deleted there and removes every other file, ignored ones included. A fresh copy of the tree for every commit cost about 80 seconds on Windows for 3,600 files, because the first read of each newly written file is scanned; the first commit in a clone still pays that once. The documentation check runs there with `--no-ksy`, so `.ksy` compile errors still surface only in the gate and CI. Without `node` the hook prints a warning and lets the commit through.
 
 ## Repository policy
 
