@@ -8,6 +8,10 @@ not here.
 
 A project created from this template may delete this file.
 
+## Three subagents at a time, 2026-10-18
+
+- **Agent instructions.** `AGENTS.md` ("Context and process hygiene") caps parallel subagents at three, one spec area each, started one at a time, and asks for a read-only re-reading before merging a batch that supersedes a finding. In a restoration, eight research subagents of 200,000 to 350,000 tokens each spent a session's allowance in one wave, and the next wave of five all stopped mid-batch at the limit. Agents started in the same call collided creating their worktrees, two agents in one area conflicted in its queue file and drew the same next IDs, and a re-reading of four superseding findings found an error in one of them.
+
 ## Research tracker warnings on stdout, 2026-10-18
 
 - **Research tracking.** `tools/Check-ResearchTracking.mjs` prints its `Tried:` warnings on stdout and keeps stderr for errors. Under Windows PowerShell 5.1, running the gate with its output redirected (`& ./tools/Invoke-Validation.ps1 *> gate.log`) turns any stderr line from a native command into an error record, which the gate's `$ErrorActionPreference = 'Stop'` makes fatal, so a warning stopped the gate there.

@@ -518,6 +518,15 @@ during evidence-driven work. After commands that start games, servers, analyzers
 or compiler services, check for orphaned processes and stop only the processes
 created by the current task.
 
+Run at most three subagents at a time, each on a different spec area, and start
+them one at a time. A subagent's batch reads hundreds of thousands of tokens, so
+more of them do not fit more research into a session's usage allowance: they
+spend it sooner, and when the limit arrives every batch stops half done. Two
+agents in one area edit the same queue and parity files and allocate the same
+next IDs; give each agent its own ID range. Before merging a batch that
+supersedes a finding, have a separate read-only agent re-read the addresses the
+correction rests on.
+
 ## Architecture boundaries
 
 - `<Project>.Core`: deterministic rules and serializable state. No MonoGame, no
