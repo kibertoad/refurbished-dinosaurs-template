@@ -1,0 +1,5 @@
+{
+  "schema": "restoration-segment-map-v1",
+  "about": "One row per code segment of the Ghidra view: segment as the view shows it, and the half-open offset span its code occupies. Derive the rows from the build's MZ layout or overlay manager; docs/GHIDRA.md gives the format.",
+  "segments": []
+}

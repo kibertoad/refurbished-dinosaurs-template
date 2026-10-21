@@ -1,0 +1,9 @@
+{
+  "schema": "restoration-declared-flows-v1",
+  "about": "Control flow Ghidra does not recover: computed-jump targets, runs to decode, functions that return and instructions that fall through, each backed by a finding. docs/GHIDRA.md gives the format.",
+  "evidence": [],
+  "jumps": [],
+  "decode": [],
+  "returns": [],
+  "fallThroughs": []
+}

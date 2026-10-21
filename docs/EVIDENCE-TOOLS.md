@@ -66,6 +66,14 @@ fallback reads into neighboring target data.
 
 ## Inventories from multiple views
 
+Before exporting a 16-bit segmented view, correct the near transfer targets
+Ghidra 12.1.3 wraps at a linear 64K page and apply the project's declared
+entries and flows: `CorrectNearTransfers.java`, `ApplyDeclaredEntries.java`,
+`ApplyDeclaredFlows.java`, then `CorrectNearTransfers.java` again, as
+[Near transfer targets in 16-bit code](GHIDRA.md#near-transfer-targets-in-16-bit-code)
+describes. The project supplies the segment map those scripts read, and
+derives it from its own MZ layout or overlay manager.
+
 Export each relevant Ghidra view's functions to a local TSV with the header
 `start\tsize` and one row per function: its start as the view shows it and its
 body byte count. Leave out analyzer names, code and strings; `inventory` refuses
