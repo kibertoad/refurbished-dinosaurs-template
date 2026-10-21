@@ -1,0 +1,7 @@
+{
+  "schema": "restoration-declared-entries-v1",
+  "about": "Function starts Ghidra misses and false starts it makes, each backed by a finding. docs/GHIDRA.md gives the format.",
+  "evidence": [],
+  "entries": [],
+  "remove": []
+}

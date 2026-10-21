@@ -8,6 +8,11 @@ not here.
 
 A project created from this template may delete this file.
 
+## Near transfer targets in 16-bit segmented code, 2026-10-21
+
+- **Ghidra scripts.** `tools/ghidra/CorrectNearTransfers.java` gives each near relative call and jump in a 16-bit segmented view the target `CS:((IP after it + displacement) & FFFF)`, with `CS` from a segment map the project derives from its MZ layout or overlay manager (`.json` or `.tsv`). Ghidra 12.1.3 adds the displacement to the instruction's linear address and wraps the sum at that 64K linear page, so where a segment straddles a linear `0x?0000` boundary the target lands 64K away; in the Dark Sun restoration this hit 189 of about 30,800 near transfers and left 19,117 reached instructions outside the function inventory, and the corrected inventory leaves 14. `report` lists the wrong transfers and the functions they made; `apply` replaces the references, decodes the real targets and removes the functions only wrong targets named. `ApplyDeclaredEntries.java` and `ApplyDeclaredFlows.java` apply a project's declared function starts, false starts, computed-jump targets, decode runs, returning functions and fall-throughs from JSON files whose schemas `docs/GHIDRA.md` gives, with empty examples beside the scripts. `SegmentedInputs.java` holds the target arithmetic and the readers, which refuse unknown keys, overlapping spans and malformed addresses. The inventory procedure runs the correction before and after the declared flows, since the flows decode code whose transfers Ghidra wraps again. A SLEIGH fix is proposed on the `kibertoad/ghidra` fork.
+- **Tests.** `tests/upstream/near-transfers.test.mjs` compiles `SegmentedInputs.java` with a plain JDK and checks the target arithmetic across a linear 64K boundary, the recognized encodings, and the segment map and declared-file readers, including the shipped examples. The validation gate runs it.
+
 ## Closure CLI tests on a large spec, 2026-10-19
 
 - **Research closure tests.** The two CLI tests in `tests/upstream/research-closure.test.mjs` read `tools/Report-ResearchClosure.mjs`'s JSON with a 64 MiB `spawnSync` buffer. The report lists every inventoried function, so on a restoration with an 8,700-function inventory it came to about 5.7 MB, past Node's default 1 MiB, and both tests failed with `ENOBUFS` before reading any output.

@@ -115,6 +115,7 @@ scripts to the toolkit rather than copying them here. `tools/ghidra` holds:
 | Script | Arguments | Reports |
 | --- | --- | --- |
 | `ReportJumpTable.java` | NE16 table address, count (1-128), optional dispatch | bounded word-indexed segmented jump targets |
+| `CorrectNearTransfers.java`, `ApplyDeclaredEntries.java`, `ApplyDeclaredFlows.java` | see [Near transfer targets in 16-bit code](#near-transfer-targets-in-16-bit-code) | changes the program; addresses and counts only |
 | `ExportEditionAnalysis.java`, `ExportFunctionAddressCorrelations.java`, `ExportVersionTrackingAddressContexts.java`, `ExportVersionTrackingMatches.java` | see [Cross-edition comparison](#cross-edition-comparison) | local comparison exports |
 
 Use the narrow scripts to locate line numbers and addresses, then request only
@@ -223,6 +224,133 @@ in that build.
 This code is not in the template yet. Copy it from that repository when a
 second DOS-extender game needs it, and move it here at that point.
 
+## Near transfer targets in 16-bit code
+
+A near relative call or jump (`E8`, `E9`, `EB`, `70`..`7F`, `E0`..`E3`,
+`0F 80`..`0F 8F`) keeps `CS`, so its target is `CS:((IP after it +
+displacement) & FFFF)`. Ghidra 12.1.3 adds the displacement to the
+instruction's linear address and wraps the sum at that address's 64K linear
+page instead. Where a segment straddles a linear `0x?0000` boundary, a
+transfer whose target lies on the other side of the boundary gets a target 64K
+away: Ghidra creates functions there from nothing, and the code the transfer
+reaches stays undecoded or is cut off at a false start. Near indirect jumps
+(`FF /4`) get computed targets outside their `CS` the same way. In a synthetic
+MZ, `EB` short jumps across the boundary got the right target and `E8` calls
+and `E9` jumps did not; the correction checks every form. In the Dark Sun restoration (`kibertoad/dark-sun-wake-redux`)
+it hit 189 of about 30,800 near transfers and left 19,117 instructions that a
+walk from the game's entries reaches outside the function inventory; with the
+correction and the declared entries and flows below, 14 were left. A SLEIGH
+fix is proposed on the `kibertoad/ghidra` fork. Until a project analyses with
+a Ghidra that has it, run the correction on every 16-bit segmented view whose
+code crosses a linear 64K boundary; an MZ load image of 64K or less loaded at
+segment `0x1000` does not.
+
+`CorrectNearTransfers.java` takes `CS` for each instruction from a segment map
+the project supplies, finds the transfers whose flows lack the `CS` target,
+and in `apply` mode replaces their references, decodes the real targets,
+creates functions at real call targets and removes the functions that only
+wrong targets named. `report` prints the same lines and changes nothing. Its
+header comment lists every line it prints and every change it makes. A
+declared entry is never removed. `ApplyDeclaredEntries.java` and
+`ApplyDeclaredFlows.java` apply the function starts and control flow that
+findings establish and Ghidra misses. All three take Ghidra-view
+`segment:offset` addresses; converting overlay file offsets or another
+loader's addresses to the view is the project's own step, done when the files
+are written. `tests/upstream/near-transfers.test.mjs` covers the target
+arithmetic and the readers of all three inputs.
+
+### Segment map
+
+The segment map names each code segment by the segment value the Ghidra view
+uses, after relocation at the view's load segment, and the half-open span of
+offsets its code occupies. The project derives it from what defines its
+segments: the MZ relocations and the entry `CS`, a linker map, or an overlay
+manager's segment table. The template reads none of those formats; a
+project-owned script writes the map from them and its finding records how. A
+`.json` file has the form of `tools/ghidra/segment-map.example.json`:
+
+```json
+{
+  "schema": "restoration-segment-map-v1",
+  "segments": [
+    { "segment": "1F00", "start": "0000", "end": "10000" }
+  ]
+}
+```
+
+`segment` and `start` are one to four hex digits and `end` up to `10000`,
+without a `0x` prefix; `about`, `build`, `file` and `evidence` at the top and
+`name` and `evidence` on a row are notes. A `.tsv` file has the header
+`segment`, `start`, `end` and one row per segment, and `#` lines are comments.
+Spans that overlap in linear memory are refused, since a linear address would
+then have two `CS` values. An instruction outside every span, or in an address
+space other than the default one (an overlay block), takes the segment its
+memory block starts at, and the summary counts those lookups as `block_cs`.
+
+### Declared entries
+
+`tools/ghidra/declared-entries.example.json` is the empty form. `entries` lists
+function starts as `{ "at": "SSSS:OOOO" }`. `remove` lists false starts as
+`{ "starts": [...], "clear": "SSSS:OOOO..SSSS:OOOO", "owner": "SSSS:OOOO" }`:
+the functions at `starts` are removed, the half-open `clear` range is cleared,
+and the optional `owner` function decodes it again from its own flows. Items
+may carry `reason` and `evidence`; the top level may carry `about`, `build`,
+`file` and `evidence`. Any other key is refused, so a misspelt field fails the
+run.
+
+### Declared flows
+
+`tools/ghidra/declared-flows.example.json` is the empty form. Its four lists
+are:
+
+- `jumps`: `{ "site": ..., "targets": [...] }`, a computed jump and every
+  target its table can give. Other computed targets of the site are removed.
+  `table` and `bound` record where the table is and what bounds its index.
+- `decode`: `{ "range": "A..B", "owner": ... }`, a run of code to decode as
+  consecutive instructions from `A`, clearing what Ghidra decoded out of step
+  there; the optional `owner` function has its body recomputed.
+- `returns`: `{ "function": ..., "reason": ... }`, a function Ghidra marks as
+  not returning that does return; calls to it get their fall-through back.
+- `fallThroughs`: `{ "at": ..., "reason": ... }`, an instruction that falls
+  through to the byte after it.
+
+Items may carry `reason` and `evidence`. In both declared files an item with
+`"view": "<name>"` applies only when the script is given that view name as its
+last argument, so one file can serve a project's several views; an item
+without `view` applies to every view.
+
+Each declared item cites the finding that establishes it. The files hold
+addresses, reasons and entry IDs only, like an inventory, so a project keeps
+them in `tools/ghidra/` beside the finding that supports each item and changes
+them, never the exported inventory, to add or drop a start or a flow.
+
+### Where the procedure runs them
+
+Run the scripts on a copy of the analysed snapshot, without `-readOnly`, after
+any project-specific steps that add blocks or functions (overlay blocks,
+trampolines) and before the inventory export:
+
+```powershell
+& "$projectGhidraHome\support\analyzeHeadless.bat" `
+  $analysisRoot RestorationAnalysis -process <executable-name> -noanalysis `
+  -scriptPath $scripts `
+  -postScript CorrectNearTransfers.java apply $segmentMap $entries `
+  -postScript ApplyDeclaredEntries.java $entries `
+  -postScript ApplyDeclaredFlows.java $flows `
+  -postScript CorrectNearTransfers.java apply $segmentMap $entries
+```
+
+The correction runs twice. The first run removes the false functions and
+decodes the real targets before the declared entries and flows are applied, so
+a declared range is not cleared against code that only a wrong target made.
+The declared flows then decode new code, and Ghidra gives the near transfers in
+it wrapped targets again, which the second run corrects. A `report` run after
+the second lists any transfer still wrong, which can happen when the second
+run's own decoding reaches new code; run `apply` again until `report` prints
+`wrong=0` and `outside=0`. Pass the view name after
+each declared file when the files name views. Keep the transcripts with the
+export's provenance; they hold addresses and counts only.
+
 ## Watching the original run
 
 Some questions are answered faster by watching the original than by reading it:
@@ -279,7 +407,10 @@ Use [the evidence tooling guide](EVIDENCE-TOOLS.md) for MZ/FBOV operand
 resolution, explicit control-flow review, bounded tables and function inventory
 joins. The engine's `ExportFunctionInventory.java` writes a function inventory,
 with its `.provenance.tsv` and `.regions.tsv`, to its `coverage/` path from one
-view; its arguments are in the engine's catalog. Ghidra gives a function's or a
+view; its arguments are in the engine's catalog. For a 16-bit segmented view
+whose code crosses a linear 64K boundary, run the near-target correction and
+the declared entries and flows on the snapshot first, in the order
+[Where the procedure runs them](#where-the-procedure-runs-them) gives. Ghidra gives a function's or a
 block's maximum address as its last byte, while the standard writes every range
 half-open, so a body whose last byte is `0x0045E7CD` is cited as
 `..0x0045E7CE`. Raw operands and analyzer boundaries remain observations to verify.
