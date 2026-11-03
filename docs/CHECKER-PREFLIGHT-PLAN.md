@@ -34,4 +34,7 @@ using the same fix and regression control as PR146, so this adoption can merge
 independently. The negative image-option fixture also retains PR146's CRLF-safe
 YAML mutation and checks that the failure control was actually configured.
 The broader domain-suite optimization is not part of this adoption. CI retains
-full acceptance. No rules snapshot or evidence status changed.
+full acceptance. The rules snapshot includes merged process PR128 at
+`e5ccb6e7f34a83a0495cd0004c215a3737bdb5b1`. Existing stricter gate instructions
+remain in force; domain selection is separately proposed in PR146. No evidence
+status changes.

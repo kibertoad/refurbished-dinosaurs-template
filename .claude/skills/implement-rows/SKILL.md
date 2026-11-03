@@ -5,7 +5,7 @@ description: Implement rebuild behaviour for parity rows of the current slice fr
 
 # Implementation batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 220-238)
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#implementation-batches) (lines 226-244)
 and the standard's [implementation side](../../../docs/upstream/documentation-standard.md#implementation-side) (lines 1216-1344).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
@@ -85,8 +85,8 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    shared value through input, `Core`, presentation and a save and restore,
    with distinct values per axis, and test what a second actor sees at each
    `# visible:` point. A checkpoint or replay change follows the protocol's
-   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 324-332)
-   and [Continuation cases](../../../docs/upstream/work-protocol.md#continuation-cases) (lines 334-366).
+   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 338-346)
+   and [Continuation cases](../../../docs/upstream/work-protocol.md#continuation-cases) (lines 348-380).
    Where the state that
    decides how play continues sits in several components, test a field
    several components copy, changed by a helper and checked in the next
@@ -98,16 +98,16 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    twice, such as numeric keys `11` and `011` read as decimal, rejected
    before anything is built. Where the entry's shape calls for them, add the
    cases of
-   [Calls that combine results](../../../docs/upstream/work-protocol.md#calls-that-combine-results) (lines 240-256)
+   [Calls that combine results](../../../docs/upstream/work-protocol.md#calls-that-combine-results) (lines 246-262)
    (an earlier callee reports and a later one returns 0; a fallback taken on
    one exact status, tested with 0, 1, 2 and a negative status; each caller
    of one target given those statuses, since callers can test its result
    differently),
-   [Rules behind an adapter](../../../docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 258-274)
+   [Rules behind an adapter](../../../docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 264-280)
    (each case run on the rules layer directly and again through the adapter,
    which keeps shared objects and read-only collections, rejects no input the
    entry gives an outcome for, and keeps what the rule did before a failure),
-   [Arithmetic at the original's widths](../../../docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 276-296)
+   [Arithmetic at the original's widths](../../../docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 282-302)
    (operands at the largest and smallest values of their types, stores between
    two writes, shift counts of 0 and 32, values outside every narrower type
    through the adapter; a guard checked before a transformation, such as a
@@ -118,7 +118,7 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    constant, such as `0x3FD55556` against `0x3FD55555` for `1/3` stored as
    `FLOAT32` then times 5; a copy that fits its record but runs from one field
    into the next) and
-   [Allocation, containers and cleanup](../../../docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 306-322)
+   [Allocation, containers and cleanup](../../../docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 320-336)
    (a test-supplied allocator and release routine that record calls, return
    null, fill blocks with a pattern and read or change the container when
    called; a count checked before the allocation and loaded again by the copy,

@@ -655,9 +655,9 @@ it, and each read of a value the entry reads more than once changed between
 reads; a failure whose leftover state changes the next call; and the source a
 request reads kept apart from the request and its destination. These tests compare the rebuild with the spec or with itself, so none
 of them validates a parity row or is listed in its Tests column; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 220-238)
-[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 324-332)
-and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 334-366).
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 226-244)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 338-346)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 348-380).
 
 The protocol adds test cases for four more shapes of rule, which also
 compare the rebuild with the spec and validate no row. A caller that combines
@@ -679,10 +679,10 @@ tested with a test-supplied allocator and release routine that record calls,
 return null, fill blocks with a pattern, read or change the container when
 called, and change a count the copy loads again after the check. Each caller
 of one target is tested with the statuses its own comparison tells apart. See the protocol's
-[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 240-256),
-[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 258-274),
-[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 276-296)
-and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 306-322).
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 246-262),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 264-280),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 282-302)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 320-336).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.
