@@ -7,9 +7,12 @@
   [fresh acceptance record](validation/20261019-project-local-inputs.md).
 - Validation improvements are proposed in [PR146](https://github.com/kibertoad/refurbished-dinosaurs-template/pull/146),
   tracked by issue 145. See [acceptance and benchmark results](VALIDATION-OPTIMIZATION-RESULTS.md).
-- Final implementation gate: 2026-11-03, fresh integration passed 119 Node
+- Final implementation gate: 2026-11-03, fresh integration passed 120 Node
   controls and 55 .NET tests with no skips, warnings or errors. Final policy,
-  infrastructure, documentation/citation and staged hooks passed. CI is pending.
+  infrastructure, documentation/citation and staged hooks passed. CI passed
+  documentation and Ubuntu validation, then exposed the installer verification
+  defaulting to latest. Both workflows now verify their explicit download tag;
+  the packaging rerun is pending.
 - Stage: unconfigured template; no game intake has started.
 - Shared signing/release safeguards are ready for review: main-only preparation, bounded jobs, expected certificate verification and same-commit tag reuse. Synthetic tag/certificate controls and canonical validation pass.
 - PR 35 capture tooling retains its prior Windows timeout, recovery and physical client-edge coverage.
