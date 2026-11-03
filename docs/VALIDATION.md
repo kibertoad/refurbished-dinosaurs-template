@@ -109,20 +109,54 @@ alone. It runs `Verify-Repository.ps1` and `Verify-Configuration.ps1`, then
 restores (unless `-NoRestore` is given), builds in Release, and runs the test suite with a 30-minute safety
 timeout.
 
-While a documentation-only batch is in progress, record the base commit before editing and run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>`. Selection includes committed changes since that base, staged/unstaged changes, untracked files and both sides of a rename. Only `spec/` Markdown/Kaitai, Markdown under `docs/`, `queue/`, `parity/` and `deviations/`, the exact generated root `PARITY.md`, and validation YAML qualify. A generated documentation file belongs in this list beside its inputs, so regenerating it keeps the batch on this route. The route does not relax the generation policy: with `scheduled-generation` on, as `ci.yml` sets it, the documentation check fails any branch, local or pull request, whose `PARITY.md` or `spec/index/` differs from main, unless the change only regenerates them. It runs the repository policy, configuration and infrastructure checks, the documentation/citation check with Kaitai compilation, and the queue check, without stopping the game, building .NET or running application tests. Anything else in the change, including the gate's own scripts and workflows, selects the fast gate, as does an empty change, so a batch that changes the gate's configuration or files of more than one kind runs the fast gate as it goes. The fast gate is the run with `-TestFilter`, so when selection picks it and no filter is given, the script stops before running anything and asks for one. The tooling tests under `tests/` run with any filter. A bad base fails. Explicit test/count controls also select the fast gate.
-
-These are the checks for a batch in progress, not a replacement for the fast gate. Every batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate on the pull request before merge.
-
-For any other change, run it locally with `-TestFilter`, for the tests the change touches. The full gate runs in CI on every pull request and is never run locally (`AGENTS.md`, Commands).
-
-A successful check is reused only when its command, tool identities, configuration, environment, original inputs and declared file inputs match. `validation-inputs.json` declares narrower inputs; its default empty checks object means checks run fresh. The tooling test stage uses the local receipt helper described in [Validation inputs and final records](VALIDATION-INPUTS.md). Final documentation and staged-tree checks always run freshly. No hook or evidence check is bypassed.
-
-The default gate excludes tests tagged `Category=LongRunning`. Run every test,
-including the long tier, only when the user asks for it:
+Record the base commit before editing and run:
 
 ```powershell
-./tools/Invoke-Validation.ps1 -IncludeLongRunningTests
+./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>
+./tools/Invoke-Validation.ps1 -Integration   # release and CI acceptance
 ```
+
+Selection unions committed, staged, unstaged and untracked paths, including
+both rename sides. `tools/validation-suites.json` maps canonical exact paths or
+directory prefixes to domains and names their test files and dependencies.
+Dependencies and their consumers run together. Rule, format and screen entries
+select runtime domains; other listed documentation runs fresh policy,
+configuration, infrastructure, complete documentation/citation/schema and queue
+checks. These checks are never cached. Selection does not alter the main-only
+generated-file policy. Optional checker preflight is editing feedback only.
+
+Unknown paths, unregistered Node tests, shared gate/build/dependency changes and
+unavailable baselines require integration. Invalid ownership, missing tests,
+unknown dependencies and cycles fail. Integration discovers every Node test,
+builds the solution and runs all .NET categories freshly, overriding narrower
+manual filters. CI requests it explicitly. The initial runtime domains share a
+full .NET test run when affected; refine these small suites only with reviewed
+coverage. An unrelated tooling-only selection needs no .NET build.
+
+Research uses `-Research -ChangedSince <base-commit>`. It runs the fresh checks
+and selected tooling controls, without rebuild tests. Changes under src/ or
+tests/, explicit rebuild requests and integration combined with research fail.
+Changed implemented entries take the existing Code partial/Defect handoff; an
+implementation session fixes the row and runs its selected tests. Unknown or
+shared research inputs fail with a request for separate integration acceptance,
+so a research session never silently crosses into rebuild testing.
+
+Without `-ChangedSince`, a manual `-TestFilter` remains partial diagnostic
+feedback and runs all Node tests. Explicit tests still run on documentation-only
+changes. They cannot narrow integration required by `-ChangedSince`,
+`-Integration` or CI. During a batch use selected domains, then run integration
+before release. Final documentation and staged-tree checks remain fresh.
+
+Selected Node suites use per-suite receipts only where
+`tools/validation-suites.json` declares a reviewed `receipt` in the same suite
+entry that owns its tests and selection inputs. The synthetic text-policy and
+goal-run suites exclude project evidence/documentation they do not read; tools,
+hooks, test sources, configuration and locks remain inputs. Whole-checkout tests
+have no receipt contract. See [Validation inputs](VALIDATION-INPUTS.md).
+
+For a manual diagnostic run, the default .NET filter excludes
+`Category=LongRunning`; `-IncludeLongRunningTests` includes it. Integration
+always includes it.
 
 Run only the long category with live output:
 

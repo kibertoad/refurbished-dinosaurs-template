@@ -55,6 +55,7 @@ function Get-AuthenticodeSignature {[pscustomobject]@{Status='${status}';TimeSta
  }
 });
 
+
 test('installer attestation verification uses the downloaded release tag rather than latest', () => {
  for (const workflow of ['ci.yml', 'release.yml']) {
   const source = readFileSync(join(root, '.github/workflows', workflow), 'utf8');

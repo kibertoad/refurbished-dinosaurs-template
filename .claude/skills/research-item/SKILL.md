@@ -297,22 +297,16 @@ only the lines the link gives, and never a section already read this session.
 During editing, `node tools/upstream.mjs docs --preflight` provides partial
 feedback without generated writes. It does not replace the checks below.
 
-8. **Check**: run the fast gate once, after the batch's last edit and before
-   the commit: `./tools/Invoke-Validation.ps1 -TestFilter <filter>`, naming
-   the tests that cover the change (the tooling tests under `tests/` run with
-   any filter). Never run it without `-TestFilter`: that is the full gate,
-   which runs only in CI (`AGENTS.md`, Commands). The fast gate includes the
-   documentation check, so that check is not run on its own just before it.
-   Run no gate when the batch starts: the last batch commit passed it, and
-   the commits since it (step 1's, a handover) change only the documentation
-   the pre-commit hook checks. Record
-   `git rev-parse HEAD` before the batch's first edit as its base commit.
-   While the batch is under way, check with the documentation check in
-   `--check` mode or the change-aware selection
-   (`./tools/Invoke-Validation.ps1 -ChangedSince <base commit>`), which asks
-   for `-TestFilter` once the batch changes anything outside documentation,
-   such as `tools/`. The pre-commit hook checks the staged tree once more;
-   keep it enabled. Leave
+8. **Check**: record `git rev-parse HEAD` before the first batch edit.
+   After the final edit run
+   `./tools/Invoke-Validation.ps1 -Research -ChangedSince <base commit>`.
+   Keep policy, configuration, complete documentation/citation/schema and queue
+   checks fresh, plus any selected tooling controls. Research runs no rebuild
+   tests and changes no src/ or tests/ files. In-place entry changes follow the
+   existing Code partial/Defect handoff; implementation runs the affected tests.
+   Uncertain research inputs require separate integration acceptance. CI runs
+   integration before merge and release acceptance runs it before shipping.
+   Keep the staged-tree hook enabled; it checks the proposed tree again. Leave
    `spec/index/` and `PARITY.md` as they are: they change only on the main
    branch, where a scheduled job regenerates them, and the check fails a
    batch that edits one. To read current copies, run

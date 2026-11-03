@@ -7,6 +7,8 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { verifySnapshot, validateLock, prepareSnapshot, checkUpstream, ciCheckerArgs, checkerEntry, exemptChecker, main } from "../../tools/upstream.mjs";
+import { discoverTests, validateSuites } from "../../tools/Select-ValidationSuites.mjs";
+import { populateCheckerFixture } from "./checker-fixture.mjs";
 import { copyWorkingTree, includedPath } from "./copy-working-tree.mjs";
 import { checkLinks, linkFile, sections } from "../../tools/upstream-sections.mjs";
 import { checks, main as runNodeChecks } from "../../tools/Invoke-NodeChecks.mjs";
@@ -20,6 +22,12 @@ function fixture(t) {
   }
   return dir;
 }
+function checkerFixture(t) {
+  const dir = fixture(t);
+  populateCheckerFixture(dir, root);
+  return dir;
+}
+
 test("pinned bytes and active CI action agree offline", () => assert.equal(verifySnapshot(root).standardVersion, 1));
 test("edited source is rejected before execution", t => {
   const dir = fixture(t); writeFileSync(resolve(dir, lock.files[0].path), "edited");
@@ -92,8 +100,7 @@ test("local runs take the checker inputs the CI step gives", () => {
   assert.deepEqual(ciCheckerArgs(readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8")), ["--scheduled-generation"]);
 });
 test("docs passes CI's images to the checker, and a command-line value wins", async t => {
-  const dir = fixture(t), ci = resolve(dir, ".github/workflows/ci.yml");
-  for (const path of ["spec", "parity", "deviations", "PARITY.md"]) cpSync(resolve(root, path), resolve(dir, path), { recursive: true });
+  const dir = checkerFixture(t), ci = resolve(dir, ".github/workflows/ci.yml");
   mkdirSync(resolve(dir, "src"), { recursive: true });
   writeFileSync(resolve(dir, "src/Bad.cs"), "// The entry point is at 0x00401000.\nclass Bad {}\n");
   const run = (...args) => main(["docs", "--check", "--no-ksy", ...args], dir);
@@ -106,8 +113,8 @@ test("docs passes CI's images to the checker, and a command-line value wins", as
   assert.equal(await run("--images", ""), 0);
 });
 test("docs leaves the generated files alone under CI's scheduled-generation, and --generate writes them", async t => {
-  const dir = fixture(t);
-  for (const path of ["spec", "parity", "deviations", "PARITY.md"]) cpSync(resolve(root, path), resolve(dir, path), { recursive: true });
+  const dir = checkerFixture(t);
+  assert.equal(await main(["docs", "--generate", "--no-ksy"], dir), 0);
   const parity = resolve(dir, "PARITY.md"), current = readFileSync(parity, "utf8");
   writeFileSync(parity, "stale\n");
   assert.equal(await main(["docs", "--check", "--no-ksy"], dir), 0);
@@ -177,6 +184,9 @@ test("project configuration preserves upstream bytes and licenses", t => {
     "-CopyrightYear", "2026", "-Force"], { cwd: dir, encoding: "utf8" });
   assert.equal(configured.status, 0, configured.error?.message ?? configured.stdout + configured.stderr);
   assert.equal(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))).projectName, "EvidenceSample");
+  const configuredSuites = JSON.parse(readFileSync(resolve(dir, "tools/validation-suites.json")));
+  assert.ok(configuredSuites.suites.find(suite => suite.id === "core").inputs.includes("src/EvidenceSample.Core/"));
+  validateSuites(configuredSuites, discoverTests(dir));
   verifySnapshot(dir);
 });
 

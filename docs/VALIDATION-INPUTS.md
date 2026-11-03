@@ -11,27 +11,34 @@ distinguishes a fresh run from a reused passing run and links its original date.
 
 `tools/Run-ValidationCheck.mjs CHECK -- EXECUTABLE ARG...` runs a check and can
 retain a local passing receipt under ignored `.artifacts/validation-receipts/`.
-The gate uses it for `node-tests`. Without a declaration in
-`validation-inputs.json`, it always runs fresh. CI always runs fresh. The helper
-does not authorize a narrower test selection or replace any required gate.
+The selected gate uses it per domain (`suite-ID`). Each suite's `receipt`
+contract lives in `tools/validation-suites.json`, beside its test ownership,
+source/spec inputs and dependencies. Missing contracts run freshly. CI and
+explicit integration always run freshly. The helper does not replace required
+gates or authorize selection by itself.
 
-A project may declare a check's inputs after reviewing what the command reads:
+A reviewed suite entry can include:
 
 ```json
 {
-  "version": 1,
-  "checks": {
-    "node-tests": {
-      "exclude": ["docs/validation/", "docs/VALIDATION.md"],
-      "tools": [["node", "--version"], ["pwsh", "--version"]],
-      "externalEnvironment": []
-    }
+  "id": "text-policy",
+  "inputs": ["tools/Check-TextPolicy.mjs"],
+  "tests": ["tests/upstream/text-policy.test.mjs"],
+  "dependencies": [],
+  "receipt": {
+    "exclude": ["docs/", "spec/"],
+    "tools": [["node", "--version"], ["git", "--version"]]
   }
 }
 ```
 
-The template's own `validation-inputs.json` declares no checks; the example shows
-the format. Exclude a final record only when the check does not read it.
+The template enables receipts for text-policy and goal-run. Their tests read
+synthetic trees and production tools, not the excluded live documentation/spec.
+Other suites remain uncached. The manifest itself is a protected identity input;
+changing a receipt declaration invalidates prior success. The generic helper
+also supports non-suite custom checks in `validation-inputs.json`, whose default
+checks object is empty. A `suite-ID` always reads the suite map, never that file.
+Exclude a final record only when the check does not read it.
 Everything tracked or untracked and not ignored is an input by default, including
 missing tracked files. New files enter the identity. An untracked nested
 repository or worktree is refused until it is ignored or excluded. Configuration, tools, hooks, lock files, JSON and MSBuild properties

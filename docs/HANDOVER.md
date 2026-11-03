@@ -5,22 +5,27 @@
 - Project-local original inputs are implemented for issue 81. See
   [PROJECT-INPUTS.md](PROJECT-INPUTS.md) and the
   [fresh acceptance record](validation/20261019-project-local-inputs.md).
-- Checker 6.1.0 and merged process PR128 adoption are in PR147.
-  [The adoption plan](CHECKER-PREFLIGHT-PLAN.md) records acceptance and limits.
-  Optional `node tools/upstream.mjs docs --preflight` is editing feedback only.
-- Canonical focused gate passed 111 Node controls and 5 .NET address-citation
-  tests, no skips or build warnings/errors. Final policy, documentation/citation,
-  queue and staged hooks passed. CI full acceptance is pending.
+- Validation improvements are proposed in [PR146](https://github.com/kibertoad/refurbished-dinosaurs-template/pull/146),
+  tracked by issue 145. See [acceptance and benchmark results](VALIDATION-OPTIMIZATION-RESULTS.md).
+- Final implementation gate: 2026-11-03, fresh integration passed 123 Node
+  controls and 55 .NET tests with no skips, warnings or errors. Final policy,
+  infrastructure, documentation/citation and staged hooks passed. CI passed
+  documentation and Ubuntu validation, then exposed the installer verification
+  defaulting to latest. Both workflows now verify their explicit download tag;
+  the earlier packaging rerun passed.
 - Stage: unconfigured template; no game intake has started.
 - Shared signing/release safeguards are ready for review: main-only preparation, bounded jobs, expected certificate verification and same-commit tag reuse. Synthetic tag/certificate controls and canonical validation pass.
 - PR 35 capture tooling retains its prior Windows timeout, recovery and physical client-edge coverage.
 
 ## Unfinished
 
-PR147 now pins merged process PR128 at e5ccb6e7f34a83a0495cd0004c215a3737bdb5b1.
-Its refreshed local gate passed; CI is rerunning. Checker adoption awaits review. Validation-domain suites remain
-separate in PR146, coordinated with process PR128. The installer-tag and CRLF
-fixture fixes shared with PR146 let these branches merge independently.
+Merged process PR128 is pinned at e5ccb6e7f34a83a0495cd0004c215a3737bdb5b1.
+PR146 implements its research exception, shared selection/receipt map and
+independent per-case fixtures, directories and Git environments. Full local
+integration passed 123 Node and 55 .NET tests; CI is rerunning for this follow-up.
+The final diagnostic benchmark is 12.0% faster in its local median; earlier
+samples remain documented. Independent PR147 adopts checker 6.1.0 plus the same
+merged rules and has green CI. Downstream gate adoption remains separate.
 
 Project-local input changes await review and consumer adoption. Direct research
 scripts must use the checkout launcher instead of inherited global variables.

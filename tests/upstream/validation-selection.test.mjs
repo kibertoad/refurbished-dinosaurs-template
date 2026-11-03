@@ -43,6 +43,11 @@ test('selection includes committed, staged, unstaged, untracked and both rename 
   writeFileSync(join(dir, 'docs/base.md'), 'staged'); git('add', 'docs/base.md');
   writeFileSync(join(dir, 'docs/base.md'), 'unstaged');
   writeFileSync(join(dir, 'docs/untracked space.md'), 'untracked');
+  // A staged code edit restored only in the worktree must still select code.
+  writeFileSync(join(dir, 'src/old.cs'), 'staged code'); git('add', 'src/old.cs');
+  writeFileSync(join(dir, 'src/old.cs'), 'code');
+  assert(changedPaths(dir, base).includes('src/old.cs'));
+  git('reset', '--quiet', 'HEAD', '--', 'src/old.cs');
   assert(changedPaths(dir, base).includes('PARITY.md'));
   assert.equal(classify(changedPaths(dir, base)), 'documentation');
   renameSync(join(dir, 'src/old.cs'), join(dir, 'docs/moved.md'));

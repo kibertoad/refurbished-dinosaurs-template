@@ -1,5 +1,7 @@
 # Implementation plan
 
+Template validation tooling follows [the validation optimization plan](VALIDATION-OPTIMIZATION-PLAN.md).
+
 > Fill this document in before writing implementation code. Replace the italic
 > guidance with real content and delete nothing structural.
 >

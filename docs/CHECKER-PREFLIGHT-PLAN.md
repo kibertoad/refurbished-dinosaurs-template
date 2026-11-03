@@ -33,8 +33,9 @@ The CI installer verification explicitly names its downloaded Inno Setup tag,
 using the same fix and regression control as PR146, so this adoption can merge
 independently. The negative image-option fixture also retains PR146's CRLF-safe
 YAML mutation and checks that the failure control was actually configured.
-The broader domain-suite optimization is not part of this adoption. CI retains
-full acceptance. The rules snapshot includes merged process PR128 at
-`e5ccb6e7f34a83a0495cd0004c215a3737bdb5b1`. Existing stricter gate instructions
-remain in force; domain selection is separately proposed in PR146. No evidence
-status changes.
+The broader domain-suite optimization merged in PR146 and is retained when
+merging current main into this branch. The research procedure keeps its new
+research-only gate alongside optional preflight editing feedback. Shared
+installer controls keep main's identical version. CI retains full integration
+acceptance. The rules snapshot includes merged process PR128 at
+`e5ccb6e7f34a83a0495cd0004c215a3737bdb5b1`. No evidence status changes.

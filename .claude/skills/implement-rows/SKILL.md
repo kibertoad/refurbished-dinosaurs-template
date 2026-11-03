@@ -141,8 +141,9 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    Tests over synthetic state, decoder tests on synthetic files, tests that
    compare the rebuild with itself and a deviation's Tests item are left out,
    and a row with only those has Tests `None`. Then run the documentation
-   check and the tests the change touches
-   (`./tools/Invoke-Validation.ps1 -TestFilter <filter>`); CI runs the rest.
+   check and affected domain tests with
+   `./tools/Invoke-Validation.ps1 -ChangedSince <base commit>`. Run
+   `-Integration` before release; CI also runs fresh integration.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
    (entries implemented) and `Parity:` (rows whose status changed) trailers.
 9. **Print the status block** from `research-item`, with `Batch: implementation`
