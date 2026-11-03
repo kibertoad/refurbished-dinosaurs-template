@@ -10,7 +10,8 @@ param(
     [switch] $TraceTestOutput,
     [switch] $NoRestore,
     [string] $ChangedSince,
-    [switch] $Integration
+    [switch] $Integration,
+    [switch] $Research
 )
 
 $ErrorActionPreference = 'Stop'
@@ -77,12 +78,21 @@ try {
     }
 
     $suiteBase = if ($Integration -or $env:CI -or -not $ChangedSince) { '--integration' } else { $ChangedSince }
-    $selectionJson = & node (Join-Path $PSScriptRoot 'Select-ValidationSuites.mjs') $suiteBase
+    if ($Research -and (-not $ChangedSince -or $Integration -or $env:CI -or $TestFilter -or
+        $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests)) {
+        throw 'Research needs -ChangedSince and cannot request rebuild tests or integration; run integration separately.'
+    }
+    [string[]] $suiteArguments = @($suiteBase)
+    if ($Research) { $suiteArguments = @('--research') + $suiteArguments }
+    $selectionJson = & node (Join-Path $PSScriptRoot 'Select-ValidationSuites.mjs') @suiteArguments
     if ($LASTEXITCODE -ne 0) { throw 'Could not select validation suites.' }
     try { $selection = $selectionJson | ConvertFrom-Json -ErrorAction Stop }
     catch { throw 'Could not parse validation suite plan.' }
     if ($selection.mode -notin @('selected', 'integration') -or $selection.dotnet -isnot [bool]) {
         throw 'Invalid validation suite plan.'
+    }
+    if ($Research -and ($selection.dotnet -or $selection.mode -eq 'integration')) {
+        throw 'Research selection returned rebuild tests; run integration separately.'
     }
     $explicitTests = $TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests
     $runDotnet = $selection.dotnet -or $explicitTests
@@ -115,7 +125,7 @@ try {
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
     try {
-        & node (Join-Path $PSScriptRoot 'Run-ValidationSuites.mjs') $suiteBase
+        & node (Join-Path $PSScriptRoot 'Run-ValidationSuites.mjs') @suiteArguments
     }
     finally {
         $env:PWSH = $previousPwsh

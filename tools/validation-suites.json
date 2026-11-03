@@ -54,7 +54,31 @@
         "tests/upstream/text-policy.test.mjs"
       ],
       "dependencies": [],
-      "dotnet": false
+      "dotnet": false,
+      "receipt": {
+        "exclude": [
+          "docs/",
+          "spec/",
+          "queue/",
+          "parity/",
+          "deviations/",
+          "validation/",
+          "PARITY.md",
+          "AGENTS.md",
+          "README.md",
+          ".claude/"
+        ],
+        "tools": [
+          [
+            "node",
+            "--version"
+          ],
+          [
+            "git",
+            "--version"
+          ]
+        ]
+      }
     },
     {
       "id": "diagnostics",
@@ -96,7 +120,31 @@
         "tests/upstream/goal-run.test.mjs"
       ],
       "dependencies": [],
-      "dotnet": false
+      "dotnet": false,
+      "receipt": {
+        "exclude": [
+          "docs/",
+          "spec/",
+          "queue/",
+          "parity/",
+          "deviations/",
+          "validation/",
+          "PARITY.md",
+          "AGENTS.md",
+          "README.md",
+          ".claude/"
+        ],
+        "tools": [
+          [
+            "node",
+            "--version"
+          ],
+          [
+            "git",
+            "--version"
+          ]
+        ]
+      }
     },
     {
       "id": "signing",

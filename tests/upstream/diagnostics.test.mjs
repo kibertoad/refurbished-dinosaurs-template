@@ -29,22 +29,46 @@ test('JVM diagnostics are ignored and rejected if force-staged, while ordinary l
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'tools/Repository-Policy.psm1') -Force
 $files=Get-Content (Join-Path $PSScriptRoot 'cases.json') -Raw | ConvertFrom-Json
+$caseNumber=0
+$environmentNames=@('GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_CONFIG_GLOBAL','GIT_CONFIG_SYSTEM')
 foreach ($file in $files) {
- $path=Join-Path $PSScriptRoot $file
- Set-Content -LiteralPath $path -Value 'synthetic diagnostic marker'
- if ($file -cnotlike '*HS_ERR*') {
-  & git check-ignore -- $file | Out-Null
-  if ($LASTEXITCODE -ne 0) { throw "Diagnostic is not ignored: $file" }
+ $caseRoot=Join-Path $PSScriptRoot ('case-'+$caseNumber)
+ $caseNumber++
+ New-Item -ItemType Directory -Path (Join-Path $caseRoot 'nested') -Force | Out-Null
+ Copy-Item -LiteralPath (Join-Path $PSScriptRoot '.gitignore') -Destination $caseRoot
+ Set-Content -LiteralPath (Join-Path $caseRoot 'git-config') -Value ''
+ $savedEnvironment=@{}
+ foreach ($name in $environmentNames) { $savedEnvironment[$name]=[Environment]::GetEnvironmentVariable($name,'Process') }
+ try {
+  $env:GIT_DIR=Join-Path $caseRoot '.git'
+  $env:GIT_WORK_TREE=$caseRoot
+  $env:GIT_INDEX_FILE=Join-Path $caseRoot '.git/index'
+  $env:GIT_CONFIG_GLOBAL=Join-Path $caseRoot 'git-config'
+  $env:GIT_CONFIG_SYSTEM=Join-Path $caseRoot 'git-config'
+  Push-Location $caseRoot
+  try {
+   & git init --quiet
+   if ($LASTEXITCODE -ne 0) { throw 'Case Git initialization failed' }
+   Set-Content -LiteralPath (Join-Path $caseRoot 'ordinary.log') -Value 'synthetic ordinary log'
+   if ((Test-RepositoryPolicy -RepositoryRoot $caseRoot).Violations.Count) { throw 'Fresh case failed' }
+   $path=Join-Path $caseRoot $file
+   Set-Content -LiteralPath $path -Value 'synthetic diagnostic marker'
+   if ($file -cnotlike '*HS_ERR*') {
+    & git check-ignore -- $file | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Diagnostic is not ignored: $file" }
+   }
+   & git add -f -- $file
+   if ($LASTEXITCODE -ne 0) { throw 'Git add failed' }
+   $result=Test-RepositoryPolicy -RepositoryRoot $caseRoot
+   if (-not ($result.Violations -match 'local JVM diagnostic')) { throw "Policy accepted $file" }
+   & git rm --cached -- $file | Out-Null
+   if ($LASTEXITCODE -ne 0) { throw 'Git reset failed' }
+   Remove-Item -LiteralPath $path
+   if ((Test-RepositoryPolicy -RepositoryRoot $caseRoot).Violations.Count) { throw 'Case cleanup failed' }
+  } finally { Pop-Location }
+ } finally {
+  foreach ($name in $environmentNames) { [Environment]::SetEnvironmentVariable($name,$savedEnvironment[$name],'Process') }
  }
- & git add -f -- $file
- if ($LASTEXITCODE -ne 0) { throw 'Git add failed' }
- $result=Test-RepositoryPolicy -RepositoryRoot $PSScriptRoot
- if (-not ($result.Violations -match 'local JVM diagnostic')) { throw "Policy accepted $file" }
- & git rm --cached -- $file | Out-Null
- if ($LASTEXITCODE -ne 0) { throw 'Git reset failed' }
- Remove-Item -LiteralPath $path
- $result=Test-RepositoryPolicy -RepositoryRoot $PSScriptRoot
- if ($result.Violations.Count) { throw 'Case leaked policy state' }
 }
 Write-Output 'MATRIX:4'
 `);

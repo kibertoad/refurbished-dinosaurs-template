@@ -29,13 +29,24 @@ export function validateSuites(manifest, testFiles) {
     throw new Error('Invalid validation suite manifest');
   const suites = new Map(), owners = new Map();
   for (const suite of manifest.suites) {
-    if (!suite || typeof suite.id !== 'string' || Object.keys(suite).some(key => !['id', 'inputs', 'tests', 'dependencies', 'dotnet'].includes(key)) ||
+    if (!suite || typeof suite.id !== 'string' || Object.keys(suite).some(key => !['id', 'inputs', 'tests', 'dependencies', 'dotnet', 'receipt'].includes(key)) ||
         !/^[a-z][a-z0-9-]*$/.test(suite.id) || suites.has(suite.id) ||
         !Array.isArray(suite.inputs) || !suite.inputs.every(canonical) ||
         !Array.isArray(suite.tests) || !suite.tests.every(canonical) ||
         (suite.dotnet !== undefined && typeof suite.dotnet !== 'boolean') ||
         !Array.isArray(suite.dependencies) || !suite.dependencies.every(x => typeof x === 'string'))
       throw new Error('Invalid or duplicate validation suite');
+    if (suite.receipt !== undefined) {
+      const receipt = suite.receipt;
+      if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt) ||
+          Object.keys(receipt).some(key => !['exclude', 'tools', 'externalEnvironment'].includes(key)) ||
+          !Array.isArray(receipt.tools) || !receipt.tools.length ||
+          receipt.tools.some(tool => !Array.isArray(tool) || tool.length < 2 || tool.some(arg => typeof arg !== 'string')) ||
+          (receipt.exclude !== undefined && (!Array.isArray(receipt.exclude) || !receipt.exclude.every(canonical))) ||
+          (receipt.externalEnvironment !== undefined && (!Array.isArray(receipt.externalEnvironment) ||
+            !receipt.externalEnvironment.every(name => typeof name === 'string' && /^[A-Z][A-Z0-9_]*$/.test(name)))))
+        throw new Error(`Invalid suite receipt: ${suite.id}`);
+    }
     suites.set(suite.id, suite);
     for (const file of suite.tests) {
       if (!testFiles.includes(file)) throw new Error(`Missing test: ${file}`);
@@ -55,16 +66,23 @@ export function validateSuites(manifest, testFiles) {
   for (const id of suites.keys()) visit(id);
   return { suites, owners };
 }
-export function selectSuites(manifest, paths, testFiles, { integration = false, requested = [] } = {}) {
+export function selectSuites(manifest, paths, testFiles, { integration = false, requested = [], research = false } = {}) {
   const { suites, owners } = validateSuites(manifest, testFiles);
   for (const id of requested) if (!suites.has(id)) throw new Error(`Unknown requested suite: ${id}`);
-  const full = reason => ({ mode: 'integration', reason, dotnet: true, suites: [...suites.keys()].sort(), tests: [...testFiles].sort() });
+  if (research && integration) throw new Error('Research selection cannot run integration; run it separately');
+  const full = reason => {
+    if (research) throw new Error(`Research selection requires separate integration: ${reason}`);
+    return ({ mode: 'integration', reason, dotnet: true, suites: [...suites.keys()].sort(), tests: [...testFiles].sort() });
+  };
   if (integration) return full('explicit integration');
   if (testFiles.some(file => !owners.has(file))) return full('unregistered test');
   if (!Array.isArray(paths) || paths.some(path => !canonical(path) || path.endsWith('/')))
     return full('unavailable or invalid change paths');
+  if (research && (paths.some(path => /^(?:src|tests)\//.test(path)) || requested.some(id => suites.get(id).dotnet)))
+    throw new Error('A research batch cannot change src/tests or request rebuild tests');
   const selected = new Set(requested);
   for (const path of paths) {
+    if (research && path.startsWith('spec/') && /\.(?:md|ksy)$/.test(path)) continue;
     if ((manifest.integration ?? []).some(input => matches(path, input)) ||
         /\.(?:csproj|props|targets|slnx)$/.test(path) || /(?:^|\/)(?:packages\.lock\.json|pnpm-lock\.yaml)$/.test(path))
       return full(`shared integration input: ${path}`);
@@ -82,7 +100,7 @@ export function selectSuites(manifest, paths, testFiles, { integration = false, 
       if (suite.dependencies.some(id => selected.has(id))) selected.add(suite.id);
     }
   } while (selected.size !== previous);
-  const ids = [...selected].sort();
+  const ids = [...selected].filter(id => !research || !suites.get(id).dotnet).sort();
   return { mode: 'selected', reason: 'reviewed input ownership', dotnet: ids.some(id => suites.get(id).dotnet), suites: ids,
     tests: ids.flatMap(id => suites.get(id).tests).sort() };
 }
@@ -94,11 +112,17 @@ export function planFromBase(root, manifest, base, options = {}) {
   try { paths = changedPaths(root, base); } catch { paths = null; }
   return selectSuites(manifest, paths, tests, options);
 }
+export function suiteArguments(args, environment = process.env) {
+  const research = args[0] === '--research';
+  const rest = research ? args.slice(1) : args;
+  if (rest.length !== 1) throw new Error('Usage: [--research] <base-commit|--integration>');
+  return { base: rest[0], options: { research, integration: rest[0] === '--integration' || !!environment.CI } };
+}
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const root = resolve(import.meta.dirname, '..');
-    if (process.argv.length !== 3) throw new Error('Usage: Select-ValidationSuites.mjs <base-commit>');
+    const { base, options } = suiteArguments(process.argv.slice(2));
     const manifest = JSON.parse(readFileSync(resolve(root, 'tools/validation-suites.json'), 'utf8'));
-    console.log(JSON.stringify(planFromBase(root, manifest, process.argv[2], { integration: process.argv[2] === '--integration' || !!process.env.CI })));
+    console.log(JSON.stringify(planFromBase(root, manifest, base, options)));
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

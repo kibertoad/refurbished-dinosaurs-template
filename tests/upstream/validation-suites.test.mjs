@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { selectSuites, validateSuites } from '../../tools/Select-ValidationSuites.mjs';
+import { selectSuites, validateSuites, suiteArguments } from '../../tools/Select-ValidationSuites.mjs';
 
 const files = ['tests/core.test.mjs', 'tests/view.test.mjs', 'tests/tool.test.mjs'];
 const manifest = () => ({ version: 1, documentation: ['docs/', 'queue/'], suites: [
@@ -59,4 +59,30 @@ test('shared inputs take precedence over documentation and mapped runtime paths'
   for (const mutate of [m => m.extra = true, m => m.suites[0].typo = true, m => m.integration = ['../escape']]) {
     const copy = manifest(); mutate(copy); assert.throws(() => validateSuites(copy, files));
   }
+});
+
+
+test('research checks spec changes without selecting rebuild tests and refuses mixed acceptance', () => {
+  const m = manifest(); m.suites[0].dotnet = true; m.suites[1].dotnet = true;
+  const plan = selectSuites(m, ['spec/rules/RULE-A.md', 'docs/A.md'], files, {research:true});
+  assert.equal(plan.dotnet, false); assert.deepEqual(plan.suites, []);
+  assert.deepEqual(selectSuites(m, ['tools/reader.mjs'], files, {research:true}).suites, ['tool']);
+  for (const paths of [null, ['package.json'], ['src/Core/A.cs'], ['tests/core.test.mjs']])
+    assert.throws(() => selectSuites(m, paths, files, {research:true}), /Research|research/);
+  assert.throws(() => selectSuites(m, [], files, {research:true, integration:true}), /Research/);
+  assert.throws(() => selectSuites(m, [], files, {research:true, requested:['core']}), /research/);
+  assert.equal(suiteArguments(['--research','HEAD'], {}).options.research, true);
+  assert.equal(suiteArguments(['HEAD'], {CI:'true'}).options.integration, true);
+});
+
+test('receipt contracts are reviewed and validated in the suite ownership map', () => {
+  for (const receipt of [null, true, {}, {tools:[]}, {tools:[['node']]},
+    {tools:[['node','--version']],exclude:['../escape']}, {tools:[['node','--version']],typo:true},
+    {tools:[['node','--version']],externalEnvironment:'bad'},
+    {tools:[['node','--version']],externalEnvironment:['lower']}]) {
+    const m = manifest(); m.suites[0].receipt = receipt;
+    assert.throws(() => validateSuites(m, files), /receipt/);
+  }
+  const m = manifest(); m.suites[0].receipt = {tools:[['node','--version']],exclude:['docs/']};
+  assert.doesNotThrow(() => validateSuites(m, files));
 });

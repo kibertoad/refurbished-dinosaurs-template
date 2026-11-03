@@ -43,12 +43,12 @@ test('integration propagates spawn errors and forces fresh environment', t => {
 test('selected dispatch uses production receipt runner, reuses success and propagates failures', t => {
   const { root, manifest } = fixture(t);
   mkdirSync(join(root, 'tools'));
-  for (const file of ['Run-ValidationCheck.mjs', 'Project-Inputs.mjs'])
+  for (const file of ['Run-ValidationCheck.mjs', 'Project-Inputs.mjs', 'Select-ValidationSuites.mjs', 'Select-Validation.mjs'])
     copyFileSync(new URL(`../../tools/${file}`, import.meta.url), join(root, 'tools', file));
   writeFileSync(join(root, '.gitignore'), '.artifacts/\n');
-  writeFileSync(join(root, 'validation-inputs.json'), JSON.stringify({ version: 1, checks: {
-    'suite-owned': { tools: [[process.execPath, '--version']] }
-  } }));
+  manifest.suites[0].receipt = { tools: [[process.execPath, '--version']] };
+  writeFileSync(join(root, 'tools/validation-suites.json'), JSON.stringify(manifest));
+  writeFileSync(join(root, 'validation-inputs.json'), JSON.stringify({ version: 1, checks: {} }));
   writeFileSync(join(root, 'tests/owned.test.mjs'), `import {mkdirSync,appendFileSync} from 'node:fs';
 mkdirSync('.artifacts',{recursive:true});appendFileSync('.artifacts/runs','x');`);
   const git = (...args) => {
@@ -57,13 +57,24 @@ mkdirSync('.artifacts',{recursive:true});appendFileSync('.artifacts/runs','x');`
   };
   git('init', '--quiet'); git('add', '.');
   git('-c', 'user.name=Synthetic', '-c', 'user.email=synthetic@example.invalid', 'commit', '--quiet', '-m', 'baseline');
-  const base = git('rev-parse', 'HEAD');
+  let base = git('rev-parse', 'HEAD');
   writeFileSync(join(root, 'tests/owned.test.mjs'), readFileSync(join(root, 'tests/owned.test.mjs'), 'utf8') + '\n// changed\n');
   const run = (command, args, options) => spawnSync(command, args, { ...options,
-    env: { ...options.env, CI: '', RESTORATION_VALIDATION_FRESH: '' } });
+    env: { ...options.env, CI: '', RESTORATION_VALIDATION_FRESH: '', NODE_TEST_CONTEXT: undefined } });
   assert.equal(runSuites(root, manifest, base, { run }).mode, 'selected');
   runSuites(root, manifest, base, { run });
   assert.equal(readFileSync(join(root, '.artifacts/runs'), 'utf8'), 'x');
+  manifest.suites[0].receipt.exclude = ['docs/'];
+  writeFileSync(join(root, 'tools/validation-suites.json'), JSON.stringify(manifest));
+  // The manifest is a shared gate input, so use the prior changed-test plan
+  // directly through the receipt runner to isolate contract invalidation.
+  const receipt = run(process.execPath, [join(root, 'tools/Run-ValidationCheck.mjs'), 'suite-owned', '--',
+    process.execPath, '--test', 'tests/owned.test.mjs'], {cwd: root, stdio: 'inherit', env: process.env});
+  assert.equal(receipt.status, 0);
+  assert.equal(readFileSync(join(root, '.artifacts/runs'), 'utf8'), 'xx');
+  git('add', 'tools/validation-suites.json');
+  git('-c', 'user.name=Synthetic', '-c', 'user.email=synthetic@example.invalid', 'commit', '--quiet', '-m', 'reviewed receipt map');
+  base = git('rev-parse', 'HEAD');
   writeFileSync(join(root, 'tests/owned.test.mjs'), 'throw new Error("changed failure");');
   assert.throws(() => runSuites(root, manifest, base, { run }), /Synthetic suite failed/);
 });

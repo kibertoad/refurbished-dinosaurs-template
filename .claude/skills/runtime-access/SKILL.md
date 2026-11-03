@@ -20,7 +20,7 @@ Record standing authorization already given by the owner once validation
 passes; do not request it again for each probe within that scope.
 
 1. **Take the run lock** as the protocol's
-   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 413-447)
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 421-455)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an
    exclusive create that fails if it exists (`[IO.File]::Open($path,
    'CreateNew')` in PowerShell), naming this repository, the session and the

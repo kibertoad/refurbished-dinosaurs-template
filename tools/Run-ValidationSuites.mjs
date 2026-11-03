@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { planFromBase } from './Select-ValidationSuites.mjs';
+import { planFromBase, suiteArguments } from './Select-ValidationSuites.mjs';
 
-export function runSuites(root, manifest, base, { integration = false, run = spawnSync } = {}) {
-  const plan = planFromBase(root, manifest, base, { integration });
+export function runSuites(root, manifest, base, { integration = false, research = false, run = spawnSync } = {}) {
+  const plan = planFromBase(root, manifest, base, { integration, research });
   console.log(`Validation ${plan.mode}: ${plan.reason}`);
   const invoke = (args, fresh) => {
     const environment = { ...process.env, ...(fresh ? { RESTORATION_VALIDATION_FRESH: '1' } : {}) };
@@ -29,9 +29,9 @@ export function runSuites(root, manifest, base, { integration = false, run = spa
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    if (process.argv.length !== 3) throw new Error('Usage: Run-ValidationSuites.mjs <base-commit|--integration>');
+    const { base, options } = suiteArguments(process.argv.slice(2));
     const root = resolve(import.meta.dirname, '..');
     const manifest = JSON.parse(readFileSync(resolve(root, 'tools/validation-suites.json'), 'utf8'));
-    runSuites(root, manifest, process.argv[2], { integration: process.argv[2] === '--integration' || !!process.env.CI });
+    runSuites(root, manifest, base, options);
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

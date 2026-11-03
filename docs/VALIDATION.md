@@ -113,7 +113,7 @@ Record the base commit before editing and run:
 
 ```powershell
 ./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>
-./tools/Invoke-Validation.ps1 -Integration   # publication and CI acceptance
+./tools/Invoke-Validation.ps1 -Integration   # release and CI acceptance
 ```
 
 Selection unions committed, staged, unstaged and untracked paths, including
@@ -123,7 +123,7 @@ Dependencies and their consumers run together. Rule, format and screen entries
 select runtime domains; other listed documentation runs fresh policy,
 configuration, infrastructure, complete documentation/citation/schema and queue
 checks. These checks are never cached. Selection does not alter the main-only
-generated-file policy. The pending toolkit preflight is editing feedback only.
+generated-file policy. Optional checker preflight is editing feedback only.
 
 Unknown paths, unregistered Node tests, shared gate/build/dependency changes and
 unavailable baselines require integration. Invalid ownership, missing tests,
@@ -133,14 +133,23 @@ manual filters. CI requests it explicitly. The initial runtime domains share a
 full .NET test run when affected; refine these small suites only with reviewed
 coverage. An unrelated tooling-only selection needs no .NET build.
 
+Research uses `-Research -ChangedSince <base-commit>`. It runs the fresh checks
+and selected tooling controls, without rebuild tests. Changes under src/ or
+tests/, explicit rebuild requests and integration combined with research fail.
+Changed implemented entries take the existing Code partial/Defect handoff; an
+implementation session fixes the row and runs its selected tests. Unknown or
+shared research inputs fail with a request for separate integration acceptance,
+so a research session never silently crosses into rebuild testing.
+
 Without `-ChangedSince`, a manual `-TestFilter` remains partial diagnostic
 feedback and runs all Node tests. Explicit tests still run on documentation-only
 changes. They cannot narrow integration required by `-ChangedSince`,
 `-Integration` or CI. During a batch use selected domains, then run integration
-before publication. Final documentation and staged-tree checks remain fresh.
+before release. Final documentation and staged-tree checks remain fresh.
 
 Selected Node suites use per-suite receipts only where
-`validation-inputs.json` declares reviewed inputs. The synthetic text-policy and
+`tools/validation-suites.json` declares a reviewed `receipt` in the same suite
+entry that owns its tests and selection inputs. The synthetic text-policy and
 goal-run suites exclude project evidence/documentation they do not read; tools,
 hooks, test sources, configuration and locks remain inputs. Whole-checkout tests
 have no receipt contract. See [Validation inputs](VALIDATION-INPUTS.md).

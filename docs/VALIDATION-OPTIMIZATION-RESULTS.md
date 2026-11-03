@@ -80,3 +80,29 @@ in both workflows and retains attestation failure and Authenticode checks.
 Fresh local integration passed 120 Node and 55 .NET tests after this fix.
 The Windows packaging rerun must still pass; local validation is not packaging
 acceptance.
+
+
+## Final merged PR128 alignment
+
+The selected gate now accepts explicit `-Research -ChangedSince BASE`. It
+runs fresh checks and any affected tooling controls without rebuild tests,
+rejects src/tests changes or explicit rebuild requests, and requires separate
+integration for uncertain/shared inputs. In-place research changes retain the
+existing Code partial/Defect handoff to implementation. Full integration stays
+fresh in CI and before release. Suite receipt contracts live beside selection
+inputs, tests and dependencies in `tools/validation-suites.json`; a declaration
+change invalidates prior success.
+
+Each diagnostic case now creates its own Git repository, working directory and
+named Git environment in the shared host, restoring those environment names
+afterwards. The real CLI controls are retained. A repeat of the committed
+benchmark with this final isolation measured before 4001/3864/4003 ms and
+after 3694/3447/3520 ms (medians 4001 and 3520 ms, 12.0% lower). Startup counts
+remain seven and five. These supersede the earlier timings for the shared-case
+version; the historical samples above are retained for transparency. Synthetic
+fixture setup measured 1529/1418/1393 ms before and 2/2/2 ms after, with the same
+3003/2 file and 102091/21061 byte counts. No timing threshold is asserted.
+
+Final alignment integration passed 123 Node tests and 55 .NET tests, with no
+skips and a zero-warning build. Fresh final documentation and staged hooks
+remain required after this record.

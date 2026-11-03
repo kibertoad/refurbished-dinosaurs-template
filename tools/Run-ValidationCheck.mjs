@@ -127,7 +127,16 @@ try {
   const config = configBytes ? JSON.parse(configBytes) : { version: 1, checks: {} };
   if (config.version !== 1 || !config.checks || typeof config.checks !== 'object' || Array.isArray(config.checks) ||
       Object.keys(config).some(key => !['version', 'checks'].includes(key))) throw new Error('Invalid validation input configuration.');
-  const contract = config.checks[id];
+  let contract = config.checks[id];
+  if (id.startsWith('suite-')) {
+    configBytes = readFileSync(path.join(root, 'tools/validation-suites.json'));
+    const manifest = JSON.parse(configBytes);
+    const { validateSuites, discoverTests } = await import('./Select-ValidationSuites.mjs');
+    const { suites } = validateSuites(manifest, discoverTests(root));
+    const suite = suites.get(id.slice('suite-'.length));
+    if (!suite) throw new Error(`Unknown receipt suite: ${id}`);
+    contract = suite.receipt;
+  }
   const receiptPath = path.join(root, receiptDirectory, `${id}.json`);
   // No declaration means run fresh. CI never reuses a developer receipt.
   const reusable = contract && !process.env.CI && !process.env.RESTORATION_VALIDATION_FRESH;

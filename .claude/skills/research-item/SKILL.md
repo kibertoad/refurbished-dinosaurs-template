@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 197-218),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 203-224),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -104,7 +104,7 @@ only the lines the link gives, and never a section already read this session.
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 423-435):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 431-443):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -120,7 +120,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 449-485).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 457-493).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
@@ -296,13 +296,14 @@ only the lines the link gives, and never a section already read this session.
      Handovers and findings that cite it as a record of earlier work stay.
 8. **Check**: record `git rev-parse HEAD` before the first batch edit.
    After the final edit run
-   `./tools/Invoke-Validation.ps1 -ChangedSince <base commit>` for fresh policy,
-   configuration, documentation/citation/schema and queue checks plus the
-   reviewed domain suites. Unknown/shared changes require integration.
-   Run `-Integration` before publication; CI also runs it freshly. Manual
-   filters give partial diagnostics and cannot narrow required integration.
-   Keep the staged-tree hook enabled; it checks the proposed tree again.
-   Leave
+   `./tools/Invoke-Validation.ps1 -Research -ChangedSince <base commit>`.
+   Keep policy, configuration, complete documentation/citation/schema and queue
+   checks fresh, plus any selected tooling controls. Research runs no rebuild
+   tests and changes no src/ or tests/ files. In-place entry changes follow the
+   existing Code partial/Defect handoff; implementation runs the affected tests.
+   Uncertain research inputs require separate integration acceptance. CI runs
+   integration before merge and release acceptance runs it before shipping.
+   Keep the staged-tree hook enabled; it checks the proposed tree again. Leave
    `spec/index/` and `PARITY.md` as they are: they change only on the main
    branch, where a scheduled job regenerates them, and the check fails a
    batch that edits one. To read current copies, run
