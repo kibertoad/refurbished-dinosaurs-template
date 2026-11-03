@@ -9,7 +9,9 @@ param(
     [int] $MinimumExpectedTests,
     [switch] $TraceTestOutput,
     [switch] $NoRestore,
-    [string] $ChangedSince
+    [string] $ChangedSince,
+    [switch] $Integration,
+    [switch] $Research
 )
 
 $ErrorActionPreference = 'Stop'
@@ -75,21 +77,34 @@ try {
         throw "Another validation run is already active for this checkout ($lockPath)."
     }
 
-    $documentationOnly = $false
-    if ($ChangedSince) {
-        $selection = & node (Join-Path $PSScriptRoot 'Select-Validation.mjs') $ChangedSince
-        if ($LASTEXITCODE -ne 0 -or $selection -notin @('documentation', 'full')) {
-            throw 'Could not classify changes; run validation without -ChangedSince.'
-        }
-        # An explicit request for tests always runs those tests.
-        $documentationOnly = $selection -eq 'documentation' -and -not (
-            $TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests)
-        # The fast gate is the filtered run. Without a filter this would be the full gate, which runs only in CI.
-        if (-not $documentationOnly -and -not ($TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly)) {
-            throw 'The change is not documentation-only, so it needs the fast gate: rerun with -TestFilter naming the tests that cover it. The tooling tests under tests/ run with any filter.'
-        }
+    $suiteBase = if ($Integration -or $env:CI -or -not $ChangedSince) { '--integration' } else { $ChangedSince }
+    if ($Research -and (-not $ChangedSince -or $Integration -or $env:CI -or $TestFilter -or
+        $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests)) {
+        throw 'Research needs -ChangedSince and cannot request rebuild tests or integration; run integration separately.'
     }
-    if (-not $documentationOnly) { Stop-CheckoutGame }
+    [string[]] $suiteArguments = @($suiteBase)
+    if ($Research) { $suiteArguments = @('--research') + $suiteArguments }
+    $selectionJson = & node (Join-Path $PSScriptRoot 'Select-ValidationSuites.mjs') @suiteArguments
+    if ($LASTEXITCODE -ne 0) { throw 'Could not select validation suites.' }
+    try { $selection = $selectionJson | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw 'Could not parse validation suite plan.' }
+    if ($selection.mode -notin @('selected', 'integration') -or $selection.dotnet -isnot [bool]) {
+        throw 'Invalid validation suite plan.'
+    }
+    if ($Research -and ($selection.dotnet -or $selection.mode -eq 'integration')) {
+        throw 'Research selection returned rebuild tests; run integration separately.'
+    }
+    $explicitTests = $TestFilter -or $IncludeLongRunningTests -or $LongRunningTestsOnly -or $MinimumExpectedTests
+    $runDotnet = $selection.dotnet -or $explicitTests
+    $fullAcceptance = $selection.mode -eq 'integration' -and ($ChangedSince -or $Integration -or $env:CI)
+    if ($fullAcceptance -and $explicitTests) {
+        Write-Host 'Integration is required; manual filters cannot narrow acceptance.'
+        $TestFilter = $null
+        $LongRunningTestsOnly = $false
+    }
+    if ($fullAcceptance) { $IncludeLongRunningTests = $true }
+    elseif ($explicitTests) { Write-Host 'Manual .NET filters are partial diagnostic acceptance.' }
+    if ($runDotnet) { Stop-CheckoutGame }
 
     & (Join-Path $PSScriptRoot 'Verify-Repository.ps1') -RepositoryRoot $repositoryRoot
     if ($LASTEXITCODE -ne 0) { throw 'Repository policy verification failed.' }
@@ -105,38 +120,22 @@ try {
     & node (Join-Path $repositoryRoot 'tools/Invoke-NodeChecks.mjs')
     if ($LASTEXITCODE -ne 0) { throw 'Node documentation or queue checks failed.' }
 
-    if ($documentationOnly) {
-        Write-Host 'Documentation-only checks passed: policy, configuration, infrastructure, spec/citations, Kaitai and queue. These are the checks for a batch in progress; the commit still has to pass the fast gate, which CI runs.'
-        return
-    }
-    # One node --test run, so the files run at the same time; its summary names each failing test.
-    # The x86 commands of tools/evidence/report.mjs run scientific-method-engine with the interpreter tools/evidence/python.mjs picks.
-    $nodeTests = @(
-        'tests/evidence/evidence.test.mjs',
-        'tests/upstream/upstream.test.mjs',
-        'tests/upstream/diagnostics.test.mjs',
-        'tests/upstream/memory-blocks.test.mjs',
-        'tests/upstream/research-tracking.test.mjs',
-        'tests/upstream/research-closure.test.mjs',
-        'tests/upstream/text-policy.test.mjs',
-        'tests/upstream/capture-window.test.mjs',
-        'tests/upstream/goal-run.test.mjs',
-        'tests/upstream/validation-selection.test.mjs',
-        'tests/upstream/offline-validation.test.mjs',
-        'tests/upstream/release-signing.test.mjs',
-        'tests/upstream/validation-receipts.test.mjs'
-        'tests/upstream/project-inputs.test.mjs'
-    ) | ForEach-Object { Join-Path $repositoryRoot $_ }
+    # Domain execution retains fresh checks above; integration discovers every test.
     # Some tests run PowerShell scripts; give them the PowerShell running now, which need not be on PATH.
     $previousPwsh = $env:PWSH
     if (-not $env:PWSH) { $env:PWSH = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName }
     try {
-        & node (Join-Path $PSScriptRoot 'Run-ValidationCheck.mjs') node-tests -- node --test @nodeTests
+        & node (Join-Path $PSScriptRoot 'Run-ValidationSuites.mjs') @suiteArguments
     }
     finally {
         $env:PWSH = $previousPwsh
     }
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic tooling tests failed. Run pnpm install and install requirements-evidence.txt.' }
+
+    if (-not $runDotnet) {
+        Write-Host 'Selected validation passed; no runtime inputs changed.'
+        return
+    }
 
     $msbuildArguments = @(
         "-maxCpuCount:$MaxCpuCount",

@@ -19,8 +19,11 @@ export function changedPaths(root, base) {
   };
   const revision = git(['rev-parse', '--verify', '--end-of-options', `${base}^{commit}`]).trim();
   const tracked = git(['diff', '--name-only', '-z', '--no-renames', revision, '--']);
+  // Include index and worktree independently: one can undo the other's edit.
+  const staged = git(['diff', '--cached', '--name-only', '-z', '--no-renames', revision, '--']);
+  const unstaged = git(['diff', '--name-only', '-z', '--no-renames', '--']);
   const untracked = git(['ls-files', '--others', '--exclude-standard', '-z']);
-  return [...new Set((tracked + untracked).split('\0').filter(Boolean))].sort();
+  return [...new Set((tracked + staged + unstaged + untracked).split('\0').filter(Boolean))].sort();
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

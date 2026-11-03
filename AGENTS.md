@@ -655,9 +655,9 @@ it, and each read of a value the entry reads more than once changed between
 reads; a failure whose leftover state changes the next call; and the source a
 request reads kept apart from the request and its destination. These tests compare the rebuild with the spec or with itself, so none
 of them validates a parity row or is listed in its Tests column; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 220-238)
-[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 324-332)
-and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 334-366).
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 226-244)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 338-346)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 348-380).
 
 The protocol adds test cases for four more shapes of rule, which also
 compare the rebuild with the spec and validate no row. A caller that combines
@@ -679,10 +679,10 @@ tested with a test-supplied allocator and release routine that record calls,
 return null, fill blocks with a pattern, read or change the container when
 called, and change a count the copy loads again after the check. Each caller
 of one target is tested with the statuses its own comparison tells apart. See the protocol's
-[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 240-256),
-[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 258-274),
-[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 276-296)
-and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 306-322).
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 246-262),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 264-280),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 282-302)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 320-336).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.
@@ -706,15 +706,29 @@ dotnet build <Project>.slnx        # full solution
 dotnet run --project src/<Project>.Game -- --smoke-test
 ```
 
-While a documentation-only batch is in progress, run `./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>` with the commit recorded before the batch. Selection checks all committed and uncommitted paths and runs the documentation, citation, queue and repository-policy checks, including Kaitai compilation; anything other than recognized documentation, including the gate's own files, selects the fast gate, which needs `-TestFilter` for the tests that cover the change; without one the script stops and asks for it. Explicit test requests still run. This does not replace the fast gate: the batch's commit still leaves the documentation check and the fast gate passing, and CI runs the full gate before merge. Reuse a check result only on an exact match of command, tools, configuration, environment, original inputs and configured file inputs. Without a reviewed narrower declaration, retain whole-tree inputs. See `docs/VALIDATION-INPUTS.md` for local receipts and final records. Keep staged-tree hooks enabled. See `docs/VALIDATION.md` for the selection and reuse rules.
+Record the base commit before a batch, then run
+`./tools/Invoke-Validation.ps1 -ChangedSince <base-commit>`. The versioned
+`tools/validation-suites.json` owns test files and input paths and declares
+consumer dependencies. Every run keeps repository, configuration,
+infrastructure, documentation/citation, Kaitai and queue checks fresh.
+Rule, format and screen changes select runtime consumers in implementation.
+For research use `-Research -ChangedSince <base-commit>`: no rebuild tests,
+no src/ or tests/ changes, and changed implemented entries follow the existing
+Code partial/Defect handoff. Research tooling controls still run. Uncertain
+research selection requires separate integration acceptance. Unknown inputs,
+unregistered tests, shared gate/build/dependency changes or an unavailable base
+require full integration; malformed manifests fail explicitly. Explicit test
+requests execute but cannot narrow a required integration run.
 
-Never run the full validation gate (`Invoke-Validation.ps1` without
-`-TestFilter`) or the full test suite locally. CI runs the gate on every pull
-request. Locally, run only the tests directly relevant to the change: the
-test classes that cover the code and spec entries it touches, through
-`-TestFilter` or `dotnet test --filter`. Run more only when the user asks for
-it. `-MinimumExpectedTests` fails a run when discovery drops below an expected
-count.
+Use `-Integration` before release and for a full acceptance run; CI always
+uses it. Integration discovers all Node tests, runs all .NET categories and
+bypasses receipts. During a batch, use selected domains instead of repeatedly
+running integration. A manual `-TestFilter` without a changed-base requirement
+is partial diagnostic feedback. `-MinimumExpectedTests` guards discovery counts.
+Reuse only reviewed suite receipts with matching commands, tools, configuration,
+environment, original inputs and included files. Keep whole-tree inputs unless
+a reviewed declaration in that suite's input-map entry narrows them. See `docs/VALIDATION.md` and
+`docs/VALIDATION-INPUTS.md`. Keep staged-tree hooks enabled.
 
 Enable the hooks once in each clone, before the first commit, with
 `git config core.hooksPath .githooks`, and do not bypass them with

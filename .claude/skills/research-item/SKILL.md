@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 197-218),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 203-224),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -104,7 +104,7 @@ only the lines the link gives, and never a section already read this session.
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 417-429):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 431-443):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -120,7 +120,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 443-479).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 457-493).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
@@ -294,22 +294,16 @@ only the lines the link gives, and never a section already read this session.
      too); drop it from any live session request that lists it, with the
      script steps only it needed, and delete a request left with no items.
      Handovers and findings that cite it as a record of earlier work stay.
-8. **Check**: run the fast gate once, after the batch's last edit and before
-   the commit: `./tools/Invoke-Validation.ps1 -TestFilter <filter>`, naming
-   the tests that cover the change (the tooling tests under `tests/` run with
-   any filter). Never run it without `-TestFilter`: that is the full gate,
-   which runs only in CI (`AGENTS.md`, Commands). The fast gate includes the
-   documentation check, so that check is not run on its own just before it.
-   Run no gate when the batch starts: the last batch commit passed it, and
-   the commits since it (step 1's, a handover) change only the documentation
-   the pre-commit hook checks. Record
-   `git rev-parse HEAD` before the batch's first edit as its base commit.
-   While the batch is under way, check with the documentation check in
-   `--check` mode or the change-aware selection
-   (`./tools/Invoke-Validation.ps1 -ChangedSince <base commit>`), which asks
-   for `-TestFilter` once the batch changes anything outside documentation,
-   such as `tools/`. The pre-commit hook checks the staged tree once more;
-   keep it enabled. Leave
+8. **Check**: record `git rev-parse HEAD` before the first batch edit.
+   After the final edit run
+   `./tools/Invoke-Validation.ps1 -Research -ChangedSince <base commit>`.
+   Keep policy, configuration, complete documentation/citation/schema and queue
+   checks fresh, plus any selected tooling controls. Research runs no rebuild
+   tests and changes no src/ or tests/ files. In-place entry changes follow the
+   existing Code partial/Defect handoff; implementation runs the affected tests.
+   Uncertain research inputs require separate integration acceptance. CI runs
+   integration before merge and release acceptance runs it before shipping.
+   Keep the staged-tree hook enabled; it checks the proposed tree again. Leave
    `spec/index/` and `PARITY.md` as they are: they change only on the main
    branch, where a scheduled job regenerates them, and the check fails a
    batch that edits one. To read current copies, run
