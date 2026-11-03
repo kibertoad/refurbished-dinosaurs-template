@@ -294,6 +294,9 @@ only the lines the link gives, and never a section already read this session.
      too); drop it from any live session request that lists it, with the
      script steps only it needed, and delete a request left with no items.
      Handovers and findings that cite it as a record of earlier work stay.
+During editing, `node tools/upstream.mjs docs --preflight` provides partial
+feedback without generated writes. It does not replace the checks below.
+
 8. **Check**: record `git rev-parse HEAD` before the first batch edit.
    After the final edit run
    `./tools/Invoke-Validation.ps1 -Research -ChangedSince <base commit>`.

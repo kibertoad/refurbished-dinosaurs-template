@@ -306,3 +306,22 @@ test("the commit-msg hook checks the message's addresses against the entries it 
   writeFileSync(message, `Describe a change\n\nThe loop is in fn_${"7F001040"}.\n`);
   assert.notEqual(await main(["docs", "--message", message], dir), 0);
 });
+
+
+test("preflight drops implicit scheduled generation, preserves explicit failures and writes nothing", async t => {
+  const dir = fixture(t);
+  for (const path of ["spec/glossary", "parity", "deviations"])
+    mkdirSync(resolve(dir, path), { recursive: true });
+  writeFileSync(resolve(dir, "spec/README.md"), "# Synthetic spec\n\n## Scope\nWrapper preflight control.\n\n## Standard version\nThis spec follows version 1 of the documentation standard.\n\n## Areas\n| Area | Covers |\n|---|---|\n| TEST | Synthetic controls. |\n");
+  cpSync(resolve(root, "spec/LICENSE"), resolve(dir, "spec/LICENSE"));
+  writeFileSync(resolve(dir, "PARITY.md"), "stale\n");
+  assert.equal(await main(["docs", "--preflight"], dir), 0);
+  assert.equal(readFileSync(resolve(dir, "PARITY.md"), "utf8"), "stale\n");
+  assert.equal(existsSync(resolve(dir, "spec/index")), false);
+  assert.notEqual(await main(["docs", "--preflight", "--scheduled-generation"], dir), 0);
+  await assert.rejects(main(["docs", "--preflight", "--generate"], dir), /Cannot combine/);
+  mkdirSync(resolve(dir, "spec/rules"));
+  const syntheticId = ["RULE", "TEST", "001"].join("-");
+  writeFileSync(resolve(dir, `spec/rules/${syntheticId}.md`), `---\nid: ${syntheticId}\nstatus: invalid\n---\n`);
+  assert.notEqual(await main(["docs", "--preflight"], dir), 0);
+});

@@ -173,9 +173,12 @@ export async function main(args, root = ROOT) {
     // The checker keeps the last value of an option, so arguments given here override CI's inputs.
     // A flag cannot be overridden that way, so --generate drops CI's --scheduled-generation: the
     // check then writes spec/index/ and PARITY.md, as the scheduled job on the main branch does.
-    const generate = rest.includes("--generate"), passed = rest.filter((a) => a !== "--generate");
+    // Preflight also drops this implicit flag: it writes nothing and cannot check generation.
+    const generate = rest.includes("--generate"), preflight = rest.includes("--preflight");
+    if (generate && preflight) throw new Error("Cannot combine --generate and --preflight");
+    const passed = rest.filter((a) => a !== "--generate");
     const fromCi = ciCheckerArgs(read(resolve(root, ".github/workflows/ci.yml")).toString("utf8"))
-      .filter((a) => !(generate && a === "--scheduled-generation"));
+      .filter((a) => !((generate || preflight) && a === "--scheduled-generation"));
     const result = spawnSync(process.execPath, [checker, "--root", root, ...fromCi, ...passed], { cwd: root, stdio: "inherit" });
     if (result.error) throw result.error;
     return result.status ?? 1;
