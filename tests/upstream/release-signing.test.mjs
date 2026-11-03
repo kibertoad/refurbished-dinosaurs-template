@@ -54,3 +54,15 @@ function Get-AuthenticodeSignature {[pscustomobject]@{Status='${status}';TimeSta
   const r=spawnSync(process.env.PWSH||'pwsh',['-NoProfile','-File',file],{encoding:'utf8'});assert.equal(r.status===0,ok,r.stdout+r.stderr);
  }
 });
+
+test('installer attestation verification uses the downloaded release tag rather than latest', () => {
+ for (const workflow of ['ci.yml', 'release.yml']) {
+  const source = readFileSync(join(root, '.github/workflows', workflow), 'utf8');
+  const downloaded = /gh release download (\S+)/.exec(source)?.[1];
+  assert.ok(downloaded, `${workflow}: pinned download required`);
+  const verified = /gh release verify-asset (\S+) \$installer --repo jrsoftware\/issrc/.exec(source)?.[1];
+  assert.equal(verified, downloaded, `${workflow}: verify the downloaded tag`);
+  assert.match(source, /Attestation verification failed/);
+  assert.match(source, /Get-AuthenticodeSignature/);
+ }
+});

@@ -17,6 +17,7 @@ Use Node.js 22 or newer, after `pnpm install`:
 ```sh
 node tools/upstream.mjs verify
 node tools/upstream.mjs docs --check
+node tools/upstream.mjs docs --preflight
 node tools/upstream.mjs docs --generate
 node tools/upstream.mjs links
 ```
@@ -87,3 +88,11 @@ Like the canonical repository checks, validation requires a Git checkout. For a
 ZIP download, initialize a repository with `git init` before validating; the
 non-ignored files are then visible as untracked. There is no recursive-copy
 fallback that would reintroduce ignored local content.
+
+
+Optional editing feedback uses `node tools/upstream.mjs docs --preflight`.
+Checker 6.1.0 prints a partial pass and names the checks it skips. The wrapper
+omits its implicit scheduled-generation flag for this mode; explicit
+incompatible options still fail. Preflight never writes generated files and
+does not replace complete documentation, citation, schema, queue or staged
+acceptance checks. `--generate` cannot be combined with it.

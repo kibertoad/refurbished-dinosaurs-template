@@ -73,7 +73,7 @@ jobs:
       # nightly-generated.yml regenerates and commits them. The check neither writes nor compares
       # them, and fails a pull request that edits, adds or removes one.
       # `node tools/upstream.mjs docs` reads this step's inputs, so a local run checks the same.
-      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@78f0229406fa97d2b8a60fb4b79366ffd9a08e3b # zizmor: ignore[stale-action-refs,ref-version-mismatch]
+      - uses: kibertoad/refurbished-dinosaurs-toolkit/actions/check-documentation@98e2e2000e365537c85ffa7605e4813a82a46cb4 # zizmor: ignore[stale-action-refs,ref-version-mismatch]
         with:
           scheduled-generation: "true"
   installer:
@@ -101,7 +101,7 @@ jobs:
             --pattern 'innosetup-7.1.0-x64.exe' `
             --dir $env:RUNNER_TEMP
           if ($LASTEXITCODE -ne 0) { throw 'Could not download the pinned Inno Setup installer.' }
-          gh release verify-asset $installer --repo jrsoftware/issrc
+          gh release verify-asset is-7_1_0 $installer --repo jrsoftware/issrc
           if ($LASTEXITCODE -ne 0) { throw 'Attestation verification failed for the pinned Inno Setup installer.' }
           $signature = Get-AuthenticodeSignature -LiteralPath $installer
           if ($signature.Status -ne 'Valid' -or
