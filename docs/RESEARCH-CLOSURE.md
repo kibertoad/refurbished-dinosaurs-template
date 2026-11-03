@@ -5,6 +5,23 @@ obligations to choose work that closes a subsystem contract. The accepted
 complete-reading count comes from the pinned `standard-coverage` report.
 An ownership assignment or checked box changes no entry's evidence status.
 
+After the order of work selects a question in partly read code, assess the
+existing findings and retained reports before another code reading. Rewrite
+the queue item's `Settles it` to hold only its remaining obligations, citing
+the findings that answered the rest. Reference those queue items by ID from
+the assessment. Check whether the findings
+already meet the standard's complete-reading conditions and record qualifying
+findings in the entry's `complete_reading`. State which remaining obligations
+the next batch can remove and what result would remove them. A bounded answer
+can need several functions; a function boundary does not require a commit.
+
+Before building a reporter, check existing readers and retained controlled
+reports. Prefer a reusable census where questions share a source and mechanism;
+name its queue items and the capability existing tools lack. If checks or
+bookkeeping seem to dominate, time research, tooling, checks and handover
+separately before proposing changes. Required gates and evidence conditions
+still apply.
+
 ## Establish the baseline
 
 Run the documentation check, then measure the current inventories:

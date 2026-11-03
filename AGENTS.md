@@ -223,6 +223,22 @@ that page differ, the page wins.
   program, starts with a census of every site of the mechanism that
   capability has to pass through, with a positive control for each kind of
   site, and traces further only what the census leaves undecided.
+- Once the order of work selects an item in partly read code, review existing
+  findings and retained reports before another reading. Rewrite `Settles it`
+  to name only the remaining caller, state-writer/lifetime, indirect-transfer
+  and external-evidence obligations, citing findings that answered the rest.
+  Keep the obligations in the queue. Assess existing findings against the
+  complete-reading conditions and record qualifying findings in the entry's
+  `complete_reading`; a checklist alone changes no status. Name which remaining
+  obligations the batch can remove and what result would remove each.
+- Before new research tooling, check existing reporters, readers and retained
+  controlled reports. Prefer one reusable census for questions sharing a source
+  and mechanism. New tooling names its queue items and the capability existing
+  tools lack. Preserve controls, exclusions and unresolved transfers when reusing.
+- If checks or bookkeeping appear to dominate a batch, time research, tooling,
+  checks and handover separately before proposing a gate change. Measurements
+  never authorize skipped checks, mixed batch kinds or weaker evidence; retain
+  stricter repository requirements until the owner adopts a change.
 - A batch is one commit, and is research, implementation or tooling, never
   more than one. A session keeps to one side of the clean room. An
   implementation batch works from the spec alone, never opens analysis output
@@ -290,6 +306,14 @@ that page differ, the page wins.
   branch, and the goal stops, as that file's "Wrapping up" says.
 - Progress is what scripts compute: parity totals, entries by status,
   executable and file coverage, queue sizes. Never a hand-written percentage.
+  Snapshot comparisons use exact revisions and the same areas, matching items
+  by ID to distinguish answers, additions, splits and moves between sections or
+  areas. An answered deletion needs the deleting commit's `Queue:` trailer and
+  the spec's answer; passing unanswered parts to new items counts as a split.
+  Reports also show changed `complete_reading` declarations and narrowed
+  `Settles it` conditions with their findings, retaining missing inventories,
+  uncited functions and unnarrowed items. Finding counts measure activity and
+  never replace these measures or validated parity.
   Executable coverage is measured against the function inventories,
   `coverage/<build ID>/<manifest path>.tsv` (a `CD:` prefix becomes an `@CD`
   directory, and a member of an archive goes under `<archive path>@/`), one
@@ -620,9 +644,9 @@ it, and each read of a value the entry reads more than once changed between
 reads; a failure whose leftover state changes the next call; and the source a
 request reads kept apart from the request and its destination. These tests compare the rebuild with the spec or with itself, so none
 of them validates a parity row or is listed in its Tests column; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 206-224)
-[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 308-316)
-and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 318-350).
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 220-238)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 324-332)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 334-366).
 
 The protocol adds test cases for four more shapes of rule, which also
 compare the rebuild with the spec and validate no row. A caller that combines
@@ -644,10 +668,10 @@ tested with a test-supplied allocator and release routine that record calls,
 return null, fill blocks with a pattern, read or change the container when
 called, and change a count the copy loads again after the check. Each caller
 of one target is tested with the statuses its own comparison tells apart. See the protocol's
-[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 226-242),
-[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 244-260),
-[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 262-282)
-and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 290-306).
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 240-256),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 258-274),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 276-296)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 306-322).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.

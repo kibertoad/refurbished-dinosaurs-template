@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 187-204),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 197-218),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -48,6 +48,19 @@ only the lines the link gives, and never a section already read this session.
    undecided, each as a queue item of its own.
    Plan the batch around one reviewable answer to the items it takes up, including the directly related callers, helpers and fields that answer needs; a function boundary does not require a commit. Before following another helper, name the part of the item's `Settles it` that reading the helper can answer. A helper needed for that answer belongs in the reading, and an unrelated branch becomes a separate question in a separate batch. If a dependency stays unresolved, record the bounded result and put the remaining question in a queue item rather than keeping a growing batch open. Never extend a reading only to cite more functions.
    Repeated caller and operand searches reuse a local index or retained report when its inputs are unchanged: the source fingerprint, the loaded address mappings, the decoder and exporter versions that built it, the established entries and ranges searched, the limits, and the positive controls and exclusions. Rebuild it when any of those change. An index of candidates keeps its undecoded ranges, unresolved transfers and failed or missing controls. A cache hit never makes a candidate an established instruction or a negative search a proof, and a missed positive control rejects a negative result from the index as it does one from a fresh search. Indexes made from the original stay in `GAME_DIR`. Findings name the committed procedure that regenerates the index and state the result in their own words.
+   Once the order of work selects an item in partly read code, review its
+   existing findings and retained reports before reading code again. Rewrite
+   `Settles it` to name only the remaining callers, state writers and lifetime,
+   indirect transfers and evidence the code cannot supply, citing the findings
+   that answered the rest. Keep those obligations in the queue. Check the
+   findings against the standard's complete-reading conditions; where they
+   already meet them, list them in the entry's `complete_reading`. A checklist
+   alone raises no status. State which remaining obligations this batch can
+   remove and what result would remove each; leave the rest in `Settles it`.
+   Before new tooling, check supported reporters, readers and retained
+   controlled reports. Prefer one reusable census for questions sharing a
+   source and mechanism. Name the queue items the tooling serves and what
+   existing tools cannot do; preserve the controls and exclusions on reuse.
 3. **State the question and the competing readings.** Decide what evidence
    would rule each reading out. Readings still open when the batch ends go in
    the Open questions section of the entry they concern, one per reading: what
@@ -91,7 +104,7 @@ only the lines the link gives, and never a section already read this session.
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 401-413):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 417-429):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -107,7 +120,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 427-463).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 443-479).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
