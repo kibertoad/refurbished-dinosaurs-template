@@ -5,7 +5,7 @@ description: Resume restoration work at the start of a session. Use before any r
 
 # Start a session
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 379-389).
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#sessions) (lines 395-405).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 This skill is the procedure; where they differ, the protocol wins.

@@ -6,8 +6,8 @@ description: Plan restoration work - record the project's stage, write or revise
 # Plan work
 
 The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-82),
-[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 84-163) and
-[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 542-640).
+[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 84-169) and
+[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 562-660).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,
@@ -65,9 +65,21 @@ never code or spec entries apart from new `unknown` entries.
    entry cites gets a queue item against the nearest entry or a new
    `unknown` one. Its figures are printed when wanted and never committed;
    the plan names the command and copies none of the shares it printed. The protocol's
-   [Measuring progress](../../../docs/upstream/work-protocol.md#measuring-progress) (lines 483-536)
+   [Measuring progress](../../../docs/upstream/work-protocol.md#measuring-progress) (lines 499-556)
    says how to set an early baseline and report coverage by area.
 3. Move items that block the current slice to the top of their section.
+
+When comparing progress snapshots, use their exact revisions and the same
+areas. Have the report match queue items by ID and distinguish answered,
+added, split and moved items, including moves between areas. Count a deletion
+as answered only when its deleting commit has the item's `Queue:` trailer
+and the spec records its answer; a partial answer handed to new items is a
+split, as is an item retaining its ID while new items take parts of it.
+Report changed `complete_reading` declarations and narrowed `Settles it`
+conditions with the findings cited by their changing commits. Keep missing
+inventories, uncited functions and unnarrowed items visible. Added findings
+measure activity. If they accumulate without narrowing the selected items,
+review existing evidence before continuing the same approach.
 
 ## Goals
 
