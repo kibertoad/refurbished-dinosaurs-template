@@ -40,7 +40,9 @@ It affects no game behaviour or proprietary-input contract.
 - Expose a selected local mode with a base and an explicit integration mode.
   CI uses integration. Local batch acceptance uses fresh checks plus required
   suites; full integration runs before publication, for unknown/cross-cutting
-  changes and when requested. Preserve serialization and failure propagation.
+  changes and when requested. Preserve serialization and failure propagation. Installer acceptance verifies
+  the downloaded pinned release against that same tag, retaining attestation
+  and publisher-signature checks in both CI and release workflows.
 
 ## Fixtures and process startup
 
@@ -81,7 +83,7 @@ contracts. Repository-policy evaluation is shared with its CLI; the diagnostic
 matrix uses one host and retains real CLI controls. Configuring project identity
 updates manifest source paths and retains valid ownership.
 
-Final implementation-tree integration passed 119 Node tests and 55 .NET tests,
+Final implementation-tree integration passed 120 Node tests and 55 .NET tests,
 with no skips and a zero-warning build. Startup and fixture measurements,
 assertion accounting and their limits are in
 [Results](VALIDATION-OPTIMIZATION-RESULTS.md). Fresh final documentation and staged

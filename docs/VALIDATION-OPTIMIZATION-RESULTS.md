@@ -51,7 +51,7 @@ full-gate speed. An empty template has fewer files and a smaller absolute gain.
 The same invocation repeated the startup test: before 4635/4368/4191 ms,
 after 4732/3661/3620 ms (medians 4368 and 3661 ms, 16.2% lower). The variation
 reinforces that these are local measurements, not a timing guarantee.
-Final implementation-tree integration passed 119 Node tests, a zero-warning
+Final implementation-tree integration passed 120 Node tests, a zero-warning
 solution build and all 55 .NET tests, with no skipped tests, using
 `./tools/Invoke-Validation.ps1 -Integration -NoRestore` after a successful
 restoring integration run. Controls include configured manifest paths and
@@ -67,3 +67,16 @@ run and failures propagate. Gate controls retain fresh policy/checker execution,
 NoRestore behavior and build-failure propagation, and reject filters that narrow
 required integration. Receipt controls prove invalidation and fresh integration.
 These targeted passes do not establish full integration or Kaitai compilation.
+
+
+## Installer CI follow-up
+
+Template CI passed documentation and Ubuntu validation/assetless smoke checks,
+then failed while verifying the downloaded Inno Setup 7.1.0 installer against
+the latest release, 7.1.1. `gh release verify-asset --help` documents the optional
+release tag and the latest-release default. CI and release now pass the same
+explicit tag used by the download. A regression test checks this relationship
+in both workflows and retains attestation failure and Authenticode checks.
+Fresh local integration passed 120 Node and 55 .NET tests after this fix.
+The Windows packaging rerun must still pass; local validation is not packaging
+acceptance.
