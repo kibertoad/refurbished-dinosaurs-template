@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "documentation": [
+    "docs/",
+    "queue/",
+    "parity/",
+    "deviations/",
+    "validation/",
+    "spec/findings/",
+    "spec/experiments/",
+    "spec/sources/",
+    "spec/builds/",
+    "spec/glossary/",
+    "spec/index/",
+    "spec/README.md",
+    "spec/LICENSE",
+    "PARITY.md"
+  ],
+  "suites": [
+    {
+      "id": "evidence",
+      "inputs": [
+        "tools/evidence/",
+        "requirements-evidence.txt"
+      ],
+      "tests": [
+        "tests/evidence/evidence.test.mjs",
+        "tests/evidence/xxh3.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "research",
+      "inputs": [
+        "tools/Check-ResearchTracking.mjs",
+        "tools/Report-ResearchClosure.mjs"
+      ],
+      "tests": [
+        "tests/upstream/research-tracking.test.mjs",
+        "tests/upstream/research-closure.test.mjs"
+      ],
+      "dependencies": [
+        "upstream"
+      ],
+      "dotnet": false
+    },
+    {
+      "id": "text-policy",
+      "inputs": [
+        "tools/Check-TextPolicy.mjs"
+      ],
+      "tests": [
+        "tests/upstream/text-policy.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "diagnostics",
+      "inputs": [],
+      "tests": [
+        "tests/upstream/diagnostics.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "memory",
+      "inputs": [],
+      "tests": [
+        "tests/upstream/memory-blocks.test.mjs"
+      ],
+      "dependencies": [
+        "evidence"
+      ],
+      "dotnet": false
+    },
+    {
+      "id": "capture",
+      "inputs": [
+        "tools/Capture-OriginalWindow.ps1"
+      ],
+      "tests": [
+        "tests/upstream/capture-window.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "goal-run",
+      "inputs": [
+        "tools/goal-run.mjs"
+      ],
+      "tests": [
+        "tests/upstream/goal-run.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "signing",
+      "inputs": [
+        "tools/Ensure-ReleaseTag.ps1",
+        "tools/Assert-WindowsSignature.ps1"
+      ],
+      "tests": [
+        "tests/upstream/release-signing.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "validation",
+      "inputs": [],
+      "tests": [
+        "tests/upstream/validation-selection.test.mjs",
+        "tests/upstream/validation-suites.test.mjs",
+        "tests/upstream/validation-receipts.test.mjs",
+        "tests/upstream/offline-validation.test.mjs",
+        "tests/upstream/project-inputs.test.mjs",
+        "tests/upstream/validation-suite-runner.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "upstream",
+      "inputs": [
+        "tools/upstream.mjs",
+        "tools/upstream-sections.mjs",
+        "tests/upstream/copy-working-tree.mjs",
+        "tests/upstream/checker-fixture.mjs"
+      ],
+      "tests": [
+        "tests/upstream/upstream.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
+      "id": "core",
+      "inputs": [
+        "src/Restoration.Core/",
+        "spec/rules/",
+        "spec/builds/"
+      ],
+      "tests": [],
+      "dependencies": [],
+      "dotnet": true
+    },
+    {
+      "id": "resources",
+      "inputs": [
+        "src/Restoration.Extractor/",
+        "spec/formats/",
+        "src/Restoration.Resources/",
+        "tools/Restoration.Inspect/"
+      ],
+      "tests": [],
+      "dependencies": [
+        "core"
+      ],
+      "dotnet": true
+    },
+    {
+      "id": "presentation",
+      "inputs": [
+        "src/Restoration.Game/",
+        "spec/screens/"
+      ],
+      "tests": [],
+      "dependencies": [
+        "core",
+        "resources"
+      ],
+      "dotnet": true
+    }
+  ],
+  "integration": [
+    ".github/",
+    ".githooks/",
+    "docs/upstream/",
+    "tools/Verify-Repository.ps1",
+    "tools/Repository-Policy.psm1",
+    "tools/repository-policy.json",
+    "tools/Invoke-Validation.ps1",
+    "tools/Select-Validation.mjs",
+    "tools/Select-ValidationSuites.mjs",
+    "tools/Run-ValidationSuites.mjs",
+    "tools/Run-ValidationCheck.mjs",
+    "tools/Project-Inputs.mjs",
+    "tools/validation-suites.json",
+    "tools/Test-TemplateInfrastructure.ps1",
+    "tools/Verify-Configuration.ps1",
+    "tools/Configure-Project.ps1",
+    "tools/project-config.json",
+    "validation-inputs.json"
+  ]
+}

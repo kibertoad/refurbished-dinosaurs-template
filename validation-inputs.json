@@ -1,4 +1,53 @@
 {
   "version": 1,
-  "checks": {}
+  "checks": {
+    "suite-text-policy": {
+      "exclude": [
+        "docs/",
+        "spec/",
+        "queue/",
+        "parity/",
+        "deviations/",
+        "validation/",
+        "PARITY.md",
+        "AGENTS.md",
+        "README.md",
+        ".claude/"
+      ],
+      "tools": [
+        [
+          "node",
+          "--version"
+        ],
+        [
+          "git",
+          "--version"
+        ]
+      ]
+    },
+    "suite-goal-run": {
+      "exclude": [
+        "docs/",
+        "spec/",
+        "queue/",
+        "parity/",
+        "deviations/",
+        "validation/",
+        "PARITY.md",
+        "AGENTS.md",
+        "README.md",
+        ".claude/"
+      ],
+      "tools": [
+        [
+          "node",
+          "--version"
+        ],
+        [
+          "git",
+          "--version"
+        ]
+      ]
+    }
+  }
 }

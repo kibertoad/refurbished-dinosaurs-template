@@ -20,7 +20,7 @@ $global:forwarded=$false
 function Get-Process { $global:checks.Add('Get-Process') }
 function node {
  $global:checks.Add('node');$global:LASTEXITCODE=0
- if ($args[0] -like '*Select-Validation.mjs') { Write-Output '${selection ?? ''}' }
+ if ($args[0] -like '*Select-ValidationSuites.mjs') { Write-Output '${selection === 'unexpected' ? JSON.stringify({mode:'unexpected'}) : JSON.stringify({mode: selection === 'documentation' ? 'selected' : 'integration', dotnet: selection !== 'documentation', suites:[], tests:[]})}' }
  if ($args[0] -like '*Project-Inputs.mjs') {
   $index=[Array]::IndexOf([object[]]$args,'dotnet')
   if ($index -lt 1) { throw 'Missing dotnet child command' }
@@ -40,7 +40,7 @@ catch { $failure=$_.Exception.Message }
 Write-Output ('MOCK_RESULT:'+(@{commands=@($global:commands);checks=@($global:checks);forwarded=$global:forwarded;failure=$failure}|ConvertTo-Json -Depth 8 -Compress))
 `);
  // The copied script takes its per-checkout lock in the temp directory; point that at the scratch directory so it is removed with it.
- const r=spawnSync(pwsh,['-NoProfile','-ExecutionPolicy','Bypass','-File',driver],{encoding:'utf8',timeout:120000,env:{...process.env,TMPDIR:dir,TMP:dir,TEMP:dir}});assert.equal(r.status,0,r.error?.message||r.stdout+r.stderr);
+ const r=spawnSync(pwsh,['-NoProfile','-ExecutionPolicy','Bypass','-File',driver],{encoding:'utf8',timeout:120000,env:{...process.env,CI:'',TMPDIR:dir,TMP:dir,TEMP:dir}});assert.equal(r.status,0,r.error?.message||r.stdout+r.stderr);
  const line=r.stdout.split(/\r?\n/).find(s=>s.startsWith('MOCK_RESULT:'));assert(line,r.stdout+r.stderr);return JSON.parse(line.slice('MOCK_RESULT:'.length));
 }
 test('validation restores normally and explicit NoRestore retains checks and no-restore consumers',{skip:noPwsh},t=>{
@@ -66,16 +66,17 @@ test('documentation selection retains policy/configuration/infrastructure/Node c
  assert.equal(r.failure,null); assert.deepEqual(r.commands,[]);
  assert(r.checks.includes('Verify-Repository')); assert(r.checks.includes('Verify-Configuration'));
  assert(r.checks.includes('Test-TemplateInfrastructure'));
- assert.equal(r.checks.filter(c=>c==='node').length,2);
+ assert.equal(r.checks.filter(c=>c==='node').length,3);
  assert(!r.checks.includes('Get-Process'));
  const requested=exercise(t,true,false,'documentation',true);
  assert.equal(requested.failure,null); assert(requested.commands.some(a=>a[0]==='test'));
  assert(requested.checks.includes('Get-Process'));
- const unfiltered=exercise(t,true,false,'full'); assert.match(unfiltered.failure,/-TestFilter/);
- assert.deepEqual(unfiltered.commands,[]); assert(!unfiltered.checks.includes('Verify-Repository'));
+ const unfiltered=exercise(t,true,false,'full'); assert.equal(unfiltered.failure,null);
+ assert(unfiltered.commands.some(a=>a[0]==='test')); assert(unfiltered.checks.includes('Verify-Repository'));
  const broad=exercise(t,true,false,'full',true); assert.equal(broad.failure,null);
  assert(broad.commands.some(a=>a[0]==='build')); assert(broad.commands.some(a=>a[0]==='test'));
- assert(broad.commands.find(a=>a[0]==='test').includes('SyntheticFilter'));
- const bad=exercise(t,true,false,'unexpected'); assert.match(bad.failure,/Could not classify/);
+ assert(!broad.commands.find(a=>a[0]==='test').includes('SyntheticFilter'));
+ assert(!broad.commands.find(a=>a[0]==='test').includes('--filter'));
+ const bad=exercise(t,true,false,'unexpected'); assert.match(bad.failure,/Invalid validation suite plan/);
  assert.deepEqual(bad.commands,[]);
 });

@@ -44,7 +44,7 @@ jobs:
           # This job builds the template unconfigured, so its project names still match
           # packages.lock.json and the pinned transitive set can actually be enforced here.
           RESTORE_LOCKED_MODE: 'true'
-        run: ./tools/Invoke-Validation.ps1
+        run: ./tools/Invoke-Validation.ps1 -Integration
       - run: dotnet publish src/Restoration.Game/Restoration.Game.csproj --no-restore -c Release --output artifacts/assetless-game -v minimal
       - run: dotnet artifacts/assetless-game/Restoration.Game.dll --smoke-test
       - name: Prove original content is absent

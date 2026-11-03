@@ -85,8 +85,8 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    shared value through input, `Core`, presentation and a save and restore,
    with distinct values per axis, and test what a second actor sees at each
    `# visible:` point. A checkpoint or replay change follows the protocol's
-   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 324-332)
-   and [Continuation cases](../../../docs/upstream/work-protocol.md#continuation-cases) (lines 334-366).
+   [Checkpoints and replay](../../../docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 330-338)
+   and [Continuation cases](../../../docs/upstream/work-protocol.md#continuation-cases) (lines 340-372).
    Where the state that
    decides how play continues sits in several components, test a field
    several components copy, changed by a helper and checked in the next
@@ -118,7 +118,7 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    constant, such as `0x3FD55556` against `0x3FD55555` for `1/3` stored as
    `FLOAT32` then times 5; a copy that fits its record but runs from one field
    into the next) and
-   [Allocation, containers and cleanup](../../../docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 306-322)
+   [Allocation, containers and cleanup](../../../docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 312-328)
    (a test-supplied allocator and release routine that record calls, return
    null, fill blocks with a pattern and read or change the container when
    called; a count checked before the allocation and loaded again by the copy,
@@ -141,8 +141,9 @@ skill. That keeps the clean room, and it tests whether the spec says enough.
    Tests over synthetic state, decoder tests on synthetic files, tests that
    compare the rebuild with itself and a deviation's Tests item are left out,
    and a row with only those has Tests `None`. Then run the documentation
-   check and the tests the change touches
-   (`./tools/Invoke-Validation.ps1 -TestFilter <filter>`); CI runs the rest.
+   check and affected domain tests with
+   `./tools/Invoke-Validation.ps1 -ChangedSince <base commit>`. Run
+   `-Integration` before publication; CI also runs fresh integration.
 8. **Commit** with a message saying what behaviour now works, ending in `Spec:`
    (entries implemented) and `Parity:` (rows whose status changed) trailers.
 9. **Print the status block** from `research-item`, with `Batch: implementation`

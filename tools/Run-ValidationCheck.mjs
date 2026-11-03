@@ -130,7 +130,7 @@ try {
   const contract = config.checks[id];
   const receiptPath = path.join(root, receiptDirectory, `${id}.json`);
   // No declaration means run fresh. CI never reuses a developer receipt.
-  const reusable = contract && !process.env.CI;
+  const reusable = contract && !process.env.CI && !process.env.RESTORATION_VALIDATION_FRESH;
   const before = reusable ? snapshot(configBytes, contract) : null;
   if (reusable) {
     let previous;
