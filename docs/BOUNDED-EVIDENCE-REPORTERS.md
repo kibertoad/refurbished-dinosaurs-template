@@ -45,6 +45,25 @@ status. A limit never turns a partial search into an absence claim, and
 `completeWithinModel` means every explored path reached a return within the
 model's assumptions, not a complete reading under the documentation standard.
 
+## Choose the command
+
+| Question | Command |
+|---|---|
+| Which import is in an IAT slot? | `imports` |
+| Which calls reach an address? | `incoming` |
+| Which instructions access one memory offset? | `uses` |
+| What does one bounded path do, and what does it return or change? | `trace`, `effects`, `returns`, `arguments`, `guards` |
+| How far does a body reach, and which entries own a site? | `bounds`, `owner` |
+| What does an entry call, and what does it reach? | `callees`, `reach` |
+| Which target does an input select in a jump table? | `dispatch` |
+| Which encoded operands, displacements or calls equal a value? | `scan-index` |
+| What does one pointer table hold? | `table` |
+
+Use a command before writing a decoder. The command's section in the toolkit
+guide gives its controls, limits and refusal cases; a command that cannot answer
+the question is a reporter request under the next heading, not a reason to write
+a second decoder in the game repository.
+
 ## Requests and updates
 
 A reporter need not support every query. When one cannot answer a question the

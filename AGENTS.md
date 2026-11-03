@@ -231,10 +231,21 @@ that page differ, the page wins.
   complete-reading conditions and record qualifying findings in the entry's
   `complete_reading`; a checklist alone changes no status. Name which remaining
   obligations the batch can remove and what result would remove each.
-- Before new research tooling, check existing reporters, readers and retained
-  controlled reports. Prefer one reusable census for questions sharing a source
-  and mechanism. New tooling names its queue items and the capability existing
-  tools lack. Preserve controls, exclusions and unresolved transfers when reusing.
+- Use the published bounded reporters before writing a decoder or a disassembly
+  script. `@scientific-method/executable-reader` and `scientific-method-engine`,
+  at the pins in `package.json` and `requirements-evidence.txt`, answer PE32 and
+  MZ questions about imports, callers, accesses, bounded paths, function extents,
+  call graphs, jump tables and repeated operand searches; the
+  [evidence tools](docs/EVIDENCE-TOOLS.md) and
+  [bounded reporters](docs/BOUNDED-EVIDENCE-REPORTERS.md) pages give the commands
+  and their contracts. A report is bounded evidence: a missed positive control
+  rejects a negative result, and zero hits do not prove absence outside the
+  declared regions. Fall back to a bounded Capstone or Ghidra read only for a
+  question no reporter expresses, and say in the finding why. Before new
+  research tooling, check existing reporters, readers and retained controlled
+  reports; new tooling names the queue items it serves and the capability
+  existing tools lack, and keeps their controls, exclusions and unresolved
+  transfers.
 - If checks or bookkeeping appear to dominate a batch, time research, tooling,
   checks and handover separately before proposing a gate change. Measurements
   never authorize skipped checks, mixed batch kinds or weaker evidence; retain
