@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 217-238),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 219-240),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -38,7 +38,7 @@ only the lines the link gives, and never a section already read this session.
    capability passes through (an OS request with its selecting value, an
    import slot, ports, an interrupt vector, a runtime dispatcher) and take a
    census of their sites across all the code the item covers, as the
-   standard's [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 739-823)
+   standard's [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 745-829)
    describes: each site an instruction start reached from an established
    entry (entry point, export, function table, installed vector or handler,
    bounded jump table), each with its selecting value or listed as
@@ -57,7 +57,7 @@ only the lines the link gives, and never a section already read this session.
    already meet them, list them in the entry's `complete_reading`. A checklist
    alone raises no status. State which remaining obligations this batch can
    remove and what result would remove each; leave the rest in `Settles it`.
-   When successive snapshots add findings without qualifying readings, answered items or narrowed `Settles it`, run the [closure review](../../../docs/RESEARCH-CLOSURE.md#review-when-findings-accumulate-without-closure) before opening more original code. Assess up to ten existing entries in the area, as many per batch as one research batch may settle, and tell undeclared qualifying evidence from missing evidence. Choose one entry to close next and map its obligations in its Open questions by queue item ID. Each batch after that takes one closure objective. Record research, tooling, validation and handover times for the next three of them in their commit messages, and the comparison after two of them in the handover. Keep all required checks and the current priority order.
+   When successive snapshots add findings without qualifying readings, answered items or narrowed `Settles it`, run the [closure review](../../../docs/RESEARCH-CLOSURE.md#review-when-findings-accumulate-without-closure) before opening more original code. Assess up to ten existing entries in the area, as many per batch as one research batch may settle, and tell undeclared qualifying evidence from missing evidence. Choose one entry to close next and map its obligations in its Open questions by queue item ID. Each obligation's `Settles it` names the entry's claim it could change and how; a dependency shown to reach none of the entry's claims is not a blocker. Each batch after that takes one closure objective. Record research, tooling, validation and handover times for the next three of them in their commit messages, and the comparison after two of them in the handover. Keep all required checks and the current priority order.
    Before new tooling, check supported reporters, readers and retained
    controlled reports. Prefer one reusable census for questions sharing a
    source and mechanism. Name the queue items the tooling serves and what
@@ -105,7 +105,7 @@ only the lines the link gives, and never a section already read this session.
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 445-457):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 447-459):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -121,7 +121,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 471-507).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 473-509).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
@@ -178,8 +178,8 @@ only the lines the link gives, and never a section already read this session.
    decide a result, and nothing left to interrupts or threads (`# may run:`),
    memory nothing wrote, timing, or the operating system. List its findings in
    the entry's `complete_reading`. The standard's
-   [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 199-299)
-   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 739-823)
+   [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 199-305)
+   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 745-829)
    sections list what that covers; the parts most often missed are the
    segment each access actually goes through, every part of a stored call
    target, the other byte of a word written a byte at a time, allocation

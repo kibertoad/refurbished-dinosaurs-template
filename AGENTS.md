@@ -407,8 +407,8 @@ certain than the rest goes in its own entry or in its Open questions section.
 Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
-[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 199-299)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 739-823) sections
+[Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 199-305)
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 745-829) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored
@@ -655,9 +655,9 @@ it, and each read of a value the entry reads more than once changed between
 reads; a failure whose leftover state changes the next call; and the source a
 request reads kept apart from the request and its destination. These tests compare the rebuild with the spec or with itself, so none
 of them validates a parity row or is listed in its Tests column; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 240-258)
-[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 352-360)
-and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 362-394).
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 242-260)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 354-362)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 364-396).
 
 The protocol adds test cases for four more shapes of rule, which also
 compare the rebuild with the spec and validate no row. A caller that combines
@@ -679,10 +679,10 @@ tested with a test-supplied allocator and release routine that record calls,
 return null, fill blocks with a pattern, read or change the container when
 called, and change a count the copy loads again after the check. Each caller
 of one target is tested with the statuses its own comparison tells apart. See the protocol's
-[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 260-276),
-[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 278-294),
-[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 296-316)
-and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 334-350).
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 262-278),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 280-296),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 298-318)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 336-352).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.

@@ -1,7 +1,7 @@
 # Spec entry templates
 
 Blank entries for each kind in `spec/`, with the front matter fields and body
-sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 512-1155)
+sections the [documentation standard](upstream/documentation-standard.md#entry-types) (lines 518-1161)
 requires, in its order. Copy one into the directory for its kind, name the file
 after the ID (`spec/rules/RULE-COMBAT-007.md`), and replace every `<...>`. The
 standard defines what each field and section holds; this page does not repeat
@@ -10,7 +10,7 @@ it.
 Rules, formats, screens and bugs may also have `complete_reading`, a list of
 the static findings that together read all of the entry, which makes it
 `established` without a run (see the standard's
-[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 199-299)).
+[Complete readings](upstream/documentation-standard.md#complete-readings) (lines 199-305)).
 Leave it out until such a reading exists.
 
 A section with nothing to say is kept and says `None known.`, or `None.` where
@@ -88,7 +88,7 @@ it as a file). A member of an archive the listing went inside is written
 `<archive path>|<member path>`. Items are sorted by path compared byte by byte,
 and no path appears twice. The checker compares the record with the manifest
 and the list of other files as the standard's
-[ENTRY-TYPES-18](upstream/documentation-standard.md#entry-types-18) (lines 671-681) says:
+[ENTRY-TYPES-18](upstream/documentation-standard.md#entry-types-18) (lines 677-687) says:
 
 ```yaml
 tool: <program that made the listing, with its version or commit>
@@ -506,7 +506,7 @@ behavior is strictly better than the original's, or that it is a small
 judgement call that makes the game better to play, for a `mandatory` deviation
 and for one that is `on` without being the fix of an unintended bug players do
 not rely on, as the
-[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1220-1246)
+[deviation log](upstream/documentation-standard.md#deviation-log) (lines 1226-1252)
 section sets out. Delete it otherwise. Keep the Replaces item only on a
 `mandatory` deviation that replaces some of the entries in Departs from
 entirely, and name only those; keep the Tests item only when test files check

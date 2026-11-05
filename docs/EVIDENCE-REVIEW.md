@@ -6,7 +6,7 @@ rules it applies are the Standard and Protocol in the local
 reasoning in findings, complete-reading citations and Open questions using the
 existing v1 fields; do not add unsupported schema fields.
 
-Apply the [bounded analysis report contracts](upstream/documentation-standard.md#bounded-analysis-reports) (lines 301-385)
+Apply the [bounded analysis report contracts](upstream/documentation-standard.md#bounded-analysis-reports) (lines 307-391)
 to each supported query. Keep configurations and reports in `GAME_DIR` and out
 of commits. A report's complete-search claim covers only its stated domain and
 model. A game's request for reporter behaviour stays open until the reporter
@@ -163,7 +163,7 @@ Whether the code ever does something, such as start another program, is
 answered by a census of the mechanism every use has to pass through (a DOS or
 operating-system service selected by a register value, an import slot, a port
 range, an interrupt vector, a runtime dispatcher), as the standard's
-[Findings](upstream/documentation-standard.md#findings) (lines 739-823) section describes, not by tracing the code that
+[Findings](upstream/documentation-standard.md#findings) (lines 745-829) section describes, not by tracing the code that
 prepares the action. The census lists every site with the value that selects
 the service there, a site whose value is loaded or computed as undecided, and
 each kind of transfer that leaves the code it covers; each kind of site counts
@@ -176,12 +176,12 @@ loads an overlay), far calls through a saved interrupt `0x21` vector after a
 
 An operating-system or library function reached through a PE import address
 table is named by the slot's address and the import the file's import tables
-put there, read as [STATUS-42](upstream/documentation-standard.md#status-42) (lines 371-373)
+put there, read as [STATUS-42](upstream/documentation-standard.md#status-42) (lines 377-379)
 describes, never by its position in a listing such as `dumpbin /imports`. The
 query names a positive control slot. Arguments at a call site can confirm or
 contradict a mapping, never identify an import. A finding about what a table of
 pointers holds reads the entries from the build's bytes as
-[STATUS-43](upstream/documentation-standard.md#status-43) (lines 379-381) describes: address,
+[STATUS-43](upstream/documentation-standard.md#status-43) (lines 385-387) describes: address,
 stride, pointer offset and width, count and the code that bounds it, the
 mapping, and per entry the length read and its terminator. An analyzer listing
 is compared with the bytes, never used in their place, and an entry that points
@@ -199,7 +199,7 @@ the target of a far call stored with a placeholder operand, and a record whose
 additive flag is clear covers a chain of sites linked through the words at each
 site up to `FFFF`. A finding names such a call by its `segment:offset` site,
 the record that covers it and the module and ordinal or name the record gives,
-read as [STATUS-44](upstream/documentation-standard.md#status-44) (lines 383-385) describes, with a positive-control site. An
+read as [STATUS-44](upstream/documentation-standard.md#status-44) (lines 389-391) describes, with a positive-control site. An
 ordinal is a number until the exporting module's own names table, in a named
 copy from the period, or an outside table with its version names it.
 
@@ -212,7 +212,7 @@ finding nor moved part of the question into its own item ended in the same
 place, however much new code it read. After two such attempts in a row the item
 is split into parts with their own Settles it, or moved to the section of the
 evidence that would change the outcome, as
-[The queue](upstream/work-protocol.md#the-queue) (lines 84-183) says; do not append an endless list of tasks.
+[The queue](upstream/work-protocol.md#the-queue) (lines 84-185) says; do not append an endless list of tasks.
 
 ## Status and inventories
 
