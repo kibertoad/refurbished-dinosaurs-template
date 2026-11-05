@@ -57,6 +57,7 @@ only the lines the link gives, and never a section already read this session.
    already meet them, list them in the entry's `complete_reading`. A checklist
    alone raises no status. State which remaining obligations this batch can
    remove and what result would remove each; leave the rest in `Settles it`.
+   When successive snapshots add findings without qualifying readings, answered items or narrowed `Settles it`, run the [closure review](../../../docs/RESEARCH-CLOSURE.md#review-when-findings-accumulate-without-closure) before opening more original code. Assess up to ten existing entries in the area, as many per batch as one research batch may settle, and tell undeclared qualifying evidence from missing evidence. Choose one entry to close next and map its obligations in its Open questions by queue item ID. Each batch after that takes one closure objective. Record research, tooling, validation and handover times for the next three of them in their commit messages, and the comparison after two of them in the handover. Keep all required checks and the current priority order.
    Before new tooling, check supported reporters, readers and retained
    controlled reports. Prefer one reusable census for questions sharing a
    source and mechanism. Name the queue items the tooling serves and what
