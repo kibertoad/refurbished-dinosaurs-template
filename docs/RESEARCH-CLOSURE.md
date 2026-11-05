@@ -138,26 +138,11 @@ between equally ranked items prefer one that closes a shared dependency.
 
 ## Review when findings accumulate without closure
 
-This applies the protocol's recovery for research that does not converge. Its
-section is not yet in the local copy of the protocol; until the copy is
-refreshed, this section is the procedure.
+This applies the protocol's recovery for research that does not converge. Its section is not yet in the local copy of the protocol; until the copy is refreshed, this section is the procedure.
 
-When successive snapshots add findings but no qualifying complete readings,
-answered queue items or narrowed `Settles it` among the items being worked on,
-the next research batch assesses existing evidence before opening more
-original code. Compare the snapshots at their exact revisions and over the same
-areas; splits and moves are not answers. Keep the priority order, including
-reports and current-slice blockers. The review is research. It adds no stage
-and no evidence status, and the worksheet below is not evidence.
+When successive snapshots add findings but no qualifying complete readings, answered queue items or narrowed `Settles it` among the items being worked on, the next research batch assesses existing evidence before opening more original code. Compare the snapshots at their exact revisions and over the same areas; splits and moves are not answers. No script in this repository compares two snapshots yet, so take two revisions (the commits of the last two handovers, for example) and compare them directly: `git log <old>..<new>` gives the `Queue:` trailers of the items answered, and `git diff <old> <new> -- spec queue` gives the findings added, the `complete_reading` declarations changed and the `Settles it` conditions narrowed. Keep the priority order, including reports and current-slice blockers. The review is research. It adds no stage and no evidence status, and the worksheet below is not evidence.
 
-Select up to ten existing rule, format, screen or bug entries in the area
-being worked on, or all of them when fewer exist. Each batch of the assessment
-takes only the entries one research batch may settle (see
-[Research batches](upstream/work-protocol.md#research-batches) (lines 203-224)),
-so a selection of ten can take several batches. The first of them names the
-selection, its limits and the baseline revisions. Keep original-derived reports
-in the approved local store. For each entry, record the following in your own
-words:
+Select up to ten existing rule, format, screen or bug entries in the area being worked on, or all of them when fewer exist. Each batch of the assessment takes only the entries one research batch may settle (see [Research batches](upstream/work-protocol.md#research-batches) (lines 203-224)), so a selection of ten can take several batches. The first of them names the selection, its limits and the baseline revisions in its commit message above its trailers. Until the review ends, the session's handover names the selected entries, the chosen entry once there is one, and the baseline revisions, by ID, so the next session can resume the review. Keep original-derived reports in the approved local store. For each entry it assesses, a batch records the following in its own words, in its commit message above its trailers:
 
 | Review field | Required record |
 |---|---|
@@ -167,67 +152,14 @@ words:
 | Evidence gap | Missing branches, callers, state writers and lifetimes, indirect targets, or evidence the code cannot supply, each named by the queue item that holds it |
 | Decision | Whole entry qualifies, or remains open with the reason; checklist completion does not promote status |
 
-Assess the whole entry, including its hardest procedure. Record qualifying
-findings in `complete_reading` only when the whole entry qualifies, and never
-to meet a target number. Zero qualifying entries is a valid result, but a list
-of unchecked boxes is not an assessment. If no entry qualifies, say what
-evidence would remove the remaining obligations and choose the next objective
-from it.
+Assess the whole entry, including its hardest procedure. Record qualifying findings in `complete_reading` only when the whole entry qualifies, and never to meet a target number. Zero qualifying entries is a valid result, but a list of unchecked boxes is not an assessment. If no entry qualifies, say what evidence would remove the remaining obligations and choose the next objective from it.
 
-Choose one assessed entry to close next and give it a finite ownership and
-dependency map tied to the current function inventories. The map goes in the
-entry's Open questions section. Each obligation in it is a queue item, named
-by the item's ID, which holds its question and `Settles it`, so the map gets
-no IDs of its own and does not repeat those conditions. An obligation with no
-item yet gets one in the same commit. Where the project keeps the JSON
-ownership plan above, its obligations for this entry list the same queue items.
-Among the functions the entry's callers and helpers reach, name those it
-shares with other entries and those no entry owns, including ones outside the
-assessed entries, and the files they sit in that have no inventory. An
-unassigned function is a gap in the map and says nothing about whether anyone
-understands it. Assignment is not evidence of understanding. Keep record
-layout, placement, cache management and rendering separate where they describe
-independently testable behavior. A split keeps unresolved claims, their
-evidence and references under the standard's
-[Identifiers](upstream/documentation-standard.md#identifiers) (lines 122-168)
-rules. It answers nothing.
+Choose one assessed entry to close next and give it a finite ownership and dependency map tied to the current function inventories. The map goes in the entry's Open questions section. Each obligation in it is a queue item, named by the item's ID, which holds its question and `Settles it`, so the map gets no IDs of its own and does not repeat those conditions. An obligation with no item yet gets one in the same commit. Every item the map names lists the chosen entry among the entries before its colon, an item that belongs to another entry included, or the research tracking check fails the chosen entry. Where the project keeps the JSON ownership plan above, the plan's obligations in the entry's area that this map covers list the same queue items. Among the functions the entry's callers and helpers reach, name those it shares with other entries and those no entry owns, including ones outside the assessed entries, and the files they sit in that have no inventory. The research tracking check reads each top-level bullet of Open questions as a reading that needs a queue item, so put these functions and files on indented lines under the bullet of the item that holds them, or on a bullet that ends with `(No item: <reason>)`. An unassigned function is a gap in the map and says nothing about whether anyone understands it. Assignment is not evidence of understanding. Keep record layout, placement, cache management and rendering separate where they describe independently testable behavior. A split keeps unresolved claims, their evidence and references under the standard's [Identifiers](upstream/documentation-standard.md#identifiers) (lines 122-168) rules. It answers nothing.
 
-The next batch names one closure objective: the obligation it can remove, the
-result that would remove it and the connected callers and helpers needed to
-decide it. Before following another dependency, identify which obligation it
-answers. A dependency that belongs to another entry gets its own bounded queue
-question; do not grow the chosen entry to absorb it. A remaining writer or
-alias obligation names the state, the possible access or transfer mechanisms,
-the searched scope and the controls or exclusions still missing. A generic
-warning about other writers is not a settling condition.
+The next batch names one closure objective: the obligation it can remove, the result that would remove it and the connected callers and helpers needed to decide it. Before following another dependency, identify which obligation it answers. A dependency that belongs to another entry gets its own bounded queue question; do not grow the chosen entry to absorb it. A remaining writer or alias obligation names the state, the possible access or transfer mechanisms, the searched scope and the controls or exclusions still missing. A generic warning about other writers is not a settling condition.
 
-Read connected behavior in a supported decompiler with cross-references and
-call graphs, such as Ghidra, when one is available. Verify the instructions
-wherever inferred types, arithmetic widths, register returns, segment
-identity, indirect transfers or failure ordering decide the claim. Reuse
-retained reports, and take censuses with reporters that meet the standard's
-[bounded analysis report](upstream/documentation-standard.md#bounded-analysis-reports) (lines 301-385)
-contracts. Linear listings support that reading; extending them helper by
-helper does not replace a caller or writer audit. If decompilation is
-unavailable or unreliable for the file, record the limitation and use bounded
-instruction and reference analysis. Keep original-derived output local and
-write findings in independent words.
+Read connected behavior in a supported decompiler with cross-references and call graphs, such as Ghidra, when one is available. Verify the instructions wherever inferred types, arithmetic widths, register returns, segment identity, indirect transfers or failure ordering decide the claim. Reuse retained reports, and take censuses with reporters that meet the standard's [bounded analysis report](upstream/documentation-standard.md#bounded-analysis-reports) (lines 301-385) contracts. Linear listings support that reading; extending them helper by helper does not replace a caller or writer audit. If decompilation is unavailable or unreliable for the file, record the limitation and use bounded instruction and reference analysis. Keep original-derived output local and write findings in independent words.
 
-For the next three batches, record elapsed research, tooling, validation and
-handover time separately, including failed checks and retries, in each batch's
-commit message above its trailers, under the limits
-[Batches](upstream/work-protocol.md#batches) (lines 187-407) sets for any such
-measurement. Keep elapsed time apart from active effort, and commit counts
-apart from both; none of them proves overhead alone. After two
-closure-focused research batches, compare their outcomes with the assessment
-baseline at exact revisions over the same scope: qualifying complete readings,
-answered queue items and removed caller, writer and indirect-transfer
-obligations, each with its evidence, then the remaining obligations and
-inventory gaps, then counts of findings and commits as activity. The handover
-(`docs/HANDOVER.md`, or the goal file's own handover) records the two
-revisions compared and the result. Report a lack of closure there and change
-the next objective. The evidence threshold stays where it is, and no success
-quota applies.
+For the three batches after the one that commits the map, each taking one closure objective, record elapsed research, tooling, validation and handover time separately, including failed checks and retries, in each batch's commit message above its trailers, under the limits [Batches](upstream/work-protocol.md#batches) (lines 187-407) sets for any such measurement. Keep elapsed time apart from active effort, and commit counts apart from both; none of them proves overhead alone. After the first two of those closure-focused batches, compare their outcomes with the assessment baseline at exact revisions over the same scope: qualifying complete readings, answered queue items and removed caller, writer and indirect-transfer obligations, each with its evidence, then the remaining obligations and inventory gaps, then counts of findings and commits as activity. The handover (`docs/HANDOVER.md`, or the goal file's own handover) records the two revisions compared and the result, naming entries, queue items and evidence by ID and giving counts, without saying what the research found. Report a lack of closure there and change the next objective. The evidence threshold stays where it is, and no success quota applies.
 
-This is a human review procedure. Existing reporters validate only their
-documented inputs; they do not check this worksheet's judgments.
+This is a human review procedure. Existing reporters validate only their documented inputs; they do not check this worksheet's judgments.
