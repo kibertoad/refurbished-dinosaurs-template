@@ -212,7 +212,7 @@ finding nor moved part of the question into its own item ended in the same
 place, however much new code it read. After two such attempts in a row the item
 is split into parts with their own Settles it, or moved to the section of the
 evidence that would change the outcome, as
-[The queue](upstream/work-protocol.md#the-queue) (lines 84-169) says; do not append an endless list of tasks.
+[The queue](upstream/work-protocol.md#the-queue) (lines 84-183) says; do not append an endless list of tasks.
 
 ## Status and inventories
 
