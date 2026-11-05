@@ -77,9 +77,10 @@ This skill is the procedure; where they differ, the protocol wins.
      not open `queue/` or `docs/reports/`.
    Between two items that the order above ranks equally, prefer the one whose answer closes a question or removes a named dependency from several entries. A reading is never extended only to cite more functions.
    For research, when the latest comparable snapshots show findings growing
-   without closure or evidenced narrowing, select the existing-evidence review
-   in `docs/RESEARCH-CLOSURE.md` before more original-code reading, within the
-   priority order above. Resume any unfinished review by its candidate and
-   obligation IDs rather than starting another dependency chain.
+   without complete readings, answered items or narrowed `Settles it`, select
+   the existing-evidence review in `docs/RESEARCH-CLOSURE.md` before more
+   original-code reading, within the priority order above. Resume an
+   unfinished review from the selection its first batch named and the queue
+   items in the chosen entry's map; do not start another dependency chain.
 7. Say in two or three lines what you picked and why, then hand over to
    `research-item`, `implement-rows` or `live-session`.
