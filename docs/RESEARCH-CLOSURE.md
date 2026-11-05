@@ -135,3 +135,65 @@ remaining question when its census or runtime obligation is incomplete.
 Reassess after changing inventories, ownership, obligations or evidence.
 Use the protocol's existing priority order to select the next obligation;
 between equally ranked items prefer one that closes a shared dependency.
+
+## Review when findings accumulate without closure
+
+When successive snapshots add findings without qualifying complete readings,
+evidenced queue answers or narrowed settling conditions, assess existing
+entries before opening more original code. Preserve the current priority order
+and existing evidence rules. This procedure implements closure review without
+changing the pinned standard or treating the worksheet as accepted evidence.
+
+Select up to ten existing rule, format, screen or bug entries tied to the
+current subsystem (all of them if fewer exist). Record exact baseline revisions,
+the selection and its limits in a metadata-only review under `docs/`. Keep
+original-derived reports in the approved local store. For each candidate,
+record the following in your own words:
+
+| Review field | Required record |
+|---|---|
+| Entry and contract | ID, build and the behavior the whole entry claims |
+| Existing evidence | Findings assessed, retained-report provenance and which complete-reading conditions they meet |
+| Declaration gap | Qualifying findings missing from `complete_reading`, or `none`; do not declare a partial reading |
+| Evidence gap | Specific missing branches, callers, writers/lifetimes, indirect targets or external evidence, referenced by queue ID |
+| Decision | Whole entry qualifies, or remains open with the reason; checklist completion does not promote status |
+
+Assess the complete entry, not just its easiest procedure. Do not promote an
+entry to meet a target number. If no candidate qualifies, explain what evidence
+would remove the remaining obligations and choose the next objective from it.
+
+Use the ownership plan above for the chosen contract. Stable local obligation
+IDs reference the queue's questions and settling conditions rather than copying
+them. Include shared/unassigned functions and missing inventories, and name
+what the assessment leaves outside its scope. An unassigned count is a gap in
+this map, not a count of functions nobody understands. Separate record layout,
+placement, cache management and rendering when they are independent contracts.
+Preserve unresolved scope and follow the standard's identity and supersession
+rules when changing entries; a split is not an answered deletion.
+
+Replace an indefinite warning about writers or aliases with the actual state,
+possible access mechanisms, census scope, controls, exclusions and reachable
+callbacks still to be checked. Keep these obligations in queue items. A map or
+worksheet points to them and does not become a second research queue.
+
+Use one closure objective per batch. Name the obligation, the result that would
+remove it and the related callers/helpers needed for that answer. Use supported
+decompiler, cross-reference and call-graph views to understand connected code,
+then check instructions where widths, register returns, segment identity,
+indirect transfers or failure ordering matter. Use approved reporters and
+retained controlled censuses before new tooling. If decompilation cannot read
+the file reliably, record that limit and use bounded instruction/reference
+analysis. A new helper belongs in the batch only when it answers the named
+obligation; another contract gets its own bounded queue item.
+
+For the next three batches, record elapsed research, tooling, validation and
+handover time separately, including retries. State whether a figure is elapsed
+time or active effort. Commit counts alone do not measure cost. Keep required
+gates and hooks, single-kind batches and clean-room separation unchanged.
+After the assessment and two closure-focused research batches, compare exact
+revisions over the same scope. Lead with accepted complete readings, evidenced
+queue answers and removed obligations; show remaining gaps and then activity
+counts. A lack of closure calls for a different objective, not weaker evidence.
+
+This is a human review procedure. Existing reporters validate only their
+documented inputs; they do not automatically verify this worksheet's judgments.

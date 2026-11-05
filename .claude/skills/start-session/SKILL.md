@@ -76,5 +76,10 @@ This skill is the procedure; where they differ, the protocol wins.
      from the goal or the plan, whose spec status is at least `supported`. Do
      not open `queue/` or `docs/reports/`.
    Between two items that the order above ranks equally, prefer the one whose answer closes a question or removes a named dependency from several entries. A reading is never extended only to cite more functions.
+   For research, when the latest comparable snapshots show findings growing
+   without closure or evidenced narrowing, select the existing-evidence review
+   in `docs/RESEARCH-CLOSURE.md` before more original-code reading, within the
+   priority order above. Resume any unfinished review by its candidate and
+   obligation IDs rather than starting another dependency chain.
 7. Say in two or three lines what you picked and why, then hand over to
    `research-item`, `implement-rows` or `live-session`.
