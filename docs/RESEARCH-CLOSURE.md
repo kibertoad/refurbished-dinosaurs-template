@@ -146,7 +146,7 @@ Before opening more original code, put a short contract brief in the research ba
 |---|---|
 | Answer | Entry/build and the independently meaningful question this batch will answer; distinguish the whole entry from a remaining obligation |
 | Boundary | Inputs, admitted caller/state domains, outputs, mutations, failure and continuation paths the answer covers; explicit separate claims |
-| Evidence bundle | Existing findings/reports to reuse and the connected callers, state producers, lifetime paths, helpers and indirect targets still needed, keyed to queue IDs |
+| Evidence bundle | Existing findings/reports to reuse and the connected callers, state producers, lifetime paths, helpers and indirect targets still needed, keyed to queue IDs; limited to the items one research batch may settle, so a dependency belonging to another entry gets its own queue item |
 | Exit | The evidence that would answer the question, what would disprove the proposed reading, and which unresolved condition would prevent closure |
 
 A finite boundary names the mechanisms and scope that must be checked, not an assumption that no other access exists. Keep unresolved accesses and indirect targets whose effect is unknown inside the evidence obligations. If the brief still amounts to understanding an entire subsystem, select an independently answerable contract or obligation before reading. Preserve every unresolved claim and its references when splitting under the standard's identifier rules; a smaller name or moved question answers nothing. Do not carve out an easy branch while silently dropping the original entry's hardest procedure.
