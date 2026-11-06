@@ -2,6 +2,7 @@
 
 ## State
 
+- Connected-contract research selection: closure guidance and the start/research skills add a contract brief, connected evidence bundle and exit review. Full integration on 2026-11-06 passed Node controls and 55 .NET tests; documentation retains its scheduled-generation skip. Staged hooks passed. Downstream adoption remains pending; pinned rules are unchanged.
 - Project-local original inputs are implemented for issue 81. See
   [PROJECT-INPUTS.md](PROJECT-INPUTS.md) and the
   [fresh acceptance record](validation/20261019-project-local-inputs.md).
