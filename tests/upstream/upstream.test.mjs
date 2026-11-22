@@ -181,13 +181,43 @@ test("project configuration preserves upstream bytes and licenses", t => {
   verifySnapshot(dir);
   const configured = spawnSync(process.env.PWSH || "pwsh", ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"),
     "-ProjectName", "EvidenceSample", "-DisplayName", "Evidence Sample", "-AppId", "00000000-0000-0000-0000-000000000001",
-    "-CopyrightYear", "2026", "-Force"], { cwd: dir, encoding: "utf8" });
+    "-CopyrightYear", "2026", "-Platform", "dos-protected-mode", "-Force"], { cwd: dir, encoding: "utf8" });
   assert.equal(configured.status, 0, configured.error?.message ?? configured.stdout + configured.stderr);
-  assert.equal(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))).projectName, "EvidenceSample");
+  const configuredProject = JSON.parse(readFileSync(resolve(dir, "tools/project-config.json")));
+  assert.equal(configuredProject.projectName, "EvidenceSample");
+  assert.equal(configuredProject.platform, "dos-protected-mode");
+  // Each file that links a platform guide now links the configured platform's guide and no other.
+  for (const [path, prefix] of [["AGENTS.md", "docs/"], ["docs/RUNTIME.md", ""], [".claude/skills/runtime-access/SKILL.md", "../../../docs/"]]) {
+    const text = readFileSync(resolve(dir, path), "utf8");
+    const block = text.slice(text.indexOf("<!-- platform-guide:begin"), text.indexOf("<!-- platform-guide:end -->"));
+    assert.ok(block.includes(`](${prefix}DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md)`), path);
+    for (const other of ["DOS-REAL-MODE-RUNTIME-AND-LIFT.md", "WIN16-RUNTIME-AND-LIFT.md", "WIN32-RUNTIME-AND-LIFT.md", "WINDOWS-PROBES.md"]) {
+      assert.ok(!text.includes(other), `${path} still names ${other}`);
+    }
+  }
   const configuredSuites = JSON.parse(readFileSync(resolve(dir, "tools/validation-suites.json")));
   assert.ok(configuredSuites.suites.find(suite => suite.id === "core").inputs.includes("src/EvidenceSample.Core/"));
   validateSuites(configuredSuites, discoverTests(dir));
   verifySnapshot(dir);
+});
+
+test("configuration refuses an unknown platform before changing anything", t => {
+  const dir = fixture(t);
+  mkdirSync(resolve(dir, "tools"), { recursive: true });
+  for (const name of ["Configure-Project.ps1", "Platform-Guides.psm1"]) cpSync(resolve(root, "tools", name), resolve(dir, "tools", name));
+  const config = { configured: false, projectName: "Sample", displayName: "Sample", platform: "os2" };
+  writeFileSync(resolve(dir, "tools/project-config.json"), JSON.stringify(config));
+  writeFileSync(resolve(dir, "AGENTS.md"), "{{DISPLAY_NAME}}\n");
+  const run = (...args) => spawnSync(process.env.PWSH || "pwsh", ["-NoProfile", "-File", resolve(dir, "tools/Configure-Project.ps1"), ...args],
+    { cwd: dir, encoding: "utf8" });
+  const fromFile = run();
+  assert.notEqual(fromFile.status, 0);
+  assert.match(fromFile.stdout + fromFile.stderr, /'os2'/);
+  const fromArgument = run("-Platform", "win64");
+  assert.notEqual(fromArgument.status, 0);
+  assert.match(fromArgument.stdout + fromArgument.stderr, /win64/);
+  assert.deepEqual(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))), config);
+  assert.equal(readFileSync(resolve(dir, "AGENTS.md"), "utf8"), "{{DISPLAY_NAME}}\n");
 });
 
 test("configuration copy includes Git-visible files and excludes ignored or local output", t => {

@@ -9,10 +9,12 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot 'project-config.json' }
 $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
+Import-Module (Join-Path $PSScriptRoot 'Platform-Guides.psm1') -Force
 
 $required = [ordered]@{
     projectName = $config.projectName
     displayName = $config.displayName
+    platform = $config.platform
     'original.title' = $config.original.title
     'original.developer' = $config.original.developer
     'original.publisher' = $config.original.publisher
@@ -25,6 +27,8 @@ $required = [ordered]@{
 $missing = @($required.GetEnumerator() | Where-Object { [string]::IsNullOrWhiteSpace([string] $_.Value) } |
     ForEach-Object Key)
 if ($missing.Count) { throw "Bootstrap facts are missing: $($missing -join ', ')." }
+# The platform picks the guide AGENTS.md, docs/RUNTIME.md and the runtime-access skill link.
+Assert-Platform ([string] $config.platform) $ConfigPath
 if (-not [bool] $config.original.patchStatusEstablished) {
     throw 'Patch status is not established. Verify and document the latest official version before analysis.'
 }

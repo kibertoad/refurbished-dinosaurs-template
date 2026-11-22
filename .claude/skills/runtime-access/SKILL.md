@@ -13,17 +13,19 @@ source of evidence for every game; this check only finds out what runs are
 possible, and it is the one time the original is run before the static work
 is done.
 
-For an owner-supplied Windows image, use
-[Windows probes](../../../docs/WINDOWS-PROBES.md) for isolated patching,
-fingerprint reconciliation, versioned rust-dos probes and capability checks.
+<!-- platform-guide:begin (tools/Configure-Project.ps1 writes this block from "platform") -->
+Each platform has its own guide to running the game, the lift harness and
+function inventories. `platform` in `tools/project-config.json` names the
+game's platform, and configuration leaves only that platform's guide here:
+
+- `dos-real-mode`, 16-bit real-mode DOS: [DOS-REAL-MODE-RUNTIME-AND-LIFT.md](../../../docs/DOS-REAL-MODE-RUNTIME-AND-LIFT.md)
+- `dos-protected-mode`, 32-bit DOS behind a DOS extender such as DOS/4GW or another DPMI host: [DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md](../../../docs/DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md)
+- `win16`, 16-bit Windows (NE executables on Windows 3.x and 9x): [WIN16-RUNTIME-AND-LIFT.md](../../../docs/WIN16-RUNTIME-AND-LIFT.md)
+- `win32`, 32-bit Windows (PE executables): [WIN32-RUNTIME-AND-LIFT.md](../../../docs/WIN32-RUNTIME-AND-LIFT.md)
+<!-- platform-guide:end -->
+
 Record standing authorization already given by the owner once validation
 passes; do not request it again for each probe within that scope.
-
-For a real-mode DOS game, use
-[DOS runtime and lift](../../../docs/DOS-RUNTIME-AND-LIFT.md) for the drive
-layout and current directory the game expects, mouse clicks it does not miss,
-finding which input devices it reads, sound capture, and the Spice86 lift
-harness.
 
 Make every attempt through a script in `tools/runtime/`, committed with the
 record, and give its command line in `docs/RUNTIME.md`, so the check can be

@@ -127,6 +127,20 @@ foreach ($name in @('latestOfficialVersion', 'analysisVersion', 'patchStatusEvid
     }
 }
 
+# Each platform's guide exists, and the blocks that link it match the configuration: the listing of
+# every guide in the template, the configured platform's guide alone in a project.
+Import-Module (Join-Path $PSScriptRoot 'Platform-Guides.psm1') -Force
+if (-not $config.PSObject.Properties['platform']) { $failures.Add('project configuration is missing platform') }
+foreach ($platform in Get-PlatformIds) {
+    Assert-RequiredFile "docs/$((Get-PlatformGuide $platform).Guide)"
+}
+if (-not $config.configured) {
+    foreach ($finding in Test-PlatformGuideBlocks $root '') { $failures.Add($finding) }
+}
+elseif ($config.platform -and (Get-PlatformGuide ([string] $config.platform))) {
+    foreach ($finding in Test-PlatformGuideBlocks $root ([string] $config.platform)) { $failures.Add($finding) }
+}
+
 if ($failures.Count) {
     throw "Template infrastructure checks failed:`n - $($failures -join "`n - ")"
 }

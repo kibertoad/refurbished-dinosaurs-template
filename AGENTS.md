@@ -28,6 +28,13 @@ media they came from, and what research already exists (manuals, community
 documentation, prior reverse-engineering). Ask the owner for anything you cannot
 determine; never invent an edition, a fingerprint, or a file format.
 
+Identify the platform the analysis build runs on from its executable's header
+and record it as `platform` in `tools/project-config.json`: `dos-real-mode`
+for an MZ program with no extender, `dos-protected-mode` for an LE or LX image
+behind an MZ stub (DOS/4GW and other DPMI hosts), `win16` for NE and `win32`
+for PE. It picks the guide to running the game and to the lift that these
+instructions, `docs/RUNTIME.md` and the `runtime-access` skill link.
+
 Confirm once that the game qualifies: it was released in 2004 or earlier, and no
 official remake or remaster of it is on sale. If either fails, stop and tell the
 owner. Record the outcome and its evidence in the Eligibility row of
@@ -597,11 +604,19 @@ unknowns, then discard obsolete intermediate state. Follow
 [ANALYSIS-OUTPUTS.md](docs/ANALYSIS-OUTPUTS.md): isolate each headless run,
 commit consumed evidence and regeneration metadata, then remove only reviewed
 output with ownership/path checks; preserve canonical inputs/projects, current
-checkpoints and unresolved evidence. For owner-supplied Windows images, use
-[WINDOWS-PROBES.md](docs/WINDOWS-PROBES.md) to build and validate versioned
-rust-dos probes before recording their capabilities in RUNTIME.md. For a
-real-mode DOS game, use [DOS-RUNTIME-AND-LIFT.md](docs/DOS-RUNTIME-AND-LIFT.md)
-for runs in rust-dos, the Spice86 lift harness and Ghidra's real-mode fix.
+checkpoints and unresolved evidence.
+
+<!-- platform-guide:begin (tools/Configure-Project.ps1 writes this block from "platform") -->
+Each platform has its own guide to running the game, the lift harness and
+function inventories. `platform` in `tools/project-config.json` names the
+game's platform, and configuration leaves only that platform's guide here:
+
+- `dos-real-mode`, 16-bit real-mode DOS: [DOS-REAL-MODE-RUNTIME-AND-LIFT.md](docs/DOS-REAL-MODE-RUNTIME-AND-LIFT.md)
+- `dos-protected-mode`, 32-bit DOS behind a DOS extender such as DOS/4GW or another DPMI host: [DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md](docs/DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md)
+- `win16`, 16-bit Windows (NE executables on Windows 3.x and 9x): [WIN16-RUNTIME-AND-LIFT.md](docs/WIN16-RUNTIME-AND-LIFT.md)
+- `win32`, 32-bit Windows (PE executables): [WIN32-RUNTIME-AND-LIFT.md](docs/WIN32-RUNTIME-AND-LIFT.md)
+<!-- platform-guide:end -->
+
 Start tools that write logs to their current directory, such as Spice86,
 from a work directory outside the repository.
 Avoid unrelated refactors
