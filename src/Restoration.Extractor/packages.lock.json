@@ -4,9 +4,9 @@
     "net10.0": {
       "RefurbishedDinosaurs.Core": {
         "type": "Direct",
-        "requested": "[12.0.0, 12.0.0]",
-        "resolved": "12.0.0",
-        "contentHash": "XCUGsNxjYZRRzAZ5yWPKw5iSQYpjT5u0497VOdswd9Wkj2IMDAyY7zm1fUmz1gE/n+e8iRTYf69UvdrSm2L/Ig==",
+        "requested": "[12.3.0, 12.3.0]",
+        "resolved": "12.3.0",
+        "contentHash": "rnMVZmAr1Ncw7Nyna7DmIt2sTxnqDAvgDUIXzwvbUvr0stzXCRns6vfWIaQFOWCSHEFuboL0XEev+xjV4byD6w==",
         "dependencies": {
           "System.IO.Hashing": "10.0.12"
         }
@@ -54,10 +54,10 @@
       },
       "RefurbishedDinosaurs.LegacyFormats": {
         "type": "Transitive",
-        "resolved": "12.0.0",
-        "contentHash": "J0RMBeTHDV3DnaJuRSZYQmbXQK7uLixSBlICHLRyZZhUn+VoSVNWfWjnAQH/s2bTg/t/ExujL/qHrj1EY900/A==",
+        "resolved": "12.3.0",
+        "contentHash": "iElx/MzH+wCn/qPStyIheorOJFvCuLybOMsA9JhqvgxX6wyhtU7lQddtltPKzRl/z1pYvp9SuaCM3r3294xlzg==",
         "dependencies": {
-          "RefurbishedDinosaurs.Core": "12.0.0"
+          "RefurbishedDinosaurs.Core": "12.3.0"
         }
       },
       "SabreTools.Hashing": {
@@ -87,8 +87,8 @@
       "restoration.resources": {
         "type": "Project",
         "dependencies": {
-          "RefurbishedDinosaurs.Core": "[12.0.0, 12.0.0]",
-          "RefurbishedDinosaurs.LegacyFormats": "[12.0.0, 12.0.0]"
+          "RefurbishedDinosaurs.Core": "[12.3.0, 12.3.0]",
+          "RefurbishedDinosaurs.LegacyFormats": "[12.3.0, 12.3.0]"
         }
       }
     }
