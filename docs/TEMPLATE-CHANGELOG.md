@@ -8,6 +8,10 @@ not here.
 
 A project created from this template may delete this file.
 
+## Inventory header line in the rules, 2026-11-22
+
+- **Rules.** `docs/upstream/` holds the rules at `kibertoad/refurbished-dinosaurs` 294a9c2 (#139). The work protocol now says that an inventory opens with a header line naming its seven columns (`start`, `size`, `name`, `out_of_scope`, `ranges`, `lift`, `lift_reason`), and its version 2 conversion adds that header line to every inventory. `AGENTS.md`, `docs/EVIDENCE-TOOLS.md` and `tools/evidence/inventory.mjs` already name the header and the seven columns, so nothing else changes. The checker stays at 6.2.0.
+
 ## Work protocol 2 and the lift, 2026-11-22
 
 - **Rules.** `docs/upstream/` holds the rules at `kibertoad/refurbished-dinosaurs` bebb4a2: work protocol 2, which adds the lift (a translation of each inventoried function over a machine model, checked against the original), the Lift stage, lift batches, the lift capability in the runtime record and the `lift` and `lift_reason` inventory columns, together with the clean-room use of decompiler indexes during the survey and a bounded local validation grace. The standard stays at version 1, with STATUS-45: reading a `verified` lifted function counts as reading its instructions. `node tools/upstream.mjs links --write` updated the section ranges.
