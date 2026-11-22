@@ -6,7 +6,8 @@ Reports whatever still ties this repository to the unconfigured template.
 Scans the repository for unresolved {{PLACEHOLDER}} tokens, leftover template
 project names, the sample source manifest, unfilled entries in
 tools/project-config.json, and platform-guide blocks that do not match its
-platform.
+platform. A configured project that records no template revision gets a
+warning, which does not fail the run.
 
 While tools/project-config.json still reports `"configured": false` the findings
 are informational and the script succeeds, so the template itself stays green in
@@ -132,6 +133,17 @@ elseif ($isConfigured) {
     if ($original.latestOfficialVersion -and $original.analysisVersion -and
         $original.latestOfficialVersion -cne $original.analysisVersion) {
         $findings.Add("analysisVersion does not match latestOfficialVersion; patch the owned game before analysis.")
+    }
+    # Projects made before the field existed have no revision, so a missing one only warns. A value
+    # that is there has to be a full commit, which tools/template.mjs can fetch.
+    $templateRevision = [string] $config.template.revision
+    if (-not $templateRevision) {
+        Write-Warning ("tools/project-config.json records no template.revision, so tools/template.mjs cannot tell " +
+            "which template changes this project has. Record the template commit the project was made from or last " +
+            "synced to (docs/TEMPLATE-SYNC.md).")
+    }
+    elseif ($templateRevision -notmatch '^[0-9a-f]{40}$') {
+        $findings.Add("tools/project-config.json has template.revision '$templateRevision', which is not a full 40-character commit.")
     }
 }
 

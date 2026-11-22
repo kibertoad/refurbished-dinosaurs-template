@@ -127,6 +127,11 @@ reference to those pages in this repository points at that copy.
 - Checking whether a newer version has been published, and refreshing the
   copy, is always started by a person. Do it only when the owner asks for it
   in the current task, and then follow `docs/UPSTREAM-RULES.md`.
+- Taking later changes of the template itself (`tools/template.mjs`) is
+  started by a person in the same way: only when the owner asks for it in the
+  current task, following [TEMPLATE-SYNC](docs/TEMPLATE-SYNC.md).
+  `template.revision` in `tools/project-config.json` names the template
+  commit the project is on.
 
 ## Planning and tracking work
 

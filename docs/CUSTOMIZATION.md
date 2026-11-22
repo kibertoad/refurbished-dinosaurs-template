@@ -17,7 +17,10 @@ manual".
    namespaces, assemblies, and directories), `displayName` (player-facing),
    `platform` (see below), the original-game facts, and patch-status evidence
    are required. Identity fields
-   with documented defaults may remain empty.
+   with documented defaults may remain empty. `template.revision` is the
+   template commit the project starts from: configuration records it in a
+   clone of the template, and otherwise takes it from this field or
+   `-TemplateRevision` ([TEMPLATE-SYNC](TEMPLATE-SYNC.md)).
 4. Run `./tools/Bootstrap-Project.ps1`. It checks the latest-version gate, calls
    `Configure-Project.ps1`, substitutes the placeholders, renames
    the template's `Restoration.*` projects, and writes the resolved identity back
@@ -155,3 +158,11 @@ and identifiers. Values that were already substituted into prose — display nam
 copyright, shortcut name, application data directory — are not placeholders any
 more and have to be updated in place. Changing those is easiest on a fresh clone
 of the template.
+
+## Taking later template changes
+
+`node tools/template.mjs sync --to <full commit>` merges the template's
+changes since `template.revision` into a configured project, re-runs
+configuration and records the new revision. Run it only when the owner asks;
+[TEMPLATE-SYNC](TEMPLATE-SYNC.md) gives the procedure and how to resolve
+conflicts.

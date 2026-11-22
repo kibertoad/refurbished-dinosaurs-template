@@ -173,6 +173,17 @@
       "dotnet": false
     },
     {
+      "id": "template-sync",
+      "inputs": [
+        "tools/template.mjs"
+      ],
+      "tests": [
+        "tests/upstream/template-sync.test.mjs"
+      ],
+      "dependencies": [],
+      "dotnet": false
+    },
+    {
       "id": "upstream",
       "inputs": [
         "tools/upstream.mjs",

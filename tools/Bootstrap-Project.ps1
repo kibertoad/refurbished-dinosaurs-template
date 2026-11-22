@@ -3,7 +3,12 @@
 Runs the gated, one-time bootstrap for a new restoration project.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
-param([string] $ConfigPath)
+param(
+    [string] $ConfigPath,
+    # The full template commit the project was made from; see docs/TEMPLATE-SYNC.md.
+    [ValidatePattern('^[0-9a-f]{40}$')]
+    [string] $TemplateRevision
+)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -38,9 +43,11 @@ if ($config.original.latestOfficialVersion -cne $config.original.analysisVersion
 }
 
 $configure = Join-Path $PSScriptRoot 'Configure-Project.ps1'
+$configureArguments = @{ ConfigPath = $ConfigPath }
+if ($TemplateRevision) { $configureArguments.TemplateRevision = $TemplateRevision }
 $verify = Join-Path $PSScriptRoot 'Verify-Configuration.ps1'
 if ($WhatIfPreference) {
-    & $configure -ConfigPath $ConfigPath -WhatIf
+    & $configure @configureArguments -WhatIf
     Write-Host 'Preview complete. No files were changed.'
     exit 0
 }
@@ -49,7 +56,7 @@ if ($PSCmdlet.ShouldProcess($root, 'Configure and verify restoration project')) 
     # -SkipIfConfigured path, so $LASTEXITCODE says nothing about how it went: in a fresh session
     # it is still $null, and $null -ne 0 would fail every successful bootstrap. Verify-Configuration.ps1
     # does exit with a status, so that one is checked.
-    & $configure -ConfigPath $ConfigPath
+    & $configure @configureArguments
     & $verify -RepositoryRoot $root -Strict
     if ($LASTEXITCODE -ne 0) { throw 'Project configuration remains incomplete.' }
 }

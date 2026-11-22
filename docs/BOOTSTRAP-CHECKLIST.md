@@ -53,7 +53,8 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Fill in `tools/project-config.json`, including `platform`, and run
       `./tools/Bootstrap-Project.ps1`. Check that `AGENTS.md`,
       `docs/RUNTIME.md` and the `runtime-access` skill now link only that
-      platform's guide.
+      platform's guide, and that `template.revision` names the full template
+      commit the project was made from (`docs/TEMPLATE-SYNC.md`).
 - [ ] If the main branch requires pull requests, let the scheduled job in
       `.github/workflows/nightly-generated.yml` push to it: add GitHub Actions
       to the ruleset's bypass list, or give the job a token that may bypass it
