@@ -5,7 +5,7 @@ description: Settle one research question about the original game as one batch -
 
 # Research batch
 
-The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 219-240),
+The rules are in the [work protocol](../../../docs/upstream/work-protocol.md#research-batches) (lines 256-277),
 and the sections of the methodology and the documentation standard the steps
 below link to. This skill is the procedure.
 Open a linked section only when a step leaves a question it answers, read
@@ -38,7 +38,7 @@ only the lines the link gives, and never a section already read this session.
    capability passes through (an OS request with its selecting value, an
    import slot, ports, an interrupt vector, a runtime dispatcher) and take a
    census of their sites across all the code the item covers, as the
-   standard's [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 745-829)
+   standard's [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 751-835)
    describes: each site an instruction start reached from an established
    entry (entry point, export, function table, installed vector or handler,
    bounded jump table), each with its selecting value or listed as
@@ -92,7 +92,17 @@ only the lines the link gives, and never a section already read this session.
    reading can settle, even where a run could too. Keep neutral names
    (`fn_00478CD0`) until evidence shows what a thing does. Keep decompiler
    output, listings and dumps in ignored local storage, and read bounded
-   instruction context when signedness or control flow matters. A run of the
+   instruction context when signedness or control flow matters. Where the
+   function's lift state in its inventory is `verified`, read the lifted
+   function in `GAME_DIR/lift/` instead of the decompiler's output, once the
+   lift's checks have run for the current generator, checker and harness: the
+   reading counts as reading its instructions
+   ([STATUS-45](../../../docs/upstream/documentation-standard.md#status-45) (lines 395-397)).
+   A function that is only `lifted` is a lead. The finding is `static`, cites
+   the original's addresses, quotes nothing from the lift, and its How to
+   reproduce names the generator, checker and harness revisions and the lift
+   state of each function it read. A log taken while the lift runs is a lead;
+   a dynamic finding needs a run of the original's code. A run of the
    original that you drive is the last resort for each question, because such
    runs are fragile (focus, timing, emulator automation, unexpected dialogs)
    and a result that cannot be repeated is not evidence. Script it, start from
@@ -106,7 +116,7 @@ only the lines the link gives, and never a section already read this session.
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 447-459):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 484-496):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -122,7 +132,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 473-509).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 510-546).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
@@ -180,7 +190,7 @@ only the lines the link gives, and never a section already read this session.
    memory nothing wrote, timing, or the operating system. List its findings in
    the entry's `complete_reading`. The standard's
    [Complete readings](../../../docs/upstream/documentation-standard.md#complete-readings) (lines 199-305)
-   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 745-829)
+   and [Findings](../../../docs/upstream/documentation-standard.md#findings) (lines 751-835)
    sections list what that covers; the parts most often missed are the
    segment each access actually goes through, every part of a stored call
    target, the other byte of a word written a byte at a time, allocation

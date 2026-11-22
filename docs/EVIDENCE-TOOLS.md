@@ -109,7 +109,7 @@ or nonportable manifest paths rather than silently renaming them. Commit only th
 permitted inventory columns; keep view reports/configs local. Document the
 selected views and exclusions in the build/Ghidra guide in project-authored words.
 Coverage describes analyzer-discovered functions, not every function that exists.
-The protocol's [Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 564-572)
+The protocol's [Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 664-672)
 says how to export and check one. The pinned checker reads the protocol's
 `ranges` column, the half-open body ranges of a function whose body is not one
 range from its start, and does not read the `.provenance.tsv` and
@@ -117,10 +117,22 @@ range from its start, and does not read the `.provenance.tsv` and
 `ExportFunctionInventory.java` Ghidra script (`docs/GHIDRA.md`) writes all
 three straight to the inventory's `coverage/` path from one analysis view, with
 ranges where a body needs them; the protocol commits the provenance and regions
-files beside the inventory. This template's `inventory` writes, and its
-`inventory-check` accepts, only the four columns above, so an inventory with a
-`ranges` column is checked by `standard-coverage`, the documentation check and
-the engine's `x86-inventory-check`.
+files beside the inventory. Every inventory has the work protocol's seven
+columns, named in its header line: `start`, `size`, `name`, `out_of_scope`,
+`ranges`, `lift` and `lift_reason`. This template's `inventory` writes all
+seven, with `name`, `out_of_scope`, `ranges` and `lift_reason` empty and the lift
+state `none`, and its `inventory-check` accepts them: it checks that a `lift`
+is one of `none`, `lifted`, `verified`, `stuck` and `excluded`, that `stuck`
+and `excluded` give a `lift_reason` and the others do not, and that `ranges`
+holds `start..end` pairs, leaving the ranges' arithmetic to `standard-coverage`,
+the documentation check and the engine's `x86-inventory-check`.
+`standard-coverage` prints how many functions and bytes each lift state holds.
+To export an inventory again, move the old one and its side files aside and
+pass the moved inventory to `ExportFunctionInventory.java` as its third
+argument: each function keeps its name and out-of-scope reason, keeps its lift
+state only where its body is unchanged and otherwise gets `none`, and the
+export stops, writing nothing, when an annotated row's start no longer has a
+function (`docs/GHIDRA.md`).
 
 `pnpm exec standard-coverage` reads the committed inventories and prints, per
 file, the share of in-scope functions and bytes that an entry's `locations`

@@ -1,36 +1,36 @@
 {
   "standardVersion": 1,
-  "captured": "2026-11-05",
+  "captured": "2026-11-22",
   "checker": {
     "repository": "kibertoad/refurbished-dinosaurs-toolkit",
-    "revision": "98e2e2000e365537c85ffa7605e4813a82a46cb4",
-    "version": "6.1.0"
+    "revision": "99d55ce8361c8377d0ec11a6cf5fccd173bd2356",
+    "version": "6.2.0"
   },
   "files": [
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "5b398e0eab9a6ff8ad1c35fc003c214d85fe7d47",
+      "revision": "bebb4a2d6031014c117355d1933af8a290e15aa5",
       "source": "website/content/english/pages/documentation-standard.md",
       "path": "docs/upstream/documentation-standard.md",
-      "sha256": "ddc78c5425214e6dc017618fd662f9c7c26739e051d80ad08ea1965ad5faaa79"
+      "sha256": "b29c3f6b7e10664b77dd135f1a9ab70e98223aa8ddce00588df3f81d4f5f2432"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "5b398e0eab9a6ff8ad1c35fc003c214d85fe7d47",
+      "revision": "bebb4a2d6031014c117355d1933af8a290e15aa5",
       "source": "website/content/english/pages/methodology.md",
       "path": "docs/upstream/methodology.md",
-      "sha256": "d499140845bbe4eaf55dcf90c79710245094f54031da3f20b33711552c3b5093"
+      "sha256": "054c9b7311c38008786563fa362f8baee9328d59c9bc4c91f9ca17d7fabec520"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "5b398e0eab9a6ff8ad1c35fc003c214d85fe7d47",
+      "revision": "bebb4a2d6031014c117355d1933af8a290e15aa5",
       "source": "website/content/english/pages/work-protocol.md",
       "path": "docs/upstream/work-protocol.md",
-      "sha256": "d8675447c7b39df6044c4108c8af05498fdca2f28c77b9d1b72d01de75c895b3"
+      "sha256": "ff7b83703392978e03ae71c35c1095b25459fafef244f7ab2ccb1d793885ae3c"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "5b398e0eab9a6ff8ad1c35fc003c214d85fe7d47",
+      "revision": "bebb4a2d6031014c117355d1933af8a290e15aa5",
       "source": "LICENSE",
       "path": "docs/upstream/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"

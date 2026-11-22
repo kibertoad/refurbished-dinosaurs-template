@@ -23,7 +23,7 @@ Template validation tooling follows [the validation optimization plan](VALIDATIO
 | Eligibility | _released in 2004 or earlier, and no official remake or remaster on sale: the outcome, the evidence, and the date checked. Checked once; settled from then on unless the owner asks for a re-check._ |
 | Editions available for validation | _their `BLD-` IDs; `docs/SOURCE-EDITIONS.md` holds the detail_ |
 | Existing research relied on | _their `SRC-` IDs: manuals, community documentation, prior analysis_ |
-| Stage | _Intake, Runtime access, Survey, Slices or Audit, as the [work protocol](upstream/work-protocol.md#stages) (lines 32-82) defines them. Move on only when the previous stage's exit criteria hold._ |
+| Stage | _Intake, Runtime access, Survey, Lift, Slices or Audit, as the [work protocol](upstream/work-protocol.md#stages) (lines 36-103) defines them. Move on only when the previous stage's exit criteria hold. Slices do not wait for Lift; Audit does._ |
 
 ## Scope
 
@@ -33,9 +33,24 @@ _What this project intends to reproduce, in the player's terms._
 multiplayer, editors, engine features the original never had. An explicit
 non-goal is cheaper than a half-finished system._
 
+## Lift
+
+_Translate the code of each inventoried file into the lift and check each
+function against the original, as the work protocol's
+[Lift](upstream/work-protocol.md#lift) (lines 87-93) stage describes. Name the generator and
+harness `docs/RUNTIME.md` records, and the order: the functions the next
+slice's entries depend on are verified first. Name every `stuck` function under
+Risks. A project whose runtime record says no lift harness loads its build, or
+can be built for it, skips the stage: say so here, with what would change it._
+
+Exit: every function in the inventories is `verified`, `excluded` with its
+reason, or `stuck` with what stops it, and every `stuck` function is named in
+the risks.
+
 ## Slices
 
-Slices start once the Runtime access and Survey stages have ended. Organize
+Slices start once the Runtime access and Survey stages have ended; they do not
+wait for the Lift stage. Organize
 the work as playable vertical slices, ordered so that each one leaves the game
 runnable. Set each slice's targets to what `docs/RUNTIME.md` makes reachable:
 without runs of the original, rule and screen rows, and format rows with no

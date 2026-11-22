@@ -102,9 +102,15 @@ export function joinInventories(image, manifest, views, { codeRanges } = {}) {
     }
     summaries.push({ view: v.name, accepted, excluded, ranges: v.ranges });
   }
-  return { tsv: "start\tsize\n" + [...output].sort((a, b) => a[0] - b[0]).map(([, row]) => `${row.start}\t${row.size}\n`).join(""), views: summaries,
+  return { tsv: COLUMNS.join("\t") + "\n" + [...output].sort((a, b) => a[0] - b[0]).map(([, row]) => `${row.start}\t${row.size}\t\t\t\tnone\t\n`).join(""), views: summaries,
     limitation: "Analyzer-discovered starts in declared views; not a census of all original functions. Size counts body bytes, not contiguous span." };
 }
+
+// The columns of the work protocol's function inventory, in its order. Only start and size are required.
+export const COLUMNS = ['start', 'size', 'name', 'out_of_scope', 'ranges', 'lift', 'lift_reason'];
+// The protocol's lift states, and those whose row gives a reason in lift_reason.
+export const LIFT_STATES = ['none', 'lifted', 'verified', 'stuck', 'excluded'];
+const LIFT_STATES_WITH_REASON = ['stuck', 'excluded'];
 
 // Validate committed rows, not rich analyzer exports; optional text is researcher-authored only.
 export function verifyInventory(image, build, manifest, text, path, { legacyPath, legacyEvidence, codeRanges } = {}) {
@@ -119,7 +125,8 @@ export function verifyInventory(image, build, manifest, text, path, { legacyPath
   const lines = text.replace(/^\uFEFF/, '').replace(/(?:\r?\n)+$/, '').split(/\r?\n/);
   const columns = lines.shift().split('\t');
   if (columns[0] !== 'start' || columns[1] !== 'size' || new Set(columns).size !== columns.length ||
-      columns.some(c => !['start', 'size', 'name', 'out_of_scope'].includes(c))) throw new Error('Invalid committed inventory columns');
+      columns.some(c => !COLUMNS.includes(c))) throw new Error('Invalid committed inventory columns');
+  if (columns.includes('lift_reason') && !columns.includes('lift')) throw new Error('Invalid committed inventory columns: lift_reason without lift');
   if (!lines.length || lines.length > 1000000) throw new Error('Invalid committed inventory row count');
   const seen = new Set(), capacity = image.ranges.reduce((n,r)=>n+r.end-r.start,0);
   for (const line of lines) {
@@ -136,6 +143,14 @@ export function verifyInventory(image, build, manifest, text, path, { legacyPath
       throw new Error('Invalid inventory body byte count');
     const name = cells[columns.indexOf('name')];
     if (name !== undefined && analyzerName.test(name)) throw new Error('Inventory name is an analyzer default, not a researcher-authored name');
+    const ranges = cells[columns.indexOf('ranges')];
+    if (ranges && !ranges.split(' ').every(r => /^[^.\s]+\.\.[^.\s]+$/.test(r))) throw new Error('Inventory ranges are not start..end pairs separated by spaces');
+    if (columns.includes('lift')) {
+      const lift = cells[columns.indexOf('lift')], reason = cells[columns.indexOf('lift_reason')] ?? '';
+      if (!LIFT_STATES.includes(lift)) throw new Error(`Inventory lift state ${lift || '(empty)'} is not one of ${LIFT_STATES.join(', ')}`);
+      if (LIFT_STATES_WITH_REASON.includes(lift) !== Boolean(reason.trim()))
+        throw new Error(reason.trim() ? `Inventory lift state ${lift} takes no lift_reason` : `Inventory lift state ${lift} needs a lift_reason`);
+    }
   }
   return { rows:lines.length, destination, actualPath:path, manifest, build,
     legacyPathEvidence:path===destination?null:legacyEvidence,

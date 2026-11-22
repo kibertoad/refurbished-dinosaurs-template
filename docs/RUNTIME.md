@@ -2,7 +2,7 @@
 
 What can be done with the original game running, and who can do it. The
 `runtime-access` skill fills this in during the Runtime access stage; see the
-[work protocol](upstream/work-protocol.md#runtime-access) (lines 42-62). This
+[work protocol](upstream/work-protocol.md#runtime-access) (lines 46-67). This
 file says what is true now: replace an answer when a tool, emulator or machine
 changes it. Findings from runs go in `spec/`, never here.
 
@@ -20,7 +20,7 @@ every run of the original, including the checks behind this file, holds the
 machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
 Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
 `REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
-[Running the original](upstream/work-protocol.md#running-the-original) (lines 437-471).
+[Running the original](upstream/work-protocol.md#running-the-original) (lines 474-508).
 
 ## BLD-_alias_
 
@@ -33,6 +33,16 @@ RAM, and the limits of what they test._ Emulated calls are always allowed, so th
 `agent` wherever the harness loads the build, whoever may run the game, and
 `none` only until a tooling batch builds the harness.
 
+Lift harness: _the generator and harness (Spice86 for real-mode DOS programs,
+or the project's own emulator), their versions and revisions, whether they
+load this build, and what they cannot translate, such as protected mode, the
+FPU or code the program writes while it runs._ The lift capability has the
+parts `record` and `replace`. Its runs are runs of the game: one with no
+window, input only from its script and no device of the machine takes no run
+lock, and where a person has to give input, `record` is `person`. Until a
+tooling batch builds the harness both parts are `none`, and the Lift stage in
+the plan says so ([The lift](upstream/work-protocol.md#the-lift) (lines 548-608)).
+
 | Capability | Who | Tried | What would change it |
 |---|---|---|---|
 | Start it and bring it to a given state without a person | _agent, person or none_ | _tool, version, what happened_ | _for person or none_ |
@@ -42,6 +52,7 @@ RAM, and the limits of what they test._ Emulated calls are always allowed, so th
 | Capture frames and sound | | | |
 | Play back a recording the original made | | | |
 | Call a single function in the emulator harness (no run lock) | | | |
+| Lift harness: `record` the state at each entry to and return from a chosen function during a whole-game run, and `replace` a function with its lifted one | _record: ..., replace: ..._ | | |
 
 Several capabilities name more than one thing, and the parts can get
 different answers. The parts of a capability are the ones the game has: for
@@ -75,6 +86,6 @@ Probe: _where the agent can start the build without a person, read its
 memory and set breakpoints, the probe's command line and anything the run
 sets for the child process alone, such as a copy of the executable outside
 the installation's compatibility settings. Otherwise `none`._ See the
-protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 447-459).
+protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 484-496).
 
 _Repeat the section for each build that will be run._

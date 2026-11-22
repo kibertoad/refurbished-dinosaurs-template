@@ -12,6 +12,10 @@ The tested baseline for this procedure is rust-dos 1.7.2 with
 [configuration](https://github.com/dividebysandwich/rust-dos/blob/v1.7.2/CONFIGURATION.md)
 and [debugging guide](https://github.com/dividebysandwich/rust-dos/blob/v1.7.2/docs/llm-debugging.md)
 when adapting it. Record the versions actually validated by the project.
+`dinorefurb-dosbox-session` 1.1.0 pins rust-dos 1.9.2, whose release zip ships
+`SDL3.dll` in place of `SDL2.dll`, and refuses checkpoints saved under an
+earlier rust-dos. This procedure has not been run again on 1.9.2, so a project
+that uses it records the result of its first run there.
 
 ## Retain and identify an owned setup
 

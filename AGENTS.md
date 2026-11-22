@@ -124,10 +124,12 @@ Work is planned, tracked and handed on under the
 [work protocol](docs/upstream/work-protocol.md); where this section and
 that page differ, the page wins.
 
-- The project moves through the stages Intake, Runtime access, Survey, Slices
-  and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
+- The project moves through the stages Intake, Runtime access, Survey, Lift,
+  Slices and Audit, and `docs/IMPLEMENTATION-PLAN.md` records which one it is in.
   `docs/RUNTIME.md` records what can be done with the original running, and
-  whether an agent, only a person, or nobody can do it.
+  whether an agent, only a person, or nobody can do it. Slices do not wait
+  for the Lift stage, and Audit does; the plan orders the lift by the slices
+  and records why a project skips it.
 - Survey lists the installation and the media the game reads in full, and
   records how the listing was made, in a listing record
   (`BLD-<alias>.listing.yaml`, named by the build's `listing` field) where the
@@ -250,8 +252,10 @@ that page differ, the page wins.
   checks and handover separately before proposing a gate change. Measurements
   never authorize skipped checks, mixed batch kinds or weaker evidence; retain
   stricter repository requirements until the owner adopts a change.
-- A batch is one commit, and is research, implementation or tooling, never
-  more than one. A session keeps to one side of the clean room. An
+- A batch is one commit, and is research, lift, implementation or tooling,
+  never more than one. A lift batch lifts or checks functions and changes only
+  the lift states and reasons in the inventories and their provenance files
+  (see "The lift" below). A session keeps to one side of the clean room. An
   implementation batch works from the spec alone, never opens analysis output
   or `queue/`, and under `spec/` only adds open questions and `unknown`
   entries; a gap becomes a `Spec gap:` note on the parity row, which the next
@@ -330,9 +334,12 @@ that page differ, the page wins.
   directory, and a member of an archive goes under `<archive path>@/`), one
   for each file the analysis reads. An inventory holds only each function's start address, its size,
   optionally a name the researcher gave it and why it is out of scope, and,
-  for a body that is not one range from its start, its ranges; never
+  for a body that is not one range from its start, its ranges, and its lift
+  state with the reason for a `stuck` or `excluded` one; never
   code, bytes, strings, constants or names that came from the original, so it
-  is committed. Each start is written in the standard's notation for its
+  is committed. Its header line names the columns `start`, `size`, `name`,
+  `out_of_scope`, `ranges`, `lift` and `lift_reason`, in that order, and
+  every row has all seven, empty where there is nothing to say. Each start is written in the standard's notation for its
   file: `SSSS:OOOO` in an MZ load image, an eight-digit file offset inside a
   row of the build's Code ranges for overlay code, and an eight-digit address
   for PE, LE and LX. `tools/evidence/report.mjs inventory` writes the MZ, FBOV
@@ -408,7 +415,7 @@ Never silently promote a plausible interpretation.
 
 A complete reading also covers what the standard's
 [Complete readings](docs/upstream/documentation-standard.md#complete-readings) (lines 199-305)
-and [Findings](docs/upstream/documentation-standard.md#findings) (lines 745-829) sections
+and [Findings](docs/upstream/documentation-standard.md#findings) (lines 751-835) sections
 list, among them: two addresses are the same storage only where the reading
 shows the segment each is formed in and accessed through (a BP offset read
 through DS is the caller's stack only where DS equals SS there); a stored
@@ -436,6 +443,23 @@ the last byte that Ghidra reports as a function's or block's maximum address.
 Where `coverage/` has inventories, the check fails a range that ends on an
 inventoried function's last byte, unless the entry lists it in
 `ends_on_last_byte` because it stops just before a one-byte final instruction.
+
+The lift is a translation of the original's code, one lifted function per
+inventoried function, over a model of the machine at the original's widths,
+checked against the original function by function (work protocol, "The
+lift"). It is the game's code in another language: it lives in
+`GAME_DIR/lift/`, is never pushed anywhere others can read, and nothing in it
+is committed. Its generator, checker and their configuration go in
+`tools/lift/`, with no bytes, disassembly, strings or names from the original.
+Reading a `verified` function counts as reading its instructions
+([STATUS-45](docs/upstream/documentation-standard.md#status-45) (lines 395-397)); a function
+that is only `lifted` is a lead, like a decompiler's listing. A finding read in
+the lift is `static`, cites the original's addresses, and its How to reproduce
+names the generator, checker and harness revisions and the lift state of each
+function it read. Research reads the lift only after its checks have run, and
+after a change to the generator, checker or harness only once every verified
+function has been checked again. Implementation batches never open
+`GAME_DIR/lift/`, and no spec procedure follows a lifted function's structure.
 
 Unidentified functions, globals, fields, and scripts keep neutral names
 (`fn_00478CD0`, `g_004C1F20`, `unk_2A`) until a finding or experiment shows what
@@ -655,9 +679,9 @@ it, and each read of a value the entry reads more than once changed between
 reads; a failure whose leftover state changes the next call; and the source a
 request reads kept apart from the request and its destination. These tests compare the rebuild with the spec or with itself, so none
 of them validates a parity row or is listed in its Tests column; see the protocol's
-[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 242-260)
-[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 354-362)
-and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 364-396).
+[Implementation batches](docs/upstream/work-protocol.md#implementation-batches) (lines 279-297)
+[Checkpoints and replay](docs/upstream/work-protocol.md#checkpoints-and-replay) (lines 391-399)
+and [Continuation cases](docs/upstream/work-protocol.md#continuation-cases) (lines 401-433).
 
 The protocol adds test cases for four more shapes of rule, which also
 compare the rebuild with the spec and validate no row. A caller that combines
@@ -679,10 +703,10 @@ tested with a test-supplied allocator and release routine that record calls,
 return null, fill blocks with a pattern, read or change the container when
 called, and change a count the copy loads again after the check. Each caller
 of one target is tested with the statuses its own comparison tells apart. See the protocol's
-[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 262-278),
-[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 280-296),
-[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 298-318)
-and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 336-352).
+[Calls that combine results](docs/upstream/work-protocol.md#calls-that-combine-results) (lines 299-315),
+[Rules behind an adapter](docs/upstream/work-protocol.md#rules-behind-an-adapter) (lines 317-333),
+[Arithmetic at the original's widths](docs/upstream/work-protocol.md#arithmetic-at-the-originals-widths) (lines 335-355)
+and [Allocation, containers and cleanup](docs/upstream/work-protocol.md#allocation-containers-and-cleanup) (lines 373-389).
 
 Each rule ships with fast-gate tests over synthetic state. The rule itself is
 usually a static class over the serializable state type, called by `Game`.
