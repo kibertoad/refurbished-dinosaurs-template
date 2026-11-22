@@ -174,11 +174,15 @@ that page differ, the page wins.
   game only, and emulated calls need no decision from the owner.
 - Several agents work on different games on the same machine at once, under
   one account or several. Run an original only while holding the machine's
-  run lock, whose path `docs/RUNTIME.md` gives; take it with an exclusive
-  create that fails if the file exists, and delete only a lock you created or
-  one the protocol calls abandoned. If another agent holds it, do not wait.
-  Outside a live session, never attach to, send input to or stop a process
-  you did not start.
+  run lock, which is rust-dos's lock in the folder `RUST_DOS_RUN_LOCK_DIR`
+  names (`docs/RUNTIME.md`). A rust-dos run with no window takes it shared;
+  a run that uses the desktop, every timing measurement and a live session
+  take it exclusive by running the probe as
+  `rust-dos lock exclusive --wait 5 -- <probe>`. Always pass a wait of a few
+  seconds and never wait on a held lock: exit code 3 with a `run-lock:` line
+  means another run holds it, so go on with work that needs no run. A hold
+  ends with the process that took it. Outside a live session, never attach
+  to, send input to or stop a process you did not start.
 - Evidence from runs comes mostly from people. Runs an agent drives are the
   most fragile evidence there is, so they are scripted, start from a fixed
   state and are kept to questions nothing else answers.

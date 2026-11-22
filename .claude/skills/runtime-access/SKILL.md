@@ -20,12 +20,15 @@ Record standing authorization already given by the owner once validation
 passes; do not request it again for each probe within that scope.
 
 1. **Take the run lock** as the protocol's
-   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 474-508)
-   says: create the lock file at the path `docs/RUNTIME.md` gives, with an
-   exclusive create that fails if it exists (`[IO.File]::Open($path,
-   'CreateNew')` in PowerShell), naming this repository, the session and the
-   time, and add the ID of each process you start to it. If it already
-   exists, do not wait: do static work and try again in a later session.
+   [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 474-510)
+   says: rust-dos's lock in the folder `docs/RUNTIME.md` gives. A run with
+   no window takes it shared (a `dinorefurb-dosbox-session` session does so
+   by default, another emulator runs under `rust-dos lock shared --wait 5`);
+   a run that uses the desktop and every timing measurement run the probe as
+   `rust-dos lock exclusive --wait 5 -- <probe>`.
+   Always pass `--wait` with a few seconds. Exit code 3 with a `run-lock:`
+   line means another run holds it: do not wait, do static work and try
+   again later. `rust-dos lock status` lists the holders.
 2. **For each build that will be run**, record how it runs (natively, under
    Wine, in DOSBox-X or another emulator, in a virtual machine), then try each
    capability and answer it `agent`, `person` (only while a person runs the

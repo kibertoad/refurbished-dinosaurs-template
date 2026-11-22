@@ -1,6 +1,6 @@
 ---
 name: end-session
-description: Close a work session on this restoration - stop processes the session started and release the run lock, rewrite the handover (docs/HANDOVER.md, or the goal file's Handover) to the current state, commit it, push, and either start the next session (under a goal whose condition does not hold) or report. Use at the end of every session, before handing over, when a goal is met or dropped, or when stopping for any reason.
+description: Close a work session on this restoration - stop processes the session started, including any `rust-dos lock` that holds the run lock, rewrite the handover (docs/HANDOVER.md, or the goal file's Handover) to the current state, commit it, push, and either start the next session (under a goal whose condition does not hold) or report. Use at the end of every session, before handing over, when a goal is met or dropped, or when stopping for any reason.
 ---
 
 # End a session
@@ -10,10 +10,10 @@ Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 
 1. **Processes**: stop every process this session started (Ghidra and Java,
-   the original game, test hosts, servers), and leave anything whose owner is
-   uncertain. Reusable MSBuild nodes are not orphans. Delete the run lock
-   (path in `docs/RUNTIME.md`) if this session created it, and never
-   otherwise. Follow any process-audit rule in `AGENTS.md`.
+   the original game, test hosts, servers, and any `rust-dos lock` this
+   session started), and leave anything whose owner is uncertain. Reusable
+   MSBuild nodes are not orphans. A hold of the run lock ends with the process
+   that took it. Follow any process-audit rule in `AGENTS.md`.
    After analysis records are committed, clean reviewed headless outputs under
    [ANALYSIS-OUTPUTS](../../../docs/ANALYSIS-OUTPUTS.md). Keep canonical inputs,
    active/unreviewed evidence and current validated probe checkpoints.

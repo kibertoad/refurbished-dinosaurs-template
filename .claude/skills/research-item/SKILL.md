@@ -109,14 +109,16 @@ only the lines the link gives, and never a section already read this session.
    a fixed state, and record enough to repeat it. Only for an item under
    `Agent run` whose own static attempt is under `Tried:` or that asks for the
    run confirming a static reading of an entry that depends on something the
-   code does not decide, and only while holding the run lock (path
-   in `docs/RUNTIME.md`; take it with an exclusive create that fails if the
-   file exists, record the ID of every process the run starts in it, and if
-   another agent holds it, do not wait). Use only the parts of a capability
+   code does not decide, and only while holding the run lock (folder
+   in `docs/RUNTIME.md`). A rust-dos run with no window takes it shared; a
+   run that uses the desktop and every timing measurement take it exclusive
+   through `rust-dos lock exclusive --wait 5 -- <probe>`. Always pass a wait
+   of a few seconds: exit code 3 with a `run-lock:` line means another run
+   holds it, so do not wait, and go on with work that needs no run. Use only the parts of a capability
    the item names, and say in the experiment's Setup which ones, such as
    only the keyboard. Never touch a process you did not start. Where
    `docs/RUNTIME.md` gives a probe, the run follows the protocol's
-   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 484-496):
+   [Recorded runs](../../../docs/upstream/work-protocol.md#recorded-runs) (lines 486-498):
    the fixture lists each draw as `{ rule, bound, result }` by rule ID,
    never by call address, and a draw from a function no rule cites stops
    the recording and gets an `unknown` entry and a queue item. Memory writes
@@ -132,7 +134,7 @@ only the lines the link gives, and never a section already read this session.
    An emulated call is always allowed, including in a repository whose
    `AGENTS.md` keeps agents from running the original: those limits cover
    runs of the game only. For an item under `Emulated call`, follow the protocol's
-   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 510-546).
+   [Emulated calls](../../../docs/upstream/work-protocol.md#emulated-calls) (lines 512-548).
    It needs no run lock. Write each reading under test as a procedure in
    `tools/emu/`, set up only the state the function reads (through layout
    fields that are `supported` or `established`), choose the special values,
