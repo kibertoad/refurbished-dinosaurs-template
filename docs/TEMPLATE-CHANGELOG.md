@@ -8,6 +8,16 @@ not here.
 
 A project created from this template may delete this file.
 
+## Sync guide named as placeholder documentation, 2026-11-22
+
+- `docs/TEMPLATE-SYNC.md` writes `{{TOKEN}}` when it explains what
+  configuration rewrites. In a configured project, `Verify-Configuration.ps1`
+  reported that as an unresolved placeholder and the validation gate failed.
+  The first sync of a real project (dark-universe-angled, `632a4aa..f35306f`)
+  hit it. The guide is now in `Verify-Configuration.ps1`'s list of files that
+  document placeholders, and in `Configure-Project.ps1`'s list of files it
+  never substitutes into, next to `docs/CUSTOMIZATION.md`.
+
 ## Template sync, 2026-11-22
 
 - **Record.** `tools/project-config.json` has a `template` entry: the

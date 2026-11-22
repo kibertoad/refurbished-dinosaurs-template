@@ -384,6 +384,7 @@ $selfManaged = @(
     $PSCommandPath,
     (Join-Path $PSScriptRoot 'Verify-Configuration.ps1'),
     (Join-Path $root 'docs/CUSTOMIZATION.md'),
+    (Join-Path $root 'docs/TEMPLATE-SYNC.md'),
     (Join-Path $root 'AGENTS.md'),
     $ConfigPath
 ) | ForEach-Object { [IO.Path]::GetFullPath($_) }

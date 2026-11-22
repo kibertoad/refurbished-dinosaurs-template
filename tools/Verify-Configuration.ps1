@@ -36,6 +36,7 @@ $templateDocumentation = @(
     'tools/Configure-Project.ps1',
     'tools/Verify-Configuration.ps1',
     'docs/CUSTOMIZATION.md',
+    'docs/TEMPLATE-SYNC.md',
     'AGENTS.md'
 )
 # {{DISPLAY_NAME}}-style tokens only; Inno Setup's {#Define} and GitHub's ${{ }} do not match.
