@@ -93,7 +93,7 @@ Read the import and analysis log before using a database. A warning that the
 analyzer "could not follow disassembly flow" marks a function body that is
 missing or wrong, and the database is not ready for an inventory until the
 warnings are gone (see the protocol's
-[Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 664-672)).
+[Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 666-674)).
 
 Never redirect broad output into the repository.
 

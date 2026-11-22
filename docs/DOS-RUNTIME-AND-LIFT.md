@@ -3,8 +3,8 @@
 How to run a 16-bit real-mode DOS game for the Runtime access and Lift
 stages, and how to get its function inventories right. The rules are in the
 work protocol's [Runtime access](upstream/work-protocol.md#runtime-access) (lines 46-67),
-[The lift](upstream/work-protocol.md#the-lift) (lines 548-608) and
-[Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 664-672);
+[The lift](upstream/work-protocol.md#the-lift) (lines 550-610) and
+[Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 666-674);
 this page covers the tools. It was written from the first restoration that
 went through these stages with rust-dos 1.9.2, `dinorefurb-dosbox-session`
 1.1.0, Spice86 built from master and Ghidra 12.2. Record the versions the
@@ -22,7 +22,10 @@ media, and runs the target from the DOS prompt, stopped at its entry. Version
 the capability check as a script in `tools/runtime/` (for example
 `tools/runtime/check_capabilities.py`) and give its command line in
 `docs/RUNTIME.md`, so the check can be run again when rust-dos or the session
-changes.
+changes. Each run holds the run lock the way
+[RUNTIME.md](RUNTIME.md) says; a session with no window takes it shared by
+itself. `dinorefurb-dosbox-session` 2.0.0, which takes rust-dos's lock, pins
+the same rust-dos 1.9.2, so the steps below apply to it as well.
 
 ### Drives, the current directory and hard-coded paths
 
@@ -122,6 +125,12 @@ repository. Spice86 writes `logs/` in its current directory, and those logs
 hold local paths, so a run started from the repository leaves files that are
 easy to commit by mistake.
 
+Run headless with input only from the script, a Spice86 run uses no device of
+the machine, and under the protocol's
+[Verifying a lifted function](upstream/work-protocol.md#verifying-a-lifted-function) (lines 578-590)
+it takes no run lock. A run that opens a window takes the lock as
+[RUNTIME.md](RUNTIME.md) says for a run in another emulator.
+
 The command line option for the MCP port is `--McpHttpPort`; the README and
 `doc/mcp.md` call it `--mcp-http-port`, and Spice86 silently ignores options
 it does not know, so the documented spelling leaves the server on its default
@@ -193,7 +202,7 @@ reaching the same screen as the record run shows that the harness, the
 generator and the build work together. It verifies no function, and it is
 enough for the `replace` part of the lift capability and nothing more. A
 function becomes `verified` only through the case-by-case comparison with
-branch coverage in [Verifying a lifted function](upstream/work-protocol.md#verifying-a-lifted-function) (lines 576-588).
+branch coverage in [Verifying a lifted function](upstream/work-protocol.md#verifying-a-lifted-function) (lines 578-590).
 Say this plainly in `docs/RUNTIME.md` and the plan; a replace run that
 "works" is easy to report as more than it is.
 

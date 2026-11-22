@@ -39,6 +39,13 @@ A project created from this template may delete this file.
   after a merge that the branch's head is in the main branch, and for Windows
   paths to be written with an editor tool or a script file.
 
+## rust-dos's run lock, 2026-11-22
+
+- **Rules.** `docs/upstream/` holds the rules at `kibertoad/refurbished-dinosaurs` d30e52c (#140). The work protocol's run lock is rust-dos's lock in the folder `RUST_DOS_RUN_LOCK_DIR` names, `C:\ProgramData\refurbished-dinosaurs\run-lock` on Windows. A rust-dos run with no window takes it shared; a run that uses the desktop, every timing measurement and a live session take it exclusive through `rust-dos lock exclusive --wait 5 -- <probe>`. An agent always passes a short wait, and exit code 3 with a `run-lock:` line means another run holds the lock. A hold ends with the process that took it, so the lock file, the process IDs written into it and the procedure for clearing an abandoned lock are gone. `node tools/upstream.mjs links --write` updated the section ranges. The checker stays at 6.2.0.
+- **Agent instructions and skills.** `AGENTS.md`, `runtime-access`, `research-item`, `live-session` and `end-session` describe the shared and exclusive holds, the wait and exit code 3, and `end-session` stops any `rust-dos lock` the session started. `docs/RUNTIME.md` names the folder and says the owner sets `RUST_DOS_RUN_LOCK_DIR` for every account, creates the folder and grants Users modify on it.
+- **rust-dos.** `docs/WINDOWS-PROBES.md` takes `dinorefurb-dosbox-session` 2.0.0 with rust-dos 1.9.2 as its baseline and links rust-dos 1.9.2's documentation. A booted-Windows runner launches rust-dos with `--run-lock <dir> --run-lock-exclusive --run-lock-wait 5 --exit-with-parent <pid>`, or runs under `rust-dos lock exclusive --wait 5`. The release's `SDL3.dll` replaces `SDL2.dll` beside the emulator.
+- **Evidence engine.** `scientific-method-engine` moves from 20.0.0 to 21.0.0, which requires pypcode 4.1.0 (Ghidra 12.2's x86 SLEIGH specification) and xxhash 4.1.0. Reports differ only in `instructionSemantics`. Reader 4.3.0 speaks the same prepared-config protocol.
+
 ## Inventory header line in the rules, 2026-11-22
 
 - **Rules.** `docs/upstream/` holds the rules at `kibertoad/refurbished-dinosaurs` 294a9c2 (#139). The work protocol now says that an inventory opens with a header line naming its seven columns (`start`, `size`, `name`, `out_of_scope`, `ranges`, `lift`, `lift_reason`), and its version 2 conversion adds that header line to every inventory. `AGENTS.md`, `docs/EVIDENCE-TOOLS.md` and `tools/evidence/inventory.mjs` already name the header and the seven columns, so nothing else changes. The checker stays at 6.2.0.

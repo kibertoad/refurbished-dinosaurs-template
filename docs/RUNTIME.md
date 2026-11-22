@@ -19,10 +19,18 @@ game expects, input, sound capture and the Spice86 lift harness.
 
 Static analysis is the main source of evidence. Runs are the last resort, and
 every run of the original, including the checks behind this file, holds the
-machine's run lock: `C:\ProgramData\refurbished-dinosaurs\run.lock` on
-Windows and `/var/tmp/refurbished-dinosaurs/run.lock` elsewhere, or the path in
-`REFURBISHED_DINOSAURS_RUN_LOCK` where the owner set one. See the protocol's
-[Running the original](upstream/work-protocol.md#running-the-original) (lines 474-508).
+machine's run lock: rust-dos's lock in the folder that `RUST_DOS_RUN_LOCK_DIR`
+names, `C:\ProgramData\refurbished-dinosaurs\run-lock` on Windows. The owner
+sets the variable to that folder for every account on the machine, creates the
+folder once and lets every user change files in it
+(`icacls C:\ProgramData\refurbished-dinosaurs\run-lock /grant "*S-1-5-32-545:(OI)(CI)M" /T`).
+A run with no window takes the lock shared: a `dinorefurb-dosbox-session`
+session by default, a plain rust-dos run started with `--run-lock` on the
+folder and `--run-lock-wait 5`, and a run in another emulator through
+`rust-dos lock shared --wait 5 -- <probe>`. A run that uses the desktop and
+every timing measurement take it exclusive through
+`rust-dos lock exclusive --wait 5 -- <probe>`. See the protocol's
+[Running the original](upstream/work-protocol.md#running-the-original) (lines 474-510).
 
 ## BLD-_alias_
 
@@ -43,7 +51,7 @@ parts `record` and `replace`. Its runs are runs of the game: one with no
 window, input only from its script and no device of the machine takes no run
 lock, and where a person has to give input, `record` is `person`. Until a
 tooling batch builds the harness both parts are `none`, and the Lift stage in
-the plan says so ([The lift](upstream/work-protocol.md#the-lift) (lines 548-608)).
+the plan says so ([The lift](upstream/work-protocol.md#the-lift) (lines 550-610)).
 A replace run that reaches the same screen as the original shows the harness
 works and verifies no function; record it as that.
 
@@ -94,6 +102,6 @@ Probe: _where the agent can start the build without a person, read its
 memory and set breakpoints, the probe's command line and anything the run
 sets for the child process alone, such as a copy of the executable outside
 the installation's compatibility settings. Otherwise `none`._ See the
-protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 484-496).
+protocol's [Recorded runs](upstream/work-protocol.md#recorded-runs) (lines 486-498).
 
 _Repeat the section for each build that will be run._
