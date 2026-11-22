@@ -7,15 +7,17 @@ when an owner has supplied a suitable Windows/DOSBox image and game media.
 It complements the [runtime access record](RUNTIME.md); it does not replace
 the pinned protocol's static-first and recorded-run rules.
 
-The tested baseline for this procedure is rust-dos 1.7.2 with
-`dinorefurb-dosbox-session` 0.9.0 on Windows. Consult the release's primary
-[configuration](https://github.com/dividebysandwich/rust-dos/blob/v1.7.2/CONFIGURATION.md)
-and [debugging guide](https://github.com/dividebysandwich/rust-dos/blob/v1.7.2/docs/llm-debugging.md)
+The baseline for this procedure is `dinorefurb-dosbox-session` 2.0.0 with
+the rust-dos 1.9.2 it pins, on Windows. Consult the release's
+[configuration](https://github.com/dividebysandwich/rust-dos/blob/v1.9.2/CONFIGURATION.md)
+(including its run lock section)
+and [debugging guide](https://github.com/dividebysandwich/rust-dos/blob/v1.9.2/docs/llm-debugging.md)
 when adapting it. Record the versions actually validated by the project.
-`dinorefurb-dosbox-session` 1.1.0 pins rust-dos 1.9.2, whose release zip ships
-`SDL3.dll` in place of `SDL2.dll`, and refuses checkpoints saved under an
-earlier rust-dos. This procedure has not been run again on 1.9.2, so a project
-that uses it records the result of its first run there.
+The procedure was first run on rust-dos 1.7.2 with session 0.9.0. The 1.9.2
+release zip ships `SDL3.dll` in place of `SDL2.dll`, and the session refuses
+checkpoints saved under an earlier rust-dos. This procedure has not been run
+again on 1.9.2, so a project that uses it records the result of its first run
+there.
 
 ## Retain and identify an owned setup
 
@@ -65,28 +67,37 @@ restored in another process. A `[drives]` auto-boot configuration can use
 
 Use an isolated interpreter with the exact session package pin; verify the
 portable emulator SHA-256 against `RUST_DOS_PINNED_SHA256` and retain its adjacent
-release SDL2.dll. A project setup helper should verify the release archive too.
+release DLLs (`SDL3.dll` among them). A project setup helper should verify the
+release archive too.
 
-`RustDosSettings` 0.9.0 reserves `--config` and expects a DOS program/readiness
-marker. Do not point that target at a Windows EXE or monkeypatch the installed
-package. For booted Windows, reuse these package primitives with a project
-runner that supplies its own boot/state gates:
+`RustDosSettings` writes its own `--config` and expects a DOS program and the
+readiness marker. Do not point that target at a Windows EXE or monkeypatch the
+installed package. For booted Windows, reuse these package primitives with a
+project runner that supplies its own boot/state gates:
 
-- `RunLock.acquire(resolve_lock_path(), session, current())`: exclusive machine
-  lock with repository/session and owner PID/start time. Never remove another
-  session's lock or attach to its emulator.
-- `launch_owned(...)` and `lock.record(...)`: hidden Windows process/job lifetime
-  and recorded child identity. Pass `SDL_VIDEODRIVER=dummy` and
-  `SDL_AUDIODRIVER=dummy` to this child for headless, muted probes.
+- The run lock: a booted-Windows run uses the desktop's input and timing, so it
+  takes rust-dos's lock exclusive. Launch rust-dos with
+  `--run-lock <dir> --run-lock-exclusive --run-lock-wait 5 --exit-with-parent <pid>`,
+  where `<dir>` is `resolve_run_lock_directory()` and `<pid>` is the runner's
+  process ID, or run the whole runner under
+  `rust-dos lock exclusive --wait 5 -- <runner>`. Exit code 3 with a
+  `run-lock:` line means the lock is held: stop and do other work. The hold
+  ends with the process that took it. Never stop another run's emulator or
+  attach to it.
+- `launch_owned(...)` from `dinorefurb_dosbox_session.processes`: hidden Windows
+  process/job lifetime and recorded child identity. Pass
+  `SDL_VIDEODRIVER=dummy` and `SDL_AUDIODRIVER=dummy` to this child for
+  headless, muted probes.
 - `RustDosClient` with a unique `RequestIds` namespace: read the ephemeral
   localhost endpoint from that owned child's output, verify the server version/
   features, and journal requests/replies and operation IDs.
 - `finally`: export evidence, request `POST /api/control/quit`, wait for exit,
-  terminate only this owned child on teardown failure, close its job, then
-  release only the lock this runner acquired.
+  terminate only this owned child on teardown failure, then close its job. The
+  run lock goes with the process that held it.
 
-Launch with `--config <owned-config> -d <empty-host-c> --debug-server 127.0.0.1:0`
-and `--deterministic --cycles <fixed-value> --core normal`. Retain the command,
+Launch with `--config <owned-config> -d <empty-host-c> --debug-server 127.0.0.1:0`,
+`--deterministic --cycles <fixed-value> --core normal` and the run lock options
+above. Retain the command,
 environment, server build, start clock and owned process identity.
 
 A continuation is an operation, not an instruction to retry after a timeout:

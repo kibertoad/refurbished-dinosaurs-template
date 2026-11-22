@@ -9,28 +9,28 @@
   "files": [
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "294a9c2cd38485d735fd17f4e701333637b2e9cc",
+      "revision": "d30e52c76457f2bbfdf6151fdd7d51f2ade9064a",
       "source": "website/content/english/pages/documentation-standard.md",
       "path": "docs/upstream/documentation-standard.md",
       "sha256": "b29c3f6b7e10664b77dd135f1a9ab70e98223aa8ddce00588df3f81d4f5f2432"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "294a9c2cd38485d735fd17f4e701333637b2e9cc",
+      "revision": "d30e52c76457f2bbfdf6151fdd7d51f2ade9064a",
       "source": "website/content/english/pages/methodology.md",
       "path": "docs/upstream/methodology.md",
       "sha256": "054c9b7311c38008786563fa362f8baee9328d59c9bc4c91f9ca17d7fabec520"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "294a9c2cd38485d735fd17f4e701333637b2e9cc",
+      "revision": "d30e52c76457f2bbfdf6151fdd7d51f2ade9064a",
       "source": "website/content/english/pages/work-protocol.md",
       "path": "docs/upstream/work-protocol.md",
-      "sha256": "bffeec3bdd18dfa88dbcf3e3ff6f89b9fd04e251ba96e7f83f219cb68377aeea"
+      "sha256": "34c48c58407865ea87fbe5e228a18b21506dc8b853a055807bc253e16565b029"
     },
     {
       "repository": "kibertoad/refurbished-dinosaurs",
-      "revision": "294a9c2cd38485d735fd17f4e701333637b2e9cc",
+      "revision": "d30e52c76457f2bbfdf6151fdd7d51f2ade9064a",
       "source": "LICENSE",
       "path": "docs/upstream/LICENSE",
       "sha256": "f6f1c4853c8edf16e51a574073c7ae514a715fe8c5fccea4e8e43d74f96eed65"

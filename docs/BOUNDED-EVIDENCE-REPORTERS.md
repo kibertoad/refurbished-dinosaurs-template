@@ -18,8 +18,8 @@ pnpm install
 python -m pip install -r requirements-evidence.txt
 ```
 
-The engine pins its own decoders (Capstone 5.0.9 and pypcode 4.0.1 for engine
-19.9.0), which pip installs with it. The reader runs `pointers`, `table`,
+The engine pins its own decoders (Capstone 5.0.9 and pypcode 4.1.0 for engine
+21.0.0), which pip installs with it. The reader runs `pointers`, `table`,
 `bodies`, `imports` and `unpack` in Node and needs no engine for them.
 Where only `python3` is Python 3.12 or later, install with `python3 -m pip`.
 `EVIDENCE_PYTHON` selects the Python executable, which must have the engine
