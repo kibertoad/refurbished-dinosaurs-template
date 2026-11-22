@@ -17,6 +17,10 @@ Before analysis, replace this instructional section with:
 
 The engine's scripts compile against Ghidra 12.1 and 12.2, and the toolkit's CI
 compiles them against 12.2, which needs JDK 25. A new project starts on 12.2.
+For a 16-bit real-mode MZ executable, stock 12.2 loses track of CS after far
+calls; apply the fix in
+[DOS-RUNTIME-AND-LIFT.md](DOS-RUNTIME-AND-LIFT.md#the-real-mode-cs-fix) and
+record the patched copy here.
 
 Check documented local paths before searching or downloading tools. Isolated
 processes may need `GHIDRA_HOME`, `JAVA_HOME`, and an explicit `PATH`.
@@ -67,14 +71,29 @@ New-Item -ItemType Directory -Path $analysisRoot | Out-Null
 Reuse the local project with `-process <executable-name> -noanalysis` and a
 small bounded script. `scientific-method-engine ghidra-scripts` prints the
 directory of the scripts the engine ships, and `tools/ghidra` holds the few it
-does not; pass both to `-scriptPath`, separated by `;`:
+does not. `-scriptPath` takes one directory when `analyzeHeadless.bat` is
+called from PowerShell, because `cmd` splits a `;`-separated list into two
+arguments, so copy both sets of scripts into one temporary directory:
 
 ```powershell
-$scripts = "$(scientific-method-engine ghidra-scripts);$PWD\tools\ghidra"
+$scripts = Join-Path $analysisRoot 'scripts'
+New-Item -ItemType Directory -Path $scripts | Out-Null
+Copy-Item "$(scientific-method-engine ghidra-scripts)\*", "$PWD\tools\ghidra\*" $scripts -Recurse
 & "$projectGhidraHome\support\analyzeHeadless.bat" `
   $analysisRoot RestorationAnalysis -process <executable-name> -noanalysis `
   -scriptPath $scripts -postScript ReportReferences.java 0x1234
 ```
+
+`analyzeHeadless.bat` also breaks on any argument that contains `(`, `)` or
+`,`, which `cmd` parses. Reach a game directory such as `Name (1995)` through a
+directory junction without them (`New-Item -ItemType Junction`), and keep
+project names and snapshot labels to letters, digits, `-`, `_` and `.`.
+
+Read the import and analysis log before using a database. A warning that the
+analyzer "could not follow disassembly flow" marks a function body that is
+missing or wrong, and the database is not ready for an inventory until the
+warnings are gone (see the protocol's
+[Creating and checking an inventory](upstream/work-protocol.md#creating-and-checking-an-inventory) (lines 664-672)).
 
 Never redirect broad output into the repository.
 

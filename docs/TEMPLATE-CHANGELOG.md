@@ -8,6 +8,37 @@ not here.
 
 A project created from this template may delete this file.
 
+## Real-mode DOS runtime access and lift guide, 2026-11-22
+
+- **Guide.** `docs/DOS-RUNTIME-AND-LIFT.md` covers a 16-bit real-mode DOS
+  game through Runtime access, Lift and its inventories. For rust-dos 1.9.2
+  through `dinorefurb-dosbox-session` 1.1.0: recreating the installer's
+  layout on the run's C: in `prepare_drive`, since the session starts the
+  target from the C: prompt; mouse clicks held for about 300 ms, since the
+  default 50 ms hold falls between two polls of INT 33h function 3; finding
+  the input devices a game reads with one-time breakpoints on handlers from
+  the interrupt vector table; sound from `/ws/audio` and `audio.peak`. For
+  Spice86: building from master (16.1.0 lacks the MCP mouse fix, b351cbe6)
+  and building the generated project against that same build, the MCP tools
+  and the GDB `monitor dumpall` packet, starting it from a work directory
+  because it writes `logs/` there, what the generated code covers and looks
+  like, and that a replace run verifies no function. For Ghidra 12.2: the
+  real-mode CS fix from ghidra#9703, applied to a release without building
+  Ghidra. It was written from the first restoration to go through these
+  stages.
+- **Runtime record.** `docs/RUNTIME.md` asks for the capability check's
+  command line, links the guide, and says what a replace run shows. The
+  `runtime-access` skill links the guide, asks for the check as a script in
+  `tools/runtime/`, and lists the lift capability.
+- **Ghidra.** `docs/GHIDRA.md` passes `-scriptPath` one directory, since
+  `cmd` splits a `;`-separated list called from PowerShell into two
+  arguments, names the characters `analyzeHeadless.bat` cannot take in an
+  argument, and asks for an analysis log with no flow warnings before an
+  inventory is exported.
+- **Agent instructions.** `AGENTS.md` links the guide, asks for a check
+  after a merge that the branch's head is in the main branch, and for Windows
+  paths to be written with an editor tool or a script file.
+
 ## Inventory header line in the rules, 2026-11-22
 
 - **Rules.** `docs/upstream/` holds the rules at `kibertoad/refurbished-dinosaurs` 294a9c2 (#139). The work protocol now says that an inventory opens with a header line naming its seven columns (`start`, `size`, `name`, `out_of_scope`, `ranges`, `lift`, `lift_reason`), and its version 2 conversion adds that header line to every inventory. `AGENTS.md`, `docs/EVIDENCE-TOOLS.md` and `tools/evidence/inventory.mjs` already name the header and the seven columns, so nothing else changes. The checker stays at 6.2.0.

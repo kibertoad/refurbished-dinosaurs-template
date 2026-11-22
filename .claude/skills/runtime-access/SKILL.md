@@ -19,6 +19,16 @@ fingerprint reconciliation, versioned rust-dos probes and capability checks.
 Record standing authorization already given by the owner once validation
 passes; do not request it again for each probe within that scope.
 
+For a real-mode DOS game, use
+[DOS runtime and lift](../../../docs/DOS-RUNTIME-AND-LIFT.md) for the drive
+layout and current directory the game expects, mouse clicks it does not miss,
+finding which input devices it reads, sound capture, and the Spice86 lift
+harness.
+
+Make every attempt through a script in `tools/runtime/`, committed with the
+record, and give its command line in `docs/RUNTIME.md`, so the check can be
+run again when a tool changes.
+
 1. **Take the run lock** as the protocol's
    [Running the original](../../../docs/upstream/work-protocol.md#running-the-original) (lines 474-508)
    says: create the lock file at the path `docs/RUNTIME.md` gives, with an
@@ -40,7 +50,11 @@ passes; do not request it again for each probe within that scope.
      `tools/emu/` (this starts no process of the game and needs no lock).
      Emulated calls are always allowed, so the answer is `agent` wherever
      the harness loads the build, even where no agent may run the game, and
-     `none` only while the harness does not exist yet.
+     `none` only while the harness does not exist yet;
+   - in the lift harness, `record` the state at each entry to and return
+     from a chosen function during a whole-game run, and `replace` a
+     function with its lifted one. A replace run that reaches the same
+     screen as the original answers `replace` and verifies no function.
 
    Try each part of a capability that names several things. The parts are
    the ones the game has: for input, each device the game reads, and for
@@ -57,7 +71,9 @@ passes; do not request it again for each probe within that scope.
    or every part of it where the parts differ: each answer names the tool and
    version tried and what happened, and each `none` or `person` says what
    would change it. For the harness, record the Unicorn version, the builds
-   it loads and the stubs it has.
+   it loads and the stubs it has. For the lift harness, record its revision
+   and the generator's, and build the lifted code against that same revision.
+   Give the capability check's command line under Capability check.
    Replace answers that are no longer true; do not append. Where the agent
    can start the build, read its memory and set breakpoints, runs of it are
    recorded runs: give the probe's command line under Probe, or `none`
