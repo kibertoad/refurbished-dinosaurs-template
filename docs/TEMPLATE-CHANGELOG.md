@@ -8,6 +8,26 @@ not here.
 
 A project created from this template may delete this file.
 
+## Rules copy at the lift-learnings protocol, 2026-11-22
+
+- **Rules.** `docs/upstream/` is refreshed to rules commit 3b8f833 (the work
+  protocol after refurbished-dinosaurs#141). Version 2 now says:
+  - runtime attempts are scripts committed in `tools/`;
+  - the lift is built and run on the harness revision that recorded its cases;
+  - a path the recording never took stops with an error, and the function stays
+    `lifted` until a recording reaches that path;
+  - a direct call into the harness's DOS model is compared with the interrupt
+    the original raised;
+  - a replace run verifies no function;
+  - an inventory's database counts as validated only when its log has no flow
+    warnings.
+
+  The checker stays at 6.2.0.
+- **Links.** `node tools/upstream.mjs links --write` moved the section ranges in
+  the skills and documents that cite the changed sections. The guide's rule that
+  a headless, scripted lift-harness run takes no run lock comes from the
+  protocol itself ("A run that records calls").
+
 ## Real-mode DOS runtime access and lift guide, 2026-11-22
 
 - **Guide.** `docs/DOS-RUNTIME-AND-LIFT.md` covers a 16-bit real-mode DOS
