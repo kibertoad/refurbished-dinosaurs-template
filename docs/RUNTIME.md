@@ -51,7 +51,7 @@ parts `record` and `replace`. Its runs are runs of the game: one with no
 window, input only from its script and no device of the machine takes no run
 lock, and where a person has to give input, `record` is `person`. Until a
 tooling batch builds the harness both parts are `none`, and the Lift stage in
-the plan says so ([The lift](upstream/work-protocol.md#the-lift) (lines 550-610)).
+the plan says so ([The lift](upstream/work-protocol.md#the-lift) (lines 550-612)).
 A replace run that reaches the same screen as the original shows the harness
 works and verifies no function; record it as that.
 
