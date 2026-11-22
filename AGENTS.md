@@ -584,6 +584,11 @@ or change global Git configuration. The exception does not authorize a remote
 change or a push; verify the configured push destination under the project's
 repository instructions before pushing.
 
+After a pull request merges, check that the head of its branch is in the main
+branch (`git merge-base --is-ancestor <branch head> origin/main`). Commits
+pushed while the merge happened stay behind on the branch, and need a pull
+request of their own.
+
 ## Context and process hygiene
 
 Treat logs, analysis listings, and experiments as a temporary working set.
@@ -594,11 +599,18 @@ commit consumed evidence and regeneration metadata, then remove only reviewed
 output with ownership/path checks; preserve canonical inputs/projects, current
 checkpoints and unresolved evidence. For owner-supplied Windows images, use
 [WINDOWS-PROBES.md](docs/WINDOWS-PROBES.md) to build and validate versioned
-rust-dos probes before recording their capabilities in RUNTIME.md.
+rust-dos probes before recording their capabilities in RUNTIME.md. For a
+real-mode DOS game, use [DOS-RUNTIME-AND-LIFT.md](docs/DOS-RUNTIME-AND-LIFT.md)
+for runs in rust-dos, the Spice86 lift harness and Ghidra's real-mode fix.
+Start tools that write logs to their current directory, such as Spice86,
+from a work directory outside the repository.
 Avoid unrelated refactors
 during evidence-driven work. After commands that start games, servers, analyzers,
 or compiler services, check for orphaned processes and stop only the processes
-created by the current task.
+created by the current task. Write text that holds Windows paths with an editor
+tool or a script file: in a string literal of a script passed inline through a
+shell, such as Python in a heredoc, `\t`, `\r` and `\x86` in a path become
+control characters.
 
 Run at most three subagents at a time, each on a different spec area, and start
 each one in a call of its own once the one before it has created its worktree.

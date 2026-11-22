@@ -13,7 +13,9 @@ and each capability, and document retained paths and exact commands here.
 When authorized setup/capability validation passes, record the owner's standing
 probe scope; work within it without repeated permission requests. Keep current
 checkpoints and unresolved evidence; clean consumed intermediates under
-[ANALYSIS-OUTPUTS.md](ANALYSIS-OUTPUTS.md).
+[ANALYSIS-OUTPUTS.md](ANALYSIS-OUTPUTS.md). For a real-mode DOS game, follow
+[DOS-RUNTIME-AND-LIFT.md](DOS-RUNTIME-AND-LIFT.md) for the drive layout the
+game expects, input, sound capture and the Spice86 lift harness.
 
 Static analysis is the main source of evidence. Runs are the last resort, and
 every run of the original, including the checks behind this file, holds the
@@ -50,6 +52,8 @@ window, input only from its script and no device of the machine takes no run
 lock, and where a person has to give input, `record` is `person`. Until a
 tooling batch builds the harness both parts are `none`, and the Lift stage in
 the plan says so ([The lift](upstream/work-protocol.md#the-lift) (lines 550-610)).
+A replace run that reaches the same screen as the original shows the harness
+works and verifies no function; record it as that.
 
 | Capability | Who | Tried | What would change it |
 |---|---|---|---|
@@ -89,6 +93,10 @@ can be an agent run in a game whose mouse needs a person, and its
 experiment's Setup says it used only the keyboard. Where a capability is
 split, each `Agent run` and `Live session` item in `queue/` says in its
 `Settles it:` text which of these parts its run needs.
+
+Capability check: _the command line of the script in `tools/runtime/` that
+made the attempts the table cites, with the tool versions it needs, so the
+check can be run again when a tool changes._
 
 Probe: _where the agent can start the build without a person, read its
 memory and set breakpoints, the probe's command line and anything the run
