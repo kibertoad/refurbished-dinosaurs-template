@@ -42,7 +42,7 @@ param(
     [int] $CopyrightYear,
     [string] $RepositoryUrl,
     [string] $Summary,
-    [ValidateSet('dos-real-mode', 'dos-protected-mode', 'win16', 'win32')]
+    [ValidateSet('dos-real-mode', 'dos-protected-mode', 'win16', 'win32', IgnoreCase = $false)]
     [string] $Platform,
     [string] $OriginalTitle,
     [string] $OriginalDeveloper,
@@ -383,8 +383,8 @@ if ($values.Platform) {
     Write-Host "Platform '$($values.Platform)': linked docs/$($guide.Guide) in $platformBlocks file(s)."
 }
 else {
-    Write-Warning ("platform is not set, so AGENTS.md, docs/RUNTIME.md and the runtime-access skill still list " +
-        "every platform's guide. Set it to one of $((Get-PlatformIds) -join ', ') and re-run with -Force.")
+    Write-Warning ("platform is not set, so the platform-guide blocks in AGENTS.md, docs/RUNTIME.md and the " +
+        "runtime-access skill were left as they are. Set it to one of $((Get-PlatformIds) -join ', ') and re-run with -Force.")
 }
 if ($missingPlatformBlocks.Count) {
     Write-Warning ("No platform-guide block in: " + ($missingPlatformBlocks -join ', ') +

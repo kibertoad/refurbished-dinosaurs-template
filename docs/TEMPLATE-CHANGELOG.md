@@ -13,7 +13,8 @@ A project created from this template may delete this file.
 - **Configuration.** `tools/project-config.json` has a `platform` field:
   `dos-real-mode`, `dos-protected-mode`, `win16` or `win32`, empty in the
   template. `Configure-Project.ps1` takes it from the file or `-Platform` and
-  refuses any other value before changing a file. `Bootstrap-Project.ps1`
+  refuses any other value, including another case of a valid one, before
+  changing a file. `Bootstrap-Project.ps1`
   requires it. `Verify-Configuration.ps1` reports an empty or unknown value
   in a configured repository. `tools/Platform-Guides.psm1` holds the
   platforms and their guides.
@@ -25,7 +26,9 @@ A project created from this template may delete this file.
   names no DOS guide. `Verify-Configuration.ps1` and
   `Test-TemplateInfrastructure.ps1` report a block that does not match the
   configuration. `AGENTS.md` step 0 says how to tell the platform from the
-  executable's header, and `docs/CUSTOMIZATION.md` documents the field.
+  executable's header and to ask the owner about a DOS extender format no
+  value covers (an NE file under Borland's DPMI runtime, Phar Lap, DOS/16M),
+  and `docs/CUSTOMIZATION.md` documents the field.
 - **Guides.** `docs/DOS-RUNTIME-AND-LIFT.md` is now
   `docs/DOS-REAL-MODE-RUNTIME-AND-LIFT.md`, one name in the
   `<PLATFORM>-RUNTIME-AND-LIFT.md` scheme. `docs/DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md`,

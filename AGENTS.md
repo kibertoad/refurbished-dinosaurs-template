@@ -30,10 +30,13 @@ determine; never invent an edition, a fingerprint, or a file format.
 
 Identify the platform the analysis build runs on from its executable's header
 and record it as `platform` in `tools/project-config.json`: `dos-real-mode`
-for an MZ program with no extender, `dos-protected-mode` for an LE or LX image
-behind an MZ stub (DOS/4GW and other DPMI hosts), `win16` for NE and `win32`
-for PE. It picks the guide to running the game and to the lift that these
-instructions, `docs/RUNTIME.md` and the `runtime-access` skill link.
+for an MZ program with no extender or a `.COM` file, `dos-protected-mode` for
+an LE or LX image behind an MZ stub (DOS/4GW and other DPMI hosts), `win16`
+for an NE file that Windows runs and `win32` for PE. An NE file started by a
+DOS extender (Borland's 16-bit DPMI runtime, for example) is a DOS program, and
+so is any other extender format (Phar Lap, DOS/16M): no value fits these yet,
+so ask the owner. It picks the guide to running the game and to the lift that
+these instructions, `docs/RUNTIME.md` and the `runtime-access` skill link.
 
 Confirm once that the game qualifies: it was released in 2004 or earlier, and no
 official remake or remaster of it is on sale. If either fails, stop and tell the

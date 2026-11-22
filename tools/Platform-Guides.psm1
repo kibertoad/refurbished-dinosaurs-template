@@ -42,8 +42,9 @@ $script:Targets = @(
 
 function Get-PlatformIds { return @($script:Platforms.Keys) }
 
+# Platform ids match case-sensitively: [ordered]@{} keys do not, and 'WIN32' would otherwise be stored as is.
 function Get-PlatformGuide([string] $Platform) {
-    if (-not $script:Platforms.Contains($Platform)) { return $null }
+    if (-not ((Get-PlatformIds) -ccontains $Platform)) { return $null }
     return $script:Platforms[$Platform]
 }
 
@@ -51,7 +52,7 @@ function Get-PlatformGuideTargets { return $script:Targets }
 
 function Assert-Platform([string] $Platform, [string] $Source) {
     if ([string]::IsNullOrWhiteSpace($Platform)) { return }
-    if (-not $script:Platforms.Contains($Platform)) {
+    if (-not (Get-PlatformGuide $Platform)) {
         throw ("platform '$Platform' in $Source is not a known platform. Use one of: " +
             ((Get-PlatformIds) -join ', ') + '.')
     }

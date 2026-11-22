@@ -218,6 +218,17 @@ test("configuration refuses an unknown platform before changing anything", t => 
   assert.match(fromArgument.stdout + fromArgument.stderr, /win64/);
   assert.deepEqual(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))), config);
   assert.equal(readFileSync(resolve(dir, "AGENTS.md"), "utf8"), "{{DISPLAY_NAME}}\n");
+  // Platform ids match with exact case, from the argument and from the file.
+  const wrongCaseArgument = run("-Platform", "WIN32");
+  assert.notEqual(wrongCaseArgument.status, 0);
+  assert.match(wrongCaseArgument.stdout + wrongCaseArgument.stderr, /WIN32/);
+  const wrongCase = { ...config, platform: "WIN32" };
+  writeFileSync(resolve(dir, "tools/project-config.json"), JSON.stringify(wrongCase));
+  const wrongCaseFile = run();
+  assert.notEqual(wrongCaseFile.status, 0);
+  assert.match(wrongCaseFile.stdout + wrongCaseFile.stderr, /'WIN32'/);
+  assert.deepEqual(JSON.parse(readFileSync(resolve(dir, "tools/project-config.json"))), wrongCase);
+  assert.equal(readFileSync(resolve(dir, "AGENTS.md"), "utf8"), "{{DISPLAY_NAME}}\n");
 });
 
 test("configuration copy includes Git-visible files and excludes ignored or local output", t => {

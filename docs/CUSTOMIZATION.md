@@ -65,10 +65,14 @@ inventories:
 
 | `platform` | Executable | Guide |
 |---|---|---|
-| `dos-real-mode` | MZ, 16-bit real mode | [DOS-REAL-MODE-RUNTIME-AND-LIFT.md](DOS-REAL-MODE-RUNTIME-AND-LIFT.md) |
+| `dos-real-mode` | MZ, 16-bit real mode, or `.COM` | [DOS-REAL-MODE-RUNTIME-AND-LIFT.md](DOS-REAL-MODE-RUNTIME-AND-LIFT.md) |
 | `dos-protected-mode` | LE or LX behind an MZ stub (DOS/4GW, other DPMI hosts) | [DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md](DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md) |
-| `win16` | NE (Windows 3.x and 9x) | [WIN16-RUNTIME-AND-LIFT.md](WIN16-RUNTIME-AND-LIFT.md) |
+| `win16` | NE that Windows runs (Windows 3.x and 9x) | [WIN16-RUNTIME-AND-LIFT.md](WIN16-RUNTIME-AND-LIFT.md) |
 | `win32` | PE | [WIN32-RUNTIME-AND-LIFT.md](WIN32-RUNTIME-AND-LIFT.md) |
+
+Values match with exact case. An NE file started by a DOS extender (Borland's
+16-bit DPMI runtime) and other extender formats (Phar Lap, DOS/16M) are DOS
+programs that no value covers yet; ask the owner before picking one.
 
 `AGENTS.md`, `docs/RUNTIME.md` and `.claude/skills/runtime-access/SKILL.md`
 each hold a block between `<!-- platform-guide:begin ... -->` and
