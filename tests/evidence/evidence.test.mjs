@@ -126,7 +126,7 @@ test("inventory views report exclusions and reject aliased ownership conflicts",
   const mapped = { name: "mapped", ranges: [{ start: 528, end: 560 }], text: "start\tsize\n1001:0000\t8\n0x0210\t2\n" };
   const joined = joinInventories(image, "CD:GAME.EXE", [view, mapped], { codeRanges: [{ start: 528, end: 540 }] });
   // Starts are in the standard's notation: segmented in the load image, a file offset in overlay code.
-  assert.equal(joined.tsv, "start\tsize\n1001:0000\t8\n0x00000210\t2\n"); assert.equal(joined.views[1].excluded, 1);
+  assert.equal(joined.tsv, "start\tsize\tname\tout_of_scope\tranges\tlift\tlift_reason\n1001:0000\t8\t\t\t\tnone\t\n0x00000210\t2\t\t\t\tnone\t\n"); assert.equal(joined.views[1].excluded, 1);
   // An overlay offset must lie in a row of the build's Code ranges, and each row inside an overlay payload.
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped]), /Code ranges/);
   // An overlay start that the view does not own is excluded, and needs no Code ranges row.
@@ -135,7 +135,7 @@ test("inventory views report exclusions and reject aliased ownership conflicts",
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped], { codeRanges: [{ start: 100, end: 120 }] }), /overlay payload/);
   assert.throws(() => joinInventories(image, "GAME.EXE", [view, mapped], { codeRanges: [{ start: 528, end: 600 }] }), /overlay payload/);
   // A file offset in the load image is written as the segment:offset that names the same byte.
-  assert.equal(joinInventories(image, "GAME.EXE", [{ ...view, text: "start\tsize\n0x0104\t4\n1001:0001\t2\n" }]).tsv, "start\tsize\n1001:0001\t2\n100C:0004\t4\n");
+  assert.equal(joinInventories(image, "GAME.EXE", [{ ...view, text: "start\tsize\n0x0104\t4\n1001:0001\t2\n" }]).tsv, "start\tsize\tname\tout_of_scope\tranges\tlift\tlift_reason\n1001:0001\t2\t\t\t\tnone\t\n100C:0004\t4\t\t\t\tnone\t\n");
   assert.throws(() => joinInventories(image, "GAME.EXE", [{ ...view, text: "start\tsize\n0x0050\t4\n1001:0000\t2\n" }]), /aliased/);
   // The standard places the load image at segment 0x1000; another load segment would misspell every start.
   assert.throws(() => joinInventories(readMz(synthetic(), 0x2000), "GAME.EXE", [view]), /0x1000/);
@@ -161,7 +161,7 @@ test("command interface checks identity and writes only the canonical inventory 
   assert.equal(run(["operand", path]).relocated, true);
   const result = run(["inventory", path]); assert.equal(result.tsv, undefined);
   assert.ok(existsSync(join(dir, "out", result.destination)));
-  assert.equal(readFileSync(join(dir, "out", result.destination), "utf8"), "start\tsize\n1001:0000\t8\n");
+  assert.equal(readFileSync(join(dir, "out", result.destination), "utf8"), "start\tsize\tname\tout_of_scope\tranges\tlift\tlift_reason\n1001:0000\t8\t\t\t\tnone\t\n");
   assert.throws(() => run(["inventory", path]), /exist/);
   cfg.inventory = { path: `out/${result.destination}`, repositoryPath: result.destination };
   writeFileSync(path, JSON.stringify(cfg));
@@ -237,6 +237,14 @@ test('committed inventory validates identity, columns, numeric aliases and expli
  assert.throws(()=>check(text.replace('out_of_scope','bytes')),/columns/);
  assert.throws(()=>check(text.replace('name\tout_of_scope','name\tname')),/columns/);
  assert.throws(()=>check('start\tsize\n'),/row count/);
+ // The protocol's seven columns, with lift states and their reasons.
+ const lifted='start\tsize\tname\tout_of_scope\tranges\tlift\tlift_reason\n1001:0000\t8\tneutralHelper\t\t1001:0000..1001:0004 1001:0010..1001:0014\tverified\t\n1001:0020\t4\t\t\t\tstuck\twrites code it then runs\n';
+ assert.equal(check(lifted).rows,2);
+ assert.throws(()=>check(lifted.replace('verified','done')),/lift state done/);
+ assert.throws(()=>check(lifted.replace('writes code it then runs','')),/needs a lift_reason/);
+ assert.throws(()=>check(lifted.replace('verified\t','verified\tchecked')),/takes no lift_reason/);
+ assert.throws(()=>check(lifted.replace('1001:0000..1001:0004','1001:0000-1001:0004')),/start\.\.end/);
+ assert.throws(()=>check('start\tsize\tlift_reason\n1001:0000\t8\t\n'),/lift_reason without lift/);
  assert.throws(()=>check(text,'/bad.tsv'),/Unsafe/);
 });
 
@@ -257,7 +265,7 @@ test("PE inventories write flat virtual addresses inside executable sections", (
   const image = readPe32(syntheticPe());
   assert.deepEqual(image.ranges, [{ view: "section-0", start: 0x7F001000, end: 0x7F001100 }]);
   const view = { name: "text", ranges: [{ start: 0x7F001000, end: 0x7F001100 }], text: "start\tsize\n0x7f001040\t16\n0x7F001000\t8\n" };
-  assert.equal(joinInventories(image, "GAME.EXE", [view]).tsv, "start\tsize\n0x7F001000\t8\n0x7F001040\t16\n");
+  assert.equal(joinInventories(image, "GAME.EXE", [view]).tsv, "start\tsize\tname\tout_of_scope\tranges\tlift\tlift_reason\n0x7F001000\t8\t\t\t\tnone\t\n0x7F001040\t16\t\t\t\tnone\t\n");
   assert.throws(() => joinInventories(image, "GAME.EXE", [{ ...view, text: "start\tsize\n0x7F002000\t4\n" }]), /executable sections/);
   assert.throws(() => joinInventories(image, "GAME.EXE", [{ ...view, text: "start\tsize\n1000:0000\t4\n" }]), /32-bit virtual address/);
   assert.throws(() => joinInventories(image, "GAME.EXE", [view], { codeRanges: [{ start: 0x7F001000, end: 0x7F001010 }] }), /MZ overlay code/);
@@ -278,7 +286,7 @@ test("PE inventories write flat virtual addresses inside executable sections", (
     manifest: "GAME.EXE", writeRoot: "out", views: [{ name: "text", path: "view.tsv", ranges: view.ranges }] };
   writeFileSync(config, JSON.stringify(cfg));
   const result = run(["inventory", config]);
-  assert.equal(readFileSync(join(dir, "out", result.destination), "utf8"), "start\tsize\n0x7F001000\t8\n0x7F001040\t16\n");
+  assert.equal(readFileSync(join(dir, "out", result.destination), "utf8"), "start\tsize\tname\tout_of_scope\tranges\tlift\tlift_reason\n0x7F001000\t8\t\t\t\tnone\t\n0x7F001040\t16\t\t\t\tnone\t\n");
   writeFileSync(config, JSON.stringify({ ...cfg, target: 0x7F001000 }));
   assert.throws(() => run(["incoming", config]), /MZ sources only/);
   writeFileSync(config, JSON.stringify({ ...cfg, sourceKind: "le" }));

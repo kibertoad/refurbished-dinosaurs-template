@@ -170,8 +170,8 @@ importers:
         specifier: 4.3.0
         version: 4.3.0
       '@scientific-method/standard-checker':
-        specifier: 6.1.0
-        version: 6.1.0
+        specifier: 6.2.0
+        version: 6.2.0
 
 packages:
 
@@ -266,8 +266,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@scientific-method/standard-checker@6.1.0':
-    resolution: {integrity: sha512-VJgnPqDBRBdBXa+URFkw0zP6Bpylhuwst4/pfgdrt6YqgZV/e+npVUrrjMmJCvL2FWsUuwnRaaL8hj0onnYXYQ==}
+  '@scientific-method/standard-checker@6.2.0':
+    resolution: {integrity: sha512-cipLERm/k7C496JufJnMOZ67G76ML88U8rdlF/DYh+FX4d3vVtCzQ09goS2S1at/5WOzTy6BpXRD2PqIfIToJA==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -332,4 +332,4 @@ snapshots:
     dependencies:
       '@node-rs/xxhash': 1.7.8
 
-  '@scientific-method/standard-checker@6.1.0': {}
+  '@scientific-method/standard-checker@6.2.0': {}

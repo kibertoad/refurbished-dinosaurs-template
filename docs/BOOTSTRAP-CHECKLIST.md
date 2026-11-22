@@ -41,6 +41,9 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
       file (`docs/EVIDENCE-TOOLS.md`), add a screen entry for every
       screen the manual mentions, and seed a `queue/<AREA>.md` for every
       area.
+- [ ] Lift: record the lift harness and generator in `docs/RUNTIME.md` and
+      the Lift stage in `docs/IMPLEMENTATION-PLAN.md`, or record there why
+      the project skips it. Lifted code stays in `GAME_DIR/lift/`.
 
 ## Configure
 

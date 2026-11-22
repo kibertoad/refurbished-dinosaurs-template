@@ -8,6 +8,16 @@ not here.
 
 A project created from this template may delete this file.
 
+## Work protocol 2 and the lift, 2026-11-22
+
+- **Rules.** `docs/upstream/` holds the rules at `kibertoad/refurbished-dinosaurs` bebb4a2: work protocol 2, which adds the lift (a translation of each inventoried function over a machine model, checked against the original), the Lift stage, lift batches, the lift capability in the runtime record and the `lift` and `lift_reason` inventory columns, together with the clean-room use of decompiler indexes during the survey and a bounded local validation grace. The standard stays at version 1, with STATUS-45: reading a `verified` lifted function counts as reading its instructions. `node tools/upstream.mjs links --write` updated the section ranges.
+- **Checker.** `@scientific-method/standard-checker` 6.2.0 reads the lift columns, and `standard-coverage` prints how many functions and bytes each lift state holds.
+- **Agent instructions and skills.** `AGENTS.md` lists the Lift stage and lift batches, says the lift lives in `GAME_DIR/lift/` and its tools in `tools/lift/`, and gives the rules for reading it. `plan-work` orders the lift by the slices; `research-item` reads a `verified` function in the lift in place of the decompiler's output.
+- **Plan and runtime record.** `docs/IMPLEMENTATION-PLAN.md` has a Lift section, `docs/RUNTIME.md` a lift harness capability with the parts `record` and `replace`, and the bootstrap checklist a Lift step.
+- **Inventories.** `tools/evidence/inventory.mjs` writes the protocol's seven columns (`start`, `size`, `name`, `out_of_scope`, `ranges`, `lift`, `lift_reason`) with the state `none`, and its check accepts them, refusing an unknown lift state, a `stuck` or `excluded` row with no reason, a reason on any other state, and `lift_reason` without `lift`. Before this it refused any inventory with a `ranges` column.
+- **Evidence engine.** `scientific-method-engine` moves from 19.9.0 to 20.0.0, whose `ExportFunctionInventory.java` writes the seven columns and carries names, out-of-scope reasons and unchanged lift states over from a previous inventory, and whose `inventory-check` reads the lift columns. Reader 4.3.0 speaks the same prepared-config protocol. `docs/GHIDRA.md` and `docs/EVIDENCE-TOOLS.md` describe the re-export, and `docs/GHIDRA.md` says the scripts compile against Ghidra 12.1 and 12.2 (JDK 25).
+- **rust-dos.** `docs/WINDOWS-PROBES.md` says `dinorefurb-dosbox-session` 1.1.0 pins rust-dos 1.9.2 and that the Windows procedure has not been run on it yet.
+
 ## Closure CLI tests on a large spec, 2026-10-19
 
 - **Research closure tests.** The two CLI tests in `tests/upstream/research-closure.test.mjs` read `tools/Report-ResearchClosure.mjs`'s JSON with a 64 MiB `spawnSync` buffer. The report lists every inventoried function, so on a restoration with an 8,700-function inventory it came to about 5.7 MB, past Node's default 1 MiB, and both tests failed with `ENOBUFS` before reading any output.

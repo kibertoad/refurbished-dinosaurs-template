@@ -15,6 +15,9 @@ Before analysis, replace this instructional section with:
 - the exact owned executable's edition, path, length, xxh3, and format;
 - a narrow disposable-project pattern below `%TEMP%`.
 
+The engine's scripts compile against Ghidra 12.1 and 12.2, and the toolkit's CI
+compiles them against 12.2, which needs JDK 25. A new project starts on 12.2.
+
 Check documented local paths before searching or downloading tools. Isolated
 processes may need `GHIDRA_HOME`, `JAVA_HOME`, and an explicit `PATH`.
 If sandboxing prevents Ghidra from persisting user preferences, request only the
@@ -25,7 +28,7 @@ against its build entry before interpreting an address.
 Another version of the executable is another build, with its own
 `spec/builds/` entry, and a finding lists it only when it was checked there
 too, with a location in each build. Addresses are written in the
-[notation](upstream/documentation-standard.md#notation) (lines 393-434) for the
+[notation](upstream/documentation-standard.md#notation) (lines 399-440) for the
 executable's format: the full virtual address at the header's image base for
 PE, and `segment:offset` for MZ, COM, and NE, with the load segment the
 standard fixes for each.
@@ -279,7 +282,14 @@ Use [the evidence tooling guide](EVIDENCE-TOOLS.md) for MZ/FBOV operand
 resolution, explicit control-flow review, bounded tables and function inventory
 joins. The engine's `ExportFunctionInventory.java` writes a function inventory,
 with its `.provenance.tsv` and `.regions.tsv`, to its `coverage/` path from one
-view; its arguments are in the engine's catalog. Ghidra gives a function's or a
+view; its arguments are in the engine's catalog. It writes the work protocol's
+seven columns. Its optional third argument is the previous inventory, moved
+aside with its side files, whose names, out-of-scope reasons and lift states it
+carries over: a lift state only where the function's size and ranges are
+unchanged, `none` otherwise, with the `lift_` lines of the old provenance file.
+Delete the moved files once the new inventory is committed. Upgrading Ghidra can
+change function boundaries, and with them the lift states the re-export resets,
+so upgrade before much of the lift is verified. Ghidra gives a function's or a
 block's maximum address as its last byte, while the standard writes every range
 half-open, so a body whose last byte is `0x0045E7CD` is cited as
 `..0x0045E7CE`. Raw operands and analyzer boundaries remain observations to verify.

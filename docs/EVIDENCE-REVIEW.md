@@ -163,7 +163,7 @@ Whether the code ever does something, such as start another program, is
 answered by a census of the mechanism every use has to pass through (a DOS or
 operating-system service selected by a register value, an import slot, a port
 range, an interrupt vector, a runtime dispatcher), as the standard's
-[Findings](upstream/documentation-standard.md#findings) (lines 745-829) section describes, not by tracing the code that
+[Findings](upstream/documentation-standard.md#findings) (lines 751-835) section describes, not by tracing the code that
 prepares the action. The census lists every site with the value that selects
 the service there, a site whose value is loaded or computed as undecided, and
 each kind of transfer that leaves the code it covers; each kind of site counts
@@ -212,7 +212,7 @@ finding nor moved part of the question into its own item ended in the same
 place, however much new code it read. After two such attempts in a row the item
 is split into parts with their own Settles it, or moved to the section of the
 evidence that would change the outcome, as
-[The queue](upstream/work-protocol.md#the-queue) (lines 84-185) says; do not append an endless list of tasks.
+[The queue](upstream/work-protocol.md#the-queue) (lines 105-208) says; do not append an endless list of tasks.
 
 ## Status and inventories
 

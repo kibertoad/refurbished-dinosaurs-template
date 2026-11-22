@@ -5,9 +5,9 @@ description: Plan restoration work - record the project's stage, write or revise
 
 # Plan work
 
-The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 32-82),
-[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 84-185) and
-[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 592-690).
+The rules are in the work protocol's [Stages](../../../docs/upstream/work-protocol.md#stages) (lines 36-103),
+[The queue](../../../docs/upstream/work-protocol.md#the-queue) (lines 105-208) and
+[Coding agents and long-running goals](../../../docs/upstream/work-protocol.md#coding-agents-and-long-running-goals) (lines 692-790).
 Open a linked section only when a step leaves a question it answers, read
 only the lines the link gives, and never a section already read this session.
 Planning changes `docs/IMPLEMENTATION-PLAN.md`, `queue/` and `docs/goals/`,
@@ -15,10 +15,14 @@ never code or spec entries apart from new `unknown` entries.
 
 ## Stage and slices
 
-1. Establish the stage (Intake, Runtime access, Survey, Slices, Audit) by checking
-   each earlier stage's exit criteria in the protocol against the repository.
-   Record it in the plan. Do not move the stage forward on a criterion you
-   could not check.
+1. Establish the stage (Intake, Runtime access, Survey, Lift, Slices, Audit) by
+   checking each earlier stage's exit criteria in the protocol against the
+   repository. Record it in the plan. Do not move the stage forward on a
+   criterion you could not check. Slices do not wait for the Lift stage; Audit
+   does. While the lift runs, order it by the slices: the functions the next
+   slice's entries depend on are verified first, and every `stuck` function is
+   named in the plan's risks. A project whose runtime record has no lift
+   harness says in the plan why it skips the stage.
 2. Each slice in the plan names the spec areas or entries it needs and the
    parity rows it must bring to `implemented`, `deviated` or `validated`, and each target
    is one `docs/RUNTIME.md` makes reachable: without runs of the original,
@@ -65,7 +69,7 @@ never code or spec entries apart from new `unknown` entries.
    entry cites gets a queue item against the nearest entry or a new
    `unknown` one. Its figures are printed when wanted and never committed;
    the plan names the command and copies none of the shares it printed. The protocol's
-   [Measuring progress](../../../docs/upstream/work-protocol.md#measuring-progress) (lines 529-586)
+   [Measuring progress](../../../docs/upstream/work-protocol.md#measuring-progress) (lines 628-686)
    says how to set an early baseline and report coverage by area.
 3. Move items that block the current slice to the top of their section.
 

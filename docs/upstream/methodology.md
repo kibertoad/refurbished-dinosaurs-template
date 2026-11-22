@@ -15,15 +15,15 @@ We only take on games released in 2004 or earlier. We leave a game alone if an o
 
 You bring the game. No restoration ships original art, audio, text, data tables or executables. It reads them from a copy you own. A game nobody sells any more still belongs to someone.
 
-We write a new engine from documentation of the original. A rebuild written against a specification leaves behind a game that runs and a document that explains it, and the document is half of what we set out to produce. We do not translate the original machine code into matching source code, and we do not patch the original executable one function at a time.
+We write a new engine from documentation of the original. A rebuild written against a specification leaves behind a game that runs and a document that explains it, and the document is half of what we set out to produce. What we ship is neither the original machine code translated into matching source code nor the original executable patched one function at a time. For research we do translate the code, one function at a time, into a form we can read and run beside the original, and check each function against it. That translation, the [lift](/work-protocol/#the-lift), is read like disassembly and kept like it.
 
-No original code goes into a repository. Decompiler output, disassembly listings, byte dumps and analysis databases stay on the researcher's machine. What gets committed is a description of behaviour in our own words, such as a formula, a table layout or a state diagram, and the implementation is written from that description.
+No original code goes into a repository. Decompiler output, disassembly listings, the lift, byte dumps and analysis databases stay on the researcher's machine. What gets committed is a description of behaviour in our own words, such as a formula, a table layout or a state diagram, and the implementation is written from that description.
 
 Every finding names the exact build it came from: the edition, the version and the xxHash3 (128-bit) hash of the file it was found in. Supported editions are listed by hash, and the importer refuses files it does not recognise instead of guessing.
 
 ## Studying the original
 
-The executable has the final word on what the shipped game does. We read it in [Ghidra](https://github.com/NationalSecurityAgency/ghidra) and watch it run under a debugger. Functions and variables keep neutral names until their behaviour is confirmed, because a wrong name given early steers every later reading.
+The executable has the final word on what the shipped game does. We read it in [Ghidra](https://github.com/NationalSecurityAgency/ghidra) and watch it run under a debugger. Where an emulator can run the game and swap one of its functions for a translated one, we read the lift instead of the decompiler's guesses for each lifted function that has been run against the original on cases reaching all of its branches, since it gives every width and flag the instructions use. Functions and variables keep neutral names until their behaviour is confirmed, because a wrong name given early steers every later reading.
 
 An experiment starts from a saved state, changes one input, and records what follows. It is repeated from the same save, with the random number generator's state varied between runs. Anything that involves random numbers needs many repetitions and a recorded distribution, since a formula inferred from one roll is a guess.
 
@@ -65,4 +65,4 @@ Every deviation is listed in the documentation with its reason. Some of them are
 
 ## Credits
 
-These rules come from projects that have been rebuilding old games for more than twenty years, above all [ScummVM](https://www.scummvm.org), [OpenTTD](https://www.openttd.org), [OpenRCT2](https://openrct2.io), [Chocolate Doom](https://www.chocolate-doom.org), [OpenMW](https://openmw.org), [MAME](https://www.mamedev.org) and [IESDP](https://gibberlings3.github.io/iesdp/).
+These rules come from projects that have been rebuilding old games for more than twenty years, above all [ScummVM](https://www.scummvm.org), [OpenTTD](https://www.openttd.org), [OpenRCT2](https://openrct2.io), [Chocolate Doom](https://www.chocolate-doom.org), [OpenMW](https://openmw.org), [MAME](https://www.mamedev.org) and [IESDP](https://gibberlings3.github.io/iesdp/). The lift comes from [Spice86](https://github.com/OpenRakis/Spice86), which rewrites DOS programs in C# one function at a time while the rest of the program keeps running.
