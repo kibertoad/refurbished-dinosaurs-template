@@ -16,6 +16,10 @@
   "repositoryUrl": "",
   "summary": "",
   "platform": "",
+  "template": {
+    "repository": "kibertoad/refurbished-dinosaurs-template",
+    "revision": ""
+  },
   "original": {
     "title": "",
     "developer": "",

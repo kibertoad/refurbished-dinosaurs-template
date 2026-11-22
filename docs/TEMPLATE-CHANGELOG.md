@@ -8,6 +8,33 @@ not here.
 
 A project created from this template may delete this file.
 
+## Template sync, 2026-11-22
+
+- **Record.** `tools/project-config.json` has a `template` entry: the
+  template repository and the full commit the project was made from or last
+  synced to. `Configure-Project.ps1` records `HEAD` in an unconfigured clone
+  of the template, takes `-TemplateRevision` (also on `Bootstrap-Project.ps1`)
+  otherwise, keeps the value on `-Force`, and refuses one that is not a full
+  commit. `Verify-Configuration.ps1` warns about a configured project with no
+  revision, so existing projects keep passing, and fails a malformed one.
+- **Sync.** `node tools/template.mjs check` compares the recorded revision
+  with the template's main branch. `node tools/template.mjs sync --to <commit>`
+  configures a scratch copy of the template at both revisions with the
+  project's configuration, merges the difference into the project file by
+  file with `git merge-file`, re-runs `Configure-Project.ps1 -Force`, records
+  the new revision and runs `upstream.mjs links --write`. It commits nothing
+  and lists the conflicts and the files merged into the project's own edits.
+  `--from` gives the starting commit for a project with no record.
+- **Procedure.** `docs/TEMPLATE-SYNC.md` says when to sync (only when the
+  owner asks, like a rules refresh, which `AGENTS.md` now says next to it),
+  why sync compares configured copies, and how to resolve conflicts between a
+  project's filled-in records and the template's instructions for them.
+- **Tests.** `tests/upstream/template-sync.test.mjs` builds a fake template
+  with two commits and a configured project with edits of its own, and checks
+  that sync carries the template's changes into configured files, keeps the
+  project's edits, and reports a conflicting change. It runs in the
+  `template-sync` validation suite.
+
 ## A guide per platform, 2026-11-22
 
 - **Configuration.** `tools/project-config.json` has a `platform` field:

@@ -8,6 +8,7 @@ substitutes every {{PLACEHOLDER}} token, points the platform-guide blocks at the
 guide for the configured platform, renames the template's `Restoration.*`
 projects to the configured project name, and writes the resolved values back to
 tools/project-config.json so later tooling and contributors share one source of truth.
+That includes `template.revision`, the template commit the project was made from.
 
 Values left empty are derived where a sensible default exists. Placeholders whose
 value is still unknown are left in place and reported, so
@@ -20,6 +21,11 @@ Configures the repository from tools/project-config.json alone.
 .EXAMPLE
 ./tools/Configure-Project.ps1 -ProjectName Sanctuary -DisplayName 'Sanctuary Restored' -WhatIf
 Shows every file, rename, and unresolved placeholder without changing anything.
+
+.EXAMPLE
+./tools/Configure-Project.ps1 -TemplateRevision 0123456789abcdef0123456789abcdef01234567
+Records the full template commit the project was made from, for a checkout that is
+not a clone of the template. tools/template.mjs takes later template changes from it.
 
 .EXAMPLE
 ./tools/Configure-Project.ps1 -SkipIfConfigured -ProjectName Sample -DisplayName Sample
@@ -54,6 +60,8 @@ param(
     [string] $PatchStatusEvidence,
     [switch] $PatchStatusEstablished,
     [guid] $AppId,
+    [ValidatePattern('^[0-9a-f]{40}$')]
+    [string] $TemplateRevision,
     [string] $ConfigPath,
     [switch] $Force,
     [switch] $SkipIfConfigured
@@ -171,6 +179,22 @@ function Rename-PlaceholderFiles([string] $root, [System.Collections.Specialized
     return $renamed
 }
 
+# The template commit this checkout is, when it is a clone of the template: its own top level, with a
+# remote that names the template repository. A project made any other way gets -TemplateRevision.
+function Get-CloneTemplateRevision([string] $root, [string] $repository) {
+    if (-not $repository -or -not (Get-Command git -ErrorAction SilentlyContinue)) { return $null }
+    $safe = "safe.directory=$($root.Replace('\', '/'))"
+    $top = & git -c $safe -C $root rev-parse --show-toplevel 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $top -or
+        [IO.Path]::GetFullPath($top).TrimEnd('\', '/') -ne [IO.Path]::GetFullPath($root).TrimEnd('\', '/')) { return $null }
+    $urls = @(& git -c $safe -C $root remote -v 2>$null | ForEach-Object { ($_ -split '\s+')[1] })
+    $pattern = "[/:]$([regex]::Escape($repository))(\.git)?/?$"
+    if (-not ($urls | Where-Object { $_ -match $pattern })) { return $null }
+    $head = & git -c $safe -C $root rev-parse HEAD 2>$null
+    if ($LASTEXITCODE -ne 0 -or $head -notmatch '^[0-9a-f]{40}$') { return $null }
+    return $head
+}
+
 function Save-ProjectConfig([string] $path, [hashtable] $values) {
     $document = [ordered]@{
         '$schema-note' = 'Resolved identity and latest-official-version gate. Re-run ./tools/Configure-Project.ps1 -Force after changing projectName; other substituted values must be updated in place.'
@@ -190,6 +214,10 @@ function Save-ProjectConfig([string] $path, [hashtable] $values) {
         repositoryUrl = $values.RepositoryUrl
         summary = $values.Summary
         platform = $values.Platform
+        template = [ordered]@{
+            repository = $values.TemplateRepository
+            revision = $values.TemplateRevision
+        }
         original = [ordered]@{
             title = $values.OriginalTitle
             developer = $values.OriginalDeveloper
@@ -263,6 +291,20 @@ $values = @{
     PatchStatusEstablished = if ($PatchStatusEstablished) { $true } else {
         [bool] (Get-ConfigValue $original 'patchStatusEstablished')
     }
+}
+# The template commit the project was made from or last synced to (docs/TEMPLATE-SYNC.md). An
+# unconfigured clone of the template records its own HEAD; otherwise the value stays empty until
+# -TemplateRevision or the config gives one, and Verify-Configuration.ps1 warns about it.
+$templateConfig = Get-ConfigValue $config 'template'
+if ($null -eq $templateConfig) { $templateConfig = [pscustomobject]@{} }
+$values.TemplateRepository = [string] (Resolve-Setting $null $templateConfig 'repository' 'kibertoad/refurbished-dinosaurs-template')
+$values.TemplateRevision = [string] (Resolve-Setting $TemplateRevision $templateConfig 'revision' '')
+if (-not $values.TemplateRevision -and -not $wasConfigured) {
+    $detected = Get-CloneTemplateRevision (Split-Path -Parent $PSScriptRoot) $values.TemplateRepository
+    if ($detected) { $values.TemplateRevision = $detected }
+}
+if ($values.TemplateRevision -and $values.TemplateRevision -notmatch '^[0-9a-f]{40}$') {
+    throw "template.revision '$($values.TemplateRevision)' must be a full 40-character commit of $($values.TemplateRepository)."
 }
 $values.BundleId = Resolve-Setting $BundleId $config 'bundleId' `
     "io.github.$($values.Publisher.ToLowerInvariant() -replace '[^a-z0-9.]', '').$($values.GameId -replace '[^a-zA-Z0-9.]', '')"
@@ -385,6 +427,14 @@ if ($values.Platform) {
 else {
     Write-Warning ("platform is not set, so the platform-guide blocks in AGENTS.md, docs/RUNTIME.md and the " +
         "runtime-access skill were left as they are. Set it to one of $((Get-PlatformIds) -join ', ') and re-run with -Force.")
+}
+if ($values.TemplateRevision) {
+    Write-Host "Template revision: $($values.TemplateRepository) $($values.TemplateRevision)."
+}
+else {
+    Write-Warning ("template.revision is empty, so tools/template.mjs cannot tell which template changes this " +
+        "project has. Re-run with -Force -TemplateRevision <full commit of $($values.TemplateRepository)> " +
+        "the project was made from.")
 }
 if ($missingPlatformBlocks.Count) {
     Write-Warning ("No platform-guide block in: " + ($missingPlatformBlocks -join ', ') +
