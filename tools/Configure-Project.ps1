@@ -4,7 +4,8 @@ Turns this template into a project for one specific game.
 
 .DESCRIPTION
 Reads tools/project-config.json, applies any parameters given on the command line,
-substitutes every {{PLACEHOLDER}} token, renames the template's `Restoration.*`
+substitutes every {{PLACEHOLDER}} token, points the platform-guide blocks at the
+guide for the configured platform, renames the template's `Restoration.*`
 projects to the configured project name, and writes the resolved values back to
 tools/project-config.json so later tooling and contributors share one source of truth.
 
@@ -41,6 +42,8 @@ param(
     [int] $CopyrightYear,
     [string] $RepositoryUrl,
     [string] $Summary,
+    [ValidateSet('dos-real-mode', 'dos-protected-mode', 'win16', 'win32', IgnoreCase = $false)]
+    [string] $Platform,
     [string] $OriginalTitle,
     [string] $OriginalDeveloper,
     [string] $OriginalPublisher,
@@ -57,6 +60,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'Platform-Guides.psm1') -Force
 
 # The identifier the unconfigured template uses for its projects, namespaces, and
 # solution file. Configuring a repository twice renames from the previously
@@ -185,6 +189,7 @@ function Save-ProjectConfig([string] $path, [hashtable] $values) {
         copyrightYear = $values.CopyrightYear
         repositoryUrl = $values.RepositoryUrl
         summary = $values.Summary
+        platform = $values.Platform
         original = [ordered]@{
             title = $values.OriginalTitle
             developer = $values.OriginalDeveloper
@@ -246,6 +251,7 @@ $values = @{
         (([regex]::Replace($name, '([a-z0-9])([A-Z])', '$1_$2')).ToUpperInvariant() + '_SOURCE_PATH')
     Publisher = Resolve-Setting $Publisher $config 'publisher' 'kibertoad'
     Summary = Resolve-Setting $Summary $config 'summary'
+    Platform = [string] (Resolve-Setting $Platform $config 'platform' '')
     OriginalTitle = Resolve-Setting $OriginalTitle $original 'title'
     OriginalDeveloper = Resolve-Setting $OriginalDeveloper $original 'developer'
     OriginalPublisher = Resolve-Setting $OriginalPublisher $original 'publisher'
@@ -280,6 +286,7 @@ if (-not $values.Summary -and $values.OriginalTitle) {
     $values.Summary = "A clean-room MonoGame reimplementation of $($values.OriginalTitle)" +
         $attributionText + '.'
 }
+Assert-Platform $values.Platform $ConfigPath
 if ($values.GameId -notmatch '^[a-z0-9][a-z0-9.-]*$') {
     throw "gameId '$($values.GameId)' must be lowercase and start with a letter or digit."
 }
@@ -349,10 +356,40 @@ $renamed = if ($fromName -ceq $values.ProjectName) {
     Rename-TemplateItems $root $fromName $values.ProjectName $selfManaged
 }
 $renamed += Rename-PlaceholderFiles $root $replacements $selfManaged
+
+# AGENTS.md, docs/RUNTIME.md and the runtime-access skill link the guide for the configured platform
+# only. With no platform yet, their blocks keep the template's listing of every guide.
+$platformBlocks = 0
+$missingPlatformBlocks = @()
+if ($values.Platform) {
+    foreach ($target in Get-PlatformGuideTargets) {
+        $path = Join-Path $root $target.Path
+        $content = if (Test-Path -LiteralPath $path -PathType Leaf) { [IO.File]::ReadAllText($path) } else { '' }
+        $updated = Set-PlatformGuideBlockText $content (Get-PlatformGuideBlock $values.Platform $target.Prefix)
+        if ($null -eq $updated) { $missingPlatformBlocks += $target.Path; continue }
+        if ($updated -ceq $content) { continue }
+        if ($PSCmdlet.ShouldProcess($path, "Link the $($values.Platform) guide")) {
+            [IO.File]::WriteAllText($path, $updated, [Text.UTF8Encoding]::new($false))
+        }
+        $platformBlocks++
+    }
+}
 Save-ProjectConfig $ConfigPath $values
 
 Write-Host "Configured '$($values.DisplayName)' as '$($values.ProjectName)' (game id '$($values.GameId)', installer AppId $($values.AppId))."
 Write-Host "Rewrote $rewritten file(s) and renamed $renamed path(s)."
+if ($values.Platform) {
+    $guide = Get-PlatformGuide $values.Platform
+    Write-Host "Platform '$($values.Platform)': linked docs/$($guide.Guide) in $platformBlocks file(s)."
+}
+else {
+    Write-Warning ("platform is not set, so the platform-guide blocks in AGENTS.md, docs/RUNTIME.md and the " +
+        "runtime-access skill were left as they are. Set it to one of $((Get-PlatformIds) -join ', ') and re-run with -Force.")
+}
+if ($missingPlatformBlocks.Count) {
+    Write-Warning ("No platform-guide block in: " + ($missingPlatformBlocks -join ', ') +
+        ". Link docs/$((Get-PlatformGuide $values.Platform).Guide) there by hand.")
+}
 if ($unresolved.Count) {
     Write-Warning ("Unresolved placeholders left in the repository: " + ($unresolved -join ', ') +
         ". Fill them in at '$ConfigPath' and re-run with -Force, or edit the affected files directly.")

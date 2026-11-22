@@ -4,8 +4,9 @@ Reports whatever still ties this repository to the unconfigured template.
 
 .DESCRIPTION
 Scans the repository for unresolved {{PLACEHOLDER}} tokens, leftover template
-project names, the sample source manifest, and unfilled entries in
-tools/project-config.json.
+project names, the sample source manifest, unfilled entries in
+tools/project-config.json, and platform-guide blocks that do not match its
+platform.
 
 While tools/project-config.json still reports `"configured": false` the findings
 are informational and the script succeeds, so the template itself stays green in
@@ -24,6 +25,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'Platform-Guides.psm1') -Force
 
 $templateName = 'Restoration'
 $textExtensions = @('.cs', '.csproj', '.slnx', '.md', '.json', '.ps1', '.bat', '.iss', '.yml', '.yaml', '.props', '.targets')
@@ -101,6 +103,7 @@ elseif ($isConfigured) {
     $required = [ordered]@{
         projectName = $config.projectName
         displayName = $config.displayName
+        platform = $config.platform
         gameId = $config.gameId
         appId = $config.appId
         sourceEnvironmentVariable = $config.sourceEnvironmentVariable
@@ -120,6 +123,9 @@ elseif ($isConfigured) {
             $findings.Add("tools/project-config.json is missing a value for '$($entry.Key)'.")
         }
     }
+    if ($config.platform -and -not (Get-PlatformGuide ([string] $config.platform))) {
+        $findings.Add("tools/project-config.json has platform '$($config.platform)', which is not one of $((Get-PlatformIds) -join ', ').")
+    }
     if (-not [bool] $original.patchStatusEstablished) {
         $findings.Add("tools/project-config.json has not conclusively established the analysis edition's patch status.")
     }
@@ -127,6 +133,14 @@ elseif ($isConfigured) {
         $original.latestOfficialVersion -cne $original.analysisVersion) {
         $findings.Add("analysisVersion does not match latestOfficialVersion; patch the owned game before analysis.")
     }
+}
+
+# The unconfigured template lists every platform's guide; a configured project links its platform's alone.
+$expectedPlatform = if ($isConfigured -and $config.platform -and (Get-PlatformGuide ([string] $config.platform))) {
+    [string] $config.platform
+} else { '' }
+if (-not $isConfigured -or $expectedPlatform) {
+    foreach ($finding in Test-PlatformGuideBlocks $root $expectedPlatform) { $findings.Add($finding) }
 }
 
 $checklist = Join-Path $root 'docs/BOOTSTRAP-CHECKLIST.md'

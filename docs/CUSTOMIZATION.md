@@ -14,8 +14,9 @@ manual".
    older or unestablished analysis build. Once the record exists, it is settled;
    do not redo the investigation unless the repository owner asks for it.
 3. Fill in `tools/project-config.json`. `projectName` (PascalCase, used for
-   namespaces, assemblies, and directories), `displayName` (player-facing), the
-   original-game facts, and patch-status evidence are required. Identity fields
+   namespaces, assemblies, and directories), `displayName` (player-facing),
+   `platform` (see below), the original-game facts, and patch-status evidence
+   are required. Identity fields
    with documented defaults may remain empty.
 4. Run `./tools/Bootstrap-Project.ps1`. It checks the latest-version gate, calls
    `Configure-Project.ps1`, substitutes the placeholders, renames
@@ -56,6 +57,40 @@ and unresolved placeholder without changing anything.
 A placeholder with no value is deliberately left in place rather than filled
 with a plausible guess, so `./tools/Verify-Configuration.ps1` keeps reporting it.
 
+## Platform
+
+`platform` names what the analysis build runs on, read from its executable's
+header. It picks the guide to running the game, the lift harness and function
+inventories:
+
+| `platform` | Executable | Guide |
+|---|---|---|
+| `dos-real-mode` | MZ, 16-bit real mode, or `.COM` | [DOS-REAL-MODE-RUNTIME-AND-LIFT.md](DOS-REAL-MODE-RUNTIME-AND-LIFT.md) |
+| `dos-protected-mode` | LE or LX behind an MZ stub (DOS/4GW, other DPMI hosts) | [DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md](DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md) |
+| `win16` | NE that Windows runs (Windows 3.x and 9x) | [WIN16-RUNTIME-AND-LIFT.md](WIN16-RUNTIME-AND-LIFT.md) |
+| `win32` | PE | [WIN32-RUNTIME-AND-LIFT.md](WIN32-RUNTIME-AND-LIFT.md) |
+
+Values match with exact case. An NE file started by a DOS extender (Borland's
+16-bit DPMI runtime) and other extender formats (Phar Lap, DOS/16M) are DOS
+programs that no value covers yet; ask the owner before picking one.
+
+`AGENTS.md`, `docs/RUNTIME.md` and `.claude/skills/runtime-access/SKILL.md`
+each hold a block between `<!-- platform-guide:begin ... -->` and
+`<!-- platform-guide:end -->`. In the unconfigured template it lists every
+guide. `Configure-Project.ps1` replaces it with a link to the configured
+platform's guide alone, so an agent on a DOS game is never pointed at the
+Windows procedure, or the reverse. `tools/Platform-Guides.psm1` holds the list
+of platforms, their guides and the block text.
+
+`Configure-Project.ps1` refuses a value outside the table, from the file or
+from `-Platform`. With `platform` empty it leaves the blocks as they are and
+warns; `Bootstrap-Project.ps1` refuses to run until it is set.
+`Verify-Configuration.ps1` reports, in a configured repository, an empty or
+unknown `platform` and a block that does not match it, and in the template a
+block that differs from the listing. To change the platform later, edit
+`platform` and run `./tools/Configure-Project.ps1 -Force`, which rewrites the
+blocks; keep the markers when customizing `AGENTS.md`.
+
 ## What configuration rewrites
 
 - Placeholder tokens in every tracked text file, including `.github/workflows`.
@@ -64,6 +99,8 @@ with a plausible guess, so `./tools/Verify-Configuration.ps1` keeps reporting it
   after it. Only `Restoration` followed by a project suffix or `Game` is
   replaced, so prose and unrelated identifiers survive.
 - `tools/project-config.json`, which becomes the record of the chosen identity.
+- The platform-guide blocks in `AGENTS.md`, `docs/RUNTIME.md` and the
+  `runtime-access` skill, when `platform` is set.
 - The root `Start {{SHORTCUT_NAME}}.bat` filename and content, including the
   configured source environment variable.
 

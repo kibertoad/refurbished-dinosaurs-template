@@ -19,7 +19,7 @@ The engine's scripts compile against Ghidra 12.1 and 12.2, and the toolkit's CI
 compiles them against 12.2, which needs JDK 25. A new project starts on 12.2.
 For a 16-bit real-mode MZ executable, stock 12.2 loses track of CS after far
 calls; apply the fix in
-[DOS-RUNTIME-AND-LIFT.md](DOS-RUNTIME-AND-LIFT.md#the-real-mode-cs-fix) and
+[DOS-REAL-MODE-RUNTIME-AND-LIFT.md](DOS-REAL-MODE-RUNTIME-AND-LIFT.md#the-real-mode-cs-fix) and
 record the patched copy here.
 
 Check documented local paths before searching or downloading tools. Isolated

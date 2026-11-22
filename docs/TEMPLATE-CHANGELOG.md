@@ -8,6 +8,40 @@ not here.
 
 A project created from this template may delete this file.
 
+## A guide per platform, 2026-11-22
+
+- **Configuration.** `tools/project-config.json` has a `platform` field:
+  `dos-real-mode`, `dos-protected-mode`, `win16` or `win32`, empty in the
+  template. `Configure-Project.ps1` takes it from the file or `-Platform` and
+  refuses any other value, including another case of a valid one, before
+  changing a file. `Bootstrap-Project.ps1`
+  requires it. `Verify-Configuration.ps1` reports an empty or unknown value
+  in a configured repository. `tools/Platform-Guides.psm1` holds the
+  platforms and their guides.
+- **Guide selection.** `AGENTS.md`, `docs/RUNTIME.md` and the
+  `runtime-access` skill each link the platform guide inside a
+  `platform-guide` block. The template's block lists every guide;
+  configuration rewrites it to link the configured platform's guide alone,
+  so a DOS project names no Windows probe procedure and a Windows project
+  names no DOS guide. `Verify-Configuration.ps1` and
+  `Test-TemplateInfrastructure.ps1` report a block that does not match the
+  configuration. `AGENTS.md` step 0 says how to tell the platform from the
+  executable's header and to ask the owner about a DOS extender format no
+  value covers (an NE file under Borland's DPMI runtime, Phar Lap, DOS/16M),
+  and `docs/CUSTOMIZATION.md` documents the field.
+- **Guides.** `docs/DOS-RUNTIME-AND-LIFT.md` is now
+  `docs/DOS-REAL-MODE-RUNTIME-AND-LIFT.md`, one name in the
+  `<PLATFORM>-RUNTIME-AND-LIFT.md` scheme. `docs/DOS-PROTECTED-MODE-RUNTIME-AND-LIFT.md`,
+  `docs/WIN16-RUNTIME-AND-LIFT.md` and `docs/WIN32-RUNTIME-AND-LIFT.md` are
+  new. Each says which runtime the runtime record names, which Ghidra loader
+  applies (MZ with LE or LX, NE, PE), what a lift harness would have to
+  record for the protocol's checker (ports, interrupts and DPMI calls for
+  extender code; imported calls with their arguments and results, and window
+  messages, for Windows code), and what nobody has tried yet. The win32 guide
+  sends runs to `docs/WINDOWS-PROBES.md`, which stays the procedure for a
+  Windows 9x guest in rust-dos; the win16 guide links it as untried with NE
+  games.
+
 ## Rules copy at the lift-learnings protocol, 2026-11-22
 
 - **Rules.** `docs/upstream/` is refreshed to rules commit 3b8f833 (the work

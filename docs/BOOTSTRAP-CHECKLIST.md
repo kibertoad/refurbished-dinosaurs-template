@@ -50,7 +50,10 @@ and `docs/CUSTOMIZATION.md` documents every configuration knob.
 - [ ] Customize the provisional root `AGENTS.md` for this game's terminology,
       canonical patched oracle, evidence ledgers, local tools, and validation
       commands while preserving its universal safety rules.
-- [ ] Fill in `tools/project-config.json` and run `./tools/Bootstrap-Project.ps1`.
+- [ ] Fill in `tools/project-config.json`, including `platform`, and run
+      `./tools/Bootstrap-Project.ps1`. Check that `AGENTS.md`,
+      `docs/RUNTIME.md` and the `runtime-access` skill now link only that
+      platform's guide.
 - [ ] If the main branch requires pull requests, let the scheduled job in
       `.github/workflows/nightly-generated.yml` push to it: add GitHub Actions
       to the ruleset's bypass list, or give the job a token that may bypass it

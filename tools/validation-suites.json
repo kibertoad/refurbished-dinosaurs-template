@@ -242,6 +242,7 @@
     "tools/Test-TemplateInfrastructure.ps1",
     "tools/Verify-Configuration.ps1",
     "tools/Configure-Project.ps1",
+    "tools/Platform-Guides.psm1",
     "tools/project-config.json",
     "validation-inputs.json"
   ]
